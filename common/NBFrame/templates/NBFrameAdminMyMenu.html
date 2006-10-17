@@ -1,0 +1,10 @@
+<div width="95%" align="center">
+<{php}>$menuitem_count=0;<{/php}>
+<{foreach item=menuitem from=$adminmenu}>
+  <a href="<{$myurlbase}>/<{$menuitem.link}>" style="background-color:<{$menuitem.color}>;font:normal bold 9pt/12pt;"><{$menuitem.title}></a> &nbsp;
+<{php}>if(++$menuitem_count>= 4){<{/php}>
+</div>
+<div width="95%" align="center">
+<{php}>$menuitem_count=0;}<{/php}>
+<{/foreach}>
+</div>

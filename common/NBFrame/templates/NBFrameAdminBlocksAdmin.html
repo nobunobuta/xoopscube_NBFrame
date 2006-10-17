@@ -1,0 +1,70 @@
+<h3><{$modulename}></h3>
+<h4><{"Block Admin"|__l}></h4>
+<form action="?action=NBFrame.admin.BlocksAdmin" name="blockadmin" method="post">
+  <table width="95%" class="outer" cellpadding="4" cellspacing="1">
+    <tr valign="middle">
+      <th><{"Title"|__l}></th>
+      <th align="center" nowrap="nowrap"><{"Side"|__l}></th>
+      <th align="center"><{"Weight"|__l}></th>
+      <th align="center"><{"Visible in"|__l}></th>
+      <th align="center"><{"Cache time"|__l}></th>
+      <th align="right"><{"Action"|__l}></th>
+    </tr>
+<{foreach item=block from=$blocks}>
+    <tr class="<{cycle values="odd,even"}>" valign="middle">
+        <td>
+            <{$block.name}>
+            <br />
+            <input type="text" name="title[<{$block.bid}>]" value="<{$block.title}>" size="20" />
+        </td>
+        <td align="center" nowrap="nowrap" width="125px"><div style="align:center;">
+<{foreach item=side key=pos from=$block.side}>
+<{if $pos == 'none'}>
+            <br />
+            <br />
+            <div style="float:left;width:40px;">&nbsp;</div>
+<{/if}>
+            <div style="float:left;background-color:<{$block.scol.$side}>;margin-left:2px">
+                <input type="radio" name="side[<{$block.bid}>]" value="<{$side}>" style="background-color:<{$block.scol.$side}>;" <{$block.ssel.$side}> />
+            </div>
+<{if $pos=='left' || $pos=='cright'}>
+            <div style="float:left;margin-left:2px;margin-right:2px">-</div>
+<{/if}>
+<{if $pos == 'none'}>
+            <div style="float:left;"><{"None"|__l}></div>
+<{/if}>
+<{/foreach}>
+        </div></td>
+        <td align="center">
+            <input type="text" name=weight[<{$block.bid}>] value="<{$block.weight}>" size="3" maxlength="5" style="text-align:right;" />
+        </td>
+        <td align="center">
+            <select name="modules[<{$block.bid}>][]" size="5" multiple="multiple">
+                <{html_options options=$modulelist selected=$block.modules}>
+            </select>
+        </td>
+        <td align="center">
+            <select name="bcachetime[<{$block.bid}>]" size="1">
+                <{html_options options=$cachetimes selected=$block.bcachetime}>
+            </select>
+        </td>
+        <td align="right">
+            <a href="?action=NBFrame.admin.BlocksAdmin&amp;op=edit&amp;bid=<{$block.bid}>"><{"Edit"|__l}></a>
+<{if $block.can_delete}>
+            <br /><a href="?action=NBFrame.admin.BlocksAdmin&amp;op=delete&amp;bid=<{$block.bid}>"><{"Delete"|__l}></a>
+<{/if}>
+<{if $block.can_clone}>
+            <br /><a href="?action=NBFrame.admin.BlocksAdmin&amp;op=clone&amp;bid=<{$block.bid}>"><{"Clone"|__l}></a>
+<{/if}>
+            <br /><input type="hidden" name="bid[<{$block.bid}>]" value="<{$block.bid}>" />
+        </td>
+    </tr>
+<{/foreach}>
+    <tr>
+        <td class="foot" align="center" colspan="6">
+            <input type="hidden" name="op" value="order" />
+            <input type="submit" name="submit" value="<{"Submit"|__l}>" />
+        </td>
+    </tr>
+  </table>
+</form>
