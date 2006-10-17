@@ -92,8 +92,12 @@ if (!class_exists('NBFrame')) {
          */
         function executeAction($origDirName='', $defaultAction='', $allowedAction=array()) {
             $environment =& NBFrame::prepare($origDirName);
-            if (empty($defaultAction)) $defaultAction = $environment->getAttribute('defaultActionOp');
-            if (empty($allowedAction)) $allowedAction = $environment->getAttribute('allowedActionOp');
+            if (empty($defaultAction)) {
+                $defaultAction = $environment->getAttribute('ModueleMainAction');
+                if (empty($allowedAction)) {
+                    $allowedAction = $environment->getAttribute('AllowedAction');
+                }
+            }
             if ($allowedAction && !empty($_REQUEST['action'])) {
                 $requestAction = basename($_REQUEST['action']);
                 if (in_array($requestAction, $allowedAction)) {
@@ -346,7 +350,7 @@ if (!class_exists('NBFrame')) {
         // Utilitiy Functions for Blocks
 
         function prepareBlockFunction(&$environment) {
-            $blockClasses = $environment->getAttribute('blockHandler');
+            $blockClasses = $environment->getAttribute('BlockHandler');
             foreach($blockClasses as $blockClass) {
                 NBFrame::using('blocks.'.$blockClass, $environment);
                 NBFrame::prepareBlockEditFunction($environment, $blockClass);
@@ -357,18 +361,20 @@ if (!class_exists('NBFrame')) {
         function prepareBlockEditFunction($environment, $className) {
             $dirName = $environment->mCurrentDirName;
             $envStr = serialize($environment);
-            $str = 'function b_'.$dirName.'_'.$className.'_edit($option) {'."\n";
+            $str = 'if (!function_exists("b_'.$dirName.'_'.$className.'_edit")) {';
+            $str .= 'function b_'.$dirName.'_'.$className.'_edit($option) {'."\n";
             $str .= '  $environment =& unserialize(\''.$envStr.'\');'."\n";
-            $str .= 'return '.$className.'::edit($environment, $option); }';
+            $str .= 'return '.$className.'::edit($environment, $option); }}';
             eval($str);
         }
 
         function prepareBlockShowFunction($environment, $className) {
             $dirName = $environment->mCurrentDirName;
             $envStr = serialize($environment);
-            $str = 'function b_'.$dirName.'_'.$className.'_show($option) {'."\n";
+            $str = 'if (!function_exists("b_'.$dirName.'_'.$className.'_show")) {';
+            $str .= 'function b_'.$dirName.'_'.$className.'_show($option) {'."\n";
             $str .= '  $environment =& unserialize(\''.$envStr.'\');'."\n";
-            $str .= 'return '.$className.'::show($environment, $option); }';
+            $str .= 'return '.$className.'::show($environment, $option); }}';
             eval($str);
         }
         
@@ -403,6 +409,26 @@ if (!class_exists('NBFrame')) {
                 }
             }
             return false;
+        }
+
+        function getAdminMenu($environment) {
+            $languageManager =& NBFrame::getLanguageManager(NBFRAME_TARGET_TEMP);
+            if (!NBFrame::checkAltSys(false)) {
+                if ($environment->getAttribute('UseBlockAdmin')) {
+                    $adminmenu[] = array('title' => $languageManager->__l('Block Admin'),
+                                         'link'  => '?action=NBFrame.admin.BlocksAdmin' );
+                }
+            } else if ($environment->getAttribute('UseAltSys')) {
+                if ($environment->getAttribute('UseBlockAdmin')) {
+                    $adminmenu[] = array('title' => $languageManager->__l('Block Admin'),
+                                         'link'  => '?action=NBFrame.admin.AltSys&page=myblocksadmin' );
+                }
+                if ($environment->getAttribute('UseTemplateAdmin')) {
+                    $adminmenu[] = array('title' => $languageManager->__l('Template Admin'),
+                                         'link'  => '?action=NBFrame.admin.AltSys&page=mytplsadmin' );
+                }
+            }
+            return $adminmenu;
         }
         
         function findFile($name, $environment, $offset='', $searchCurrent=true, $customPrefix='') {

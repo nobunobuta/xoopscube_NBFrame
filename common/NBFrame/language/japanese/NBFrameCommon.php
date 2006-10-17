@@ -31,4 +31,7 @@
    $GLOBALS['NBFrameLanguage']['Center block - left'] = '中央ブロック - 左';
    $GLOBALS['NBFrameLanguage']['Right block'] = '右ブロック';
    $GLOBALS['NBFrameLanguage']['Left block'] = '左ブロック';
+
+   $GLOBALS['NBFrameLanguage']['Template Admin'] = 'テンプレート管理';
+
 ?>

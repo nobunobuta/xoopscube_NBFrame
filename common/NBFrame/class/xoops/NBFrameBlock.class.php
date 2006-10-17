@@ -65,8 +65,8 @@ if(!class_exists('NBFrameBlock')) {
                     $value = '';
                 }
             }
-            $this->vars['modules']['value'] = $value;
-            $this->vars['modules']['changed'] = true;
+            $this->vars['options']['value'] = $value;
+            $this->vars['options']['changed'] = true;
         }
         
         function getVar_is_custom($value, $format) {
@@ -108,22 +108,18 @@ if(!class_exists('NBFrameBlock')) {
         var $tableName = 'newblocks';
 
         function insert(&$object,$force=false,$updateOnlyChanged=false)  {
-            if ($object->isNew()) $object->setVar('isactive', 1);
+            if ($object->isNew()) {
+                $object->setVar('isactive', 1);
+            }
+            $modules = $object->getVar('modules');
+            
             $object->setVar('last_modified', time());
             $result = parent::insert($object, $force, $updateOnlyChanged);
-            if($result) {
-                if ($object->getVar('modules') !== null) {
-                    $bid = $object->getVar('bid');
-                    $modules = $object->getVar('modules');
-                    $table = $this->db->prefix('block_module_link');
-                    $sql = sprintf("DELETE FROM %s WHERE block_id = %u", $table, $bid);
-                    $result = $this->query($sql);
-                    if ($result) {
-                        foreach ($modules as $mid) {
-                            $sql = sprintf("INSERT INTO %s (block_id, module_id) VALUES (%u, %d)", $table, $bid, intval($mid));
-                            $this->query($sql);
-                        }
-                    }
+            if ($result) {
+                if ($modules !== null) {
+                    NBFrame::using('xoops.BlockModuleLink');
+                    $blockModuleLinkHandler =& NBFrame::getHandler('NBFrameBlockModuleLink', $this->mEnvironment);
+                    $blockModuleLinkHandler->insert($object->getVar('bid'), $modules, $force);
                 }
             }
             return $result;
@@ -132,11 +128,9 @@ if(!class_exists('NBFrameBlock')) {
         function delete(&$object, $force=false) {
             $result = parent::delete(&$object, $force=false);
             if($result) {
-                $bid = $object->getVar('bid');
-                $modules = $object->getVar('modules');
-                $table = $this->db->prefix('block_module_link');
-                $sql = sprintf("DELETE FROM %s WHERE block_id = %u", $table, $bid);
-                $result = $this->query($sql);
+                NBFrame::using('xoops.BlockModuleLink');
+                $blockModuleLinkHandler =& NBFrame::getHandler('NBFrameBlockModuleLink', $this->mEnvironment);
+                $result = $blockModuleLinkHandler->deleteBlock($object->getVar('bid'));
             }
             return $result;
         }

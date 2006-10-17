@@ -69,6 +69,10 @@ if (!class_exists('NBFrameObjectHandler')) {
             return $error_str;
         }
         
+        function hasError() {
+            return (count($this->_errors)) ? true : false;
+        }
+        
         function setError($error_str) {
             $this->_errors[] = $error_str;
         }

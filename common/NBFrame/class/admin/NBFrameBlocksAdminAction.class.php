@@ -77,12 +77,13 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
                     $rec['visible'] = 1;
                 }
                 $object->setFormVars($rec,'');
-                if ($this->mObjectHandler->insert($object,false,true)) {
-                    return NBFRAME_ACTION_SUCCESS;
-                } else {
-                    $this->mErrorMsg = $this->mObjectHandler->getErrors();
-                    return NBFRAME_ACTION_ERROR;
-                }
+                $this->mObjectHandler->insert($object,false,true);
+            }
+            if (!$this->mObjectHandler->hasError()) {
+                return NBFRAME_ACTION_SUCCESS;
+            } else {
+                $this->mErrorMsg = $this->mObjectHandler->getErrors();
+                return NBFRAME_ACTION_ERROR;
             }
         }
 
@@ -142,7 +143,16 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
             $moduleList[0] = $this->__L('All Pages');
             ksort($moduleList);
             $this->mXoopsTpl->assign('modulelist', $moduleList);
+
             $blockConfigs = $GLOBALS['xoopsModule']->getInfo('blocks');
+
+            $side_array = array('left'=>XOOPS_SIDEBLOCK_LEFT,
+                          'cleft'=>XOOPS_CENTERBLOCK_LEFT,
+                          'ccenter'=>XOOPS_CENTERBLOCK_CENTER,
+                          'cright'=>XOOPS_CENTERBLOCK_RIGHT,
+                          'right'=>XOOPS_SIDEBLOCK_RIGHT,
+                          'none'=>-1);
+            $this->mXoopsTpl->assign('side_array', $side_array);
 
             // blocks displaying loop
             foreach( array_keys( $this->mObjects ) as $i ) {
@@ -156,15 +166,8 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
                 $block['modules'] = $this->mObjects[$i]->getVar("modules") ;
 
                 // visible and side
-                $block['side'] = array('left'=>XOOPS_SIDEBLOCK_LEFT,
-                                       'cleft'=>XOOPS_CENTERBLOCK_LEFT,
-                                       'ccenter'=>XOOPS_CENTERBLOCK_CENTER,
-                                       'cright'=>XOOPS_CENTERBLOCK_RIGHT,
-                                       'right'=>XOOPS_SIDEBLOCK_RIGHT,
-                                       'none'=>-1);
-
                 if ( $this->mObjects[$i]->getVar("visible") != 1 ) {
-                    foreach($block['side'] as $side) {
+                    foreach($side_array as $side) {
                         $block['ssel'][$side] = '';
                         $block['scol'][$side] = '#FFFFFF';
                     }
@@ -173,7 +176,7 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
                 } else {
                     $block['ssel'][-1] = '';
                     $block['scol'][-1] = '#FFFFFF';
-                    foreach($block['side'] as $side) {
+                    foreach($side_array as $side) {
                         if ($this->mObjects[$i]->getVar("side") == $side) {
                             $block['ssel'][$side] = ' checked="checked"';
                             $block['scol'][$side] = '#00FF00';

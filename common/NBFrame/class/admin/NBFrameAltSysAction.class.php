@@ -10,6 +10,7 @@ if (!class_exists('NBFrameAltSysAction')) {
                 $this->mRequestedOp = $_REQUEST['op'];
                 $_REQUEST['op'] = 'default';
                 $_GET['op'] = 'default';
+                $_POST['op'] = 'default';
             }
         }
         function viewDefaultOp() {
@@ -25,7 +26,9 @@ if (!class_exists('NBFrameAltSysAction')) {
             } else if (!defined('XOOPS_TRUST_PATH') && is_dir(XOOPS_TRUST_PATH. '/modules/'.$this->mEnvironment->mOrigDirName)) {
                 $mytrustdirpath = XOOPS_TRUST_PATH. '/modules/'.$this->mEnvironment->mOrigDirName;
             }
+            $_REQUEST['op'] = $this->mRequestedOp;
             $_GET['op'] = $this->mRequestedOp;
+            $_POST['op'] = $this->mRequestedOp;
             if( file_exists( XOOPS_TRUST_PATH.'/libs/'.$lib.'/'.$page.'.php' ) ) {
                 include XOOPS_TRUST_PATH.'/libs/'.$lib.'/'.$page.'.php' ;
             } else if( file_exists( XOOPS_TRUST_PATH.'/libs/'.$lib.'/index.php' ) ) {

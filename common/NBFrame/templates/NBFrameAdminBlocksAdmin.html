@@ -18,7 +18,7 @@
             <input type="text" name="title[<{$block.bid}>]" value="<{$block.title}>" size="20" />
         </td>
         <td align="center" nowrap="nowrap" width="125px"><div style="align:center;">
-<{foreach item=side key=pos from=$block.side}>
+<{foreach item=side key=pos from=$side_array}>
 <{if $pos == 'none'}>
             <br />
             <br />
