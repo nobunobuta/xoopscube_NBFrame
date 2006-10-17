@@ -30,11 +30,32 @@ if (!class_exists('NBFrameAdminRender')) {
             include NBFrame::findFile('NBFrameAdminMenu.inc.php', $this->mAction->mEnvironment, 'include');
             $module =& $GLOBALS['xoopsModule'];
             if( $module->getvar('hasconfig') ){
-                array_push($adminmenu,
-                             array( 'title' => _PREFERENCES ,
-                                    'link' => 'admin/admin.php?fct=preferences&op=showmod&mod=' . $module->getvar('mid')
-                             )
-                           );
+                if (NBFrame::checkAltSys(false) && $this->mAction->mEnvironment->getAttribute('UseAltSys')) {
+                    array_push($adminmenu,
+                                 array( 'title' => _PREFERENCES ,
+                                        'link' => '?action=NBFrame.admin.AltSys&page=mypreferences'
+                                 )
+                               );
+                } else if (class_exists('XCube_Root')) {
+                    if (is_dir(XOOPS_ROOT_PATH.'/modules/base/legacy/')) {
+                        $sysDir = 'legacy';
+                    } else {
+                        $sysDir = 'base';
+                    }
+                    array_push($adminmenu,
+                                 array( 'title' => _PREFERENCES ,
+                                        'absolute' => true,
+                                        'link' => XOOPS_URL.'/modules/'.$sysDir.'/admin/?action=PreferenceEdit&confmod_id=' . $module->getvar('mid')
+                                 )
+                               );
+                } else {
+                    array_push($adminmenu,
+                                 array( 'title' => _PREFERENCES ,
+                                        'absolute' => true,
+                                        'link' => XOOPS_URL.'/modules/system/admin/admin.php?fct=preferences&op=showmod&mod=' . $module->getvar('mid')
+                                 )
+                               );
+                }
             }
             $menuitem_count = 0 ;
             $mymenu_uri = empty( $mymenu_fake_uri ) ? $_SERVER['REQUEST_URI'] : $mymenu_fake_uri ;
@@ -42,6 +63,9 @@ if (!class_exists('NBFrameAdminRender')) {
 
             // hilight
             foreach( array_keys( $adminmenu ) as $i ) {
+                if(!isset($adminmenu[$i]['absolute'])) {
+                    $adminmenu[$i]['absolute'] = false;
+                }
                 if( $mymenu_link == $adminmenu[$i]['link'] ) {
                     $adminmenu[$i]['color'] = '#FFCCCC' ;
                     $adminmenu_hilighted = true ;

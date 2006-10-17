@@ -15,8 +15,10 @@ if (!class_exists('NBFrameAltSysAction')) {
         }
         function viewDefaultOp() {
             global $xoopsConfig, $xoopsOption, $xoopsModule, $xoopsTpl, $xoopsUser, $xoopsUserIsAdmin, $xoopsLogger, $xoopsGTicket ;
-            global $mydirname, $mydirpath, $mytrustdirpath;
-
+            global $mydirname, $mydirpath, $mytrustdirpath, $db, $myts, $language, $altsys_path;
+            global $config_handler;
+            
+            $GLOBALS['db'] =& Database::getInstance();
             $lib = 'altsys';
             $page = preg_replace( '[^a-zA-Z0-9_-]' , '' , @$_GET['page'] ) ;
             $mydirname = $this->mEnvironment->mCurrentDirName;

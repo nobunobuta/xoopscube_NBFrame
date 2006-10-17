@@ -413,12 +413,8 @@ if (!class_exists('NBFrame')) {
 
         function getAdminMenu($environment) {
             $languageManager =& NBFrame::getLanguageManager(NBFRAME_TARGET_TEMP);
-            if (!NBFrame::checkAltSys(false)) {
-                if ($environment->getAttribute('UseBlockAdmin')) {
-                    $adminmenu[] = array('title' => $languageManager->__l('Block Admin'),
-                                         'link'  => '?action=NBFrame.admin.BlocksAdmin' );
-                }
-            } else if ($environment->getAttribute('UseAltSys')) {
+            $adminmenu = array();
+            if (NBFrame::checkAltSys(false)&&$environment->getAttribute('UseAltSys')) {
                 if ($environment->getAttribute('UseBlockAdmin')) {
                     $adminmenu[] = array('title' => $languageManager->__l('Block Admin'),
                                          'link'  => '?action=NBFrame.admin.AltSys&page=myblocksadmin' );
@@ -426,6 +422,11 @@ if (!class_exists('NBFrame')) {
                 if ($environment->getAttribute('UseTemplateAdmin')) {
                     $adminmenu[] = array('title' => $languageManager->__l('Template Admin'),
                                          'link'  => '?action=NBFrame.admin.AltSys&page=mytplsadmin' );
+                }
+            } else {
+                if ($environment->getAttribute('UseBlockAdmin')) {
+                    $adminmenu[] = array('title' => $languageManager->__l('Block Admin'),
+                                         'link'  => '?action=NBFrame.admin.BlocksAdmin' );
                 }
             }
             return $adminmenu;
