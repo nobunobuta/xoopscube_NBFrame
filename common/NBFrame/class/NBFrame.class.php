@@ -73,6 +73,11 @@ if (!class_exists('NBFrame')) {
         function &getEnvironments($target=NBFRAME_TARGET_MAIN, $force = false) {
             static $mEnvironmentArr;
             if (isset($mEnvironmentArr[$target])) {
+                if ($target == NBFRAME_TARGET_TEMP && $force) {
+                    unset($mEnvironmentArr[$target]);
+                    NBFrame::using('Environment');
+                    $mEnvironmentArr[$target] =& new NBFrameEnvironment();
+                }
                 $ret =& $mEnvironmentArr[$target];
             } else if ($force) {
                 NBFrame::using('Environment');
@@ -220,8 +225,8 @@ if (!class_exists('NBFrame')) {
 
         function &getXoopsVersionFileName($origDirName) {
             $environment =& NBFrame::prepare($origDirName, NBFRAME_TARGET_INSTALLER);
-            $fineName= NBFrame::findFile('xoops_version.php', $environment, '', false);
-            return $fineName;
+            $fileName= NBFrame::findFile('xoops_version.php', $environment, '', false);
+            return $fileName;
         }
         
         function &getInstallHelper($dupmark='XX') {
@@ -347,6 +352,17 @@ if (!class_exists('NBFrame')) {
             eval($str);
         }
 
+        function getBlockShowFunction($className) {
+            $installHelper =& NBFrame::getInstallHelper();
+            $dirName = $installHelper->mDirName;
+            return 'b_'.$dirName.'_'.$className.'_show';
+        }
+
+        function getBlockEditFunction($className) {
+            $installHelper =& NBFrame::getInstallHelper();
+            $dirName = $installHelper->mDirName;
+            return 'b_'.$dirName.'_'.$className.'_edit';
+        }
         // Utilitiy Functions for Blocks
 
         function prepareBlockFunction(&$environment) {
@@ -434,11 +450,13 @@ if (!class_exists('NBFrame')) {
         
         function findFile($name, $environment, $offset='', $searchCurrent=true, $customPrefix='') {
             static $fileNames;
-            if (isset($fileNames[$offset][$name])) {
-                return $fileNames[$offset][$name];
-            }
             $origDirName = $environment->mOrigDirName;
             $dirName = $environment->mCurrentDirName;
+            $key = md5($dirName.$origDirName.$offset.$name);
+            if (isset($fileNames[$key])) {
+                return $fileNames[$key];
+            }
+            
             if (!empty($offset)) {
                 $offset = preg_replace('/^\//','',trim($offset));
                 $offset = preg_replace('/\/$/','',$offset);

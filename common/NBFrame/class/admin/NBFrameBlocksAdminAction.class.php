@@ -19,18 +19,17 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
         }
 
         function prepare() {
-            NBFrameAction::prepare();
+            NBFrame::using('xoops.Block');
+            $NullEnv = null;
+            $this->mObjectHandler =& NBFrame::getHandler('NBFrameBlock', $NullEnv);
+
+            parent::prepare('NBFrameBlocksAdmin','NBFrameBlocksAdmin',$this->__l('Block Admin'));
+
             $this->mDefaultOp = 'list';
             $this->mAllowedOp = array('list', 'edit', 'delete', 'deleteok', 'clone', 'order', 'save', 'insert',);
             $this->mFormTemplate = 'NBFrameAdminForm.html';
             $this->setObjectForm('NBFrame.admin.BlocksAdmin');
             $this->mListTemplate = 'NBFrameAdminBlocksAdmin.html';
-            $this->mName = 'NBFrameBlocksAdmin';
-            $this->mCaption = $this->__l('Block Admin');
-            NBFrame::using('xoops.Block');
-            $NullEnv = null;
-            $this->mObjectHandler =& NBFrame::getHandler('NBFrameBlock', $NullEnv);
-            $this->setObjectKeyField();
         }
 
         function executeListOp() {

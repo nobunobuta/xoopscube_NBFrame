@@ -93,7 +93,20 @@ if (!class_exists('NBFrameObjectHandler')) {
          * @return  NBFrameObject
          */
         function &create($isNew = true) {
-            $record = new $this->_entityClassName;
+            if (class_exists($this->_entityClassName)) {
+                $record = new $this->_entityClassName;
+            } else {
+                $record =& new NBFrameObject;
+                NBFrame::using('TebleParser');
+                $parser = new NBFrameTebleParser($this->db);
+                $parser->setInitVars($this->tableName, $record);
+                $record->setAttribute('dohtml', 0);
+                $record->setAttribute('doxcode', 1);
+                $record->setAttribute('dosmiley', 1);
+                $record->setAttribute('doimage', 1);
+                $record->setAttribute('dobr', 1);
+            }
+            $record->_className = $this->_entityClassName;
             if ($isNew) {
                 $record->setNew();
             }
@@ -175,7 +188,7 @@ if (!class_exists('NBFrameObjectHandler')) {
          * @return  bool    成功の時は TRUE
          */
         function insert(&$record,$force=false,$updateOnlyChanged=false) {
-            if ( get_class($record) != $this->_entityClassName ) {
+            if (is_a($record, 'NBFrameObject') && $record->_className != $this->_entityClassName ) {
                 return false;
             }
             if ( !$record->isDirty() ) {
@@ -292,7 +305,7 @@ if (!class_exists('NBFrameObjectHandler')) {
          * @return  bool    成功の時は TRUE
          */
         function delete(&$record, $force=false) {
-            if ( get_class($record) != $this->_entityClassName ) {
+            if (is_a($record, 'NBFrameObject') && $record->_className != $this->_entityClassName ) {
                 return false;
             }
             if (!$record->cleanVars()) {

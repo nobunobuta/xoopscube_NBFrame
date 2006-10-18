@@ -29,11 +29,13 @@ if(!class_exists('NBFrameObject')) {
         var $_handler;
         var $_form;
         var $_list;
-
+        var $_className;
+        
         function NBFrameObject() {
             //親クラスのコンストラクタ呼出
             $this->XoopsObject();
             $this->_handler = null;
+            $this->_className=get_class($this);
         }
         
         function initVar($key, $data_type, $value = null, $required = false, $maxlength = null, $options = '') {

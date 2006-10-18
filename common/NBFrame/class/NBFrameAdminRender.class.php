@@ -27,6 +27,7 @@ if (!class_exists('NBFrameAdminRender')) {
         }
 
         function renderMyMenu() {
+            $adminmenu = array();
             include NBFrame::findFile('NBFrameAdminMenu.inc.php', $this->mAction->mEnvironment, 'include');
             $module =& $GLOBALS['xoopsModule'];
             if( $module->getvar('hasconfig') ){

@@ -6,6 +6,7 @@ if(!class_exists('NBFrameModule')) {
     class NBFrameModule extends NBFrameObject
     {
         function NBFrameModule() {
+            parent::NBFrameObject();
             $this->initVar('mid', XOBJ_DTYPE_INT, null, false);
             $this->initVar('name', XOBJ_DTYPE_TXTBOX, null, true, 150);
             $this->initVar('version', XOBJ_DTYPE_INT, 100, false);

@@ -6,6 +6,7 @@ if(!class_exists('NBFrameBlock')) {
     class NBFrameBlock extends NBFrameObject
     {
         function NBFrameBlock() {
+            parent::NBFrameObject();
             $this->initVar('bid', XOBJ_DTYPE_INT, null, false);
             $this->initVar('mid', XOBJ_DTYPE_INT, 0, false);
             $this->initVar('func_num', XOBJ_DTYPE_INT, 0, false);

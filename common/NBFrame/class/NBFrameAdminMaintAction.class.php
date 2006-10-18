@@ -23,21 +23,7 @@ if (!class_exists('NBFrameAdminMaintAction')) {
             $this->setObjectForm('admin.'.$name.'Admin');
             $this->mListTemplate = 'NBFrameAdminList.html';
             $this->setObjectList('admin.'.$name.'Admin');
-            $this->setObjectKeyField();
         }
-/*
-        function startRender() {
-            global $xoopsConfig, $xoopsModule;
-            xoops_cp_header();
-            $this->renderMyMenu();
-        }
-
-        function endRender() {
-            global $xoopsConfig, $xoopsModule;
-            $this->mXoopsTpl->display($this->mCurrentTemplate);
-            xoops_cp_footer();
-        }
-*/
         function viewFormOp() {
             parent::viewFormOp();
             $this->mXoopsTpl->assign('modulename', $GLOBALS['xoopsModule']->getVar('name'));
@@ -64,42 +50,6 @@ if (!class_exists('NBFrameAdminMaintAction')) {
         function executeActionError() {
             redirect_header($this->mUrl, 2, $this->mErrorMsg,2);
         }
-/*
-        function renderMyMenu() {
-            include NBFrame::findFile('admin_menu.inc.php', $this->mEnvironment, 'include');
-            $module =& $GLOBALS['xoopsModule'];
-            if( $module->getvar('hasconfig') ){
-                array_push($adminmenu,
-                             array( 'title' => _PREFERENCES ,
-                                    'link' => 'admin/admin.php?fct=preferences&op=showmod&mod=' . $module->getvar('mid')
-                             )
-                           );
-            }
-            $menuitem_count = 0 ;
-            $mymenu_uri = empty( $mymenu_fake_uri ) ? $_SERVER['REQUEST_URI'] : $mymenu_fake_uri ;
-            $mymenu_link = substr( strstr( $mymenu_uri , '/admin/' ) , 1 ) ;
-
-            // hilight
-            foreach( array_keys( $adminmenu ) as $i ) {
-                if( $mymenu_link == $adminmenu[$i]['link'] ) {
-                    $adminmenu[$i]['color'] = '#FFCCCC' ;
-                    $adminmenu_hilighted = true ;
-                } else {
-                    $adminmenu[$i]['color'] = '#DDDDDD' ;
-                }
-            }
-            if( empty( $adminmenu_hilighted ) ) {
-                foreach( array_keys( $adminmenu ) as $i ) {
-                    if( stristr( $mymenu_uri , $adminmenu[$i]['link'] ) ) {
-                        $adminmenu[$i]['color'] = '#FFCCCC' ;
-                    }
-                }
-            }
-            $this->mXoopsTpl->assign('adminmenu', $adminmenu);
-            $this->mXoopsTpl->assign('myurlbase', $this->getUrlBase());
-            $this->mXoopsTpl->display('NBFrameAdminMyMenu.html');
-        }
-*/
     }
 }
 ?>

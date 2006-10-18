@@ -5,6 +5,7 @@ if(!class_exists('NBFrameBlockModuleLink')) {
 
     class NBFrameBlockModuleLink extends NBFrameObject {
         function NBFrameBlockModuleLink() {
+            parent::NBFrameObject();
             $this->initVar('block_id', XOBJ_DTYPE_INT, 0, false);
             $this->initVar('module_id', XOBJ_DTYPE_INT, 0, false);
 

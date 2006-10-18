@@ -32,6 +32,11 @@ if (!class_exists('NBFrameObjectAction')) {
          * @var NBFrameObject
          */
         var $mObject = null;
+        
+        var $mObjectArr = array();
+
+        var $mObjectAllCount = 0;
+        
         var $mPageNav;
         /**
          * @var string
@@ -79,7 +84,9 @@ if (!class_exists('NBFrameObjectAction')) {
 
             $this->mName = $name;
             $this->mCaption = $caption;
-            $this->mObjectHandler =& NBFrame::getHandler($classprefix, $this->mEnvironment);
+            if (!$this->mObjectHandler) {
+                $this->mObjectHandler =& NBFrame::getHandler($classprefix, $this->mEnvironment);
+            }
             $this->setObjectKeyField();
         }
 
@@ -91,10 +98,24 @@ if (!class_exists('NBFrameObjectAction')) {
         
         function setObjectForm($className) {
             $this->mObjectForm =& NBFrame::getinstance($className, $this->mEnvironment, 'Form');
+            if (!$this->mObjectForm) {
+                NBFrame::using('ObjectForm');
+                $this->mObjectForm =& New NBFrameObjectForm($this->mEnvironment);
+                NBFrame::using('TebleParser');
+                $parser = new NBFrameTebleParser($this->mObjectHandler->db);
+                $parser->setFormElements($this->mObjectHandler->tableName, $this->mObjectForm);
+            }
         }
 
         function setObjectList($className) {
             $this->mObjectList =& NBFrame::getinstance($className, $this->mEnvironment, 'List');
+            if (!$this->mObjectList) {
+                NBFrame::using('ObjectList');
+                $this->mObjectList =& New NBFrameObjectList($this->mEnvironment);
+                NBFrame::using('TebleParser');
+                $parser = new NBFrameTebleParser($this->mObjectHandler->db);
+                $parser->setListElements($this->mObjectHandler->tableName, $this->mObjectList);
+            }
             $this->mObjectList->bindAction($this);
             $this->mObjectList->prepare();
         }
@@ -242,6 +263,7 @@ if (!class_exists('NBFrameObjectAction')) {
             $this->mListOrder = $order;
             
             $this->mObjectArr =& $this->mObjectHandler->getObjects($criteria);
+            $this->mObjectAllCount = $this->mObjectHandler->getCount($criteria);
             return NBFRAME_ACTION_VIEW_DEFAULT;
             break;
         }
@@ -291,7 +313,7 @@ if (!class_exists('NBFrameObjectAction')) {
                 $this->mXoopsTpl->assign('headers',$this->mObjectList->mListHeaders);
                 $this->mXoopsTpl->assign('records',$this->mObjectList->mListRecords);
                 $this->mXoopsTpl->assign('lang', array('new'=>$this->__l('New')));
-                $this->mXoopsTpl->assign('newlink', $this->mUrl.'?op=new');
+                $this->mXoopsTpl->assign('newlink', $this->addUrlParam('op=new'));
                 $this->mXoopsTpl->assign('pagenav', $this->mPageNav->renderNav());
             }
         }
@@ -299,7 +321,10 @@ if (!class_exists('NBFrameObjectAction')) {
         function _getPageNav() {
             require_once XOOPS_ROOT_PATH.'/class/pagenav.php';
             $extra = 'sort='.$this->mListSort.'&amp;order='.$this->mListOrder;
-            $this->mPageNav =& new XoopsPageNav(count($this->mObjectArr), $this->mListPerPage, $this->mListStart, 'start', $extra);
+            if (!empty($this->mActionName)) {
+                $extra .= '&action='.$this->mActionName;
+            }
+            $this->mPageNav =& new XoopsPageNav($this->mObjectAllCount, $this->mListPerPage, $this->mListStart, 'start', $extra);
         }
 
         function preViewViewOp() {

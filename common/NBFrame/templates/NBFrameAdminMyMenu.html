@@ -1,7 +1,11 @@
 <div width="95%" align="center">
 <{php}>$menuitem_count=0;<{/php}>
 <{foreach item=menuitem from=$adminmenu}>
+<{if $menuitem.absolute}>
+  <a href="<{$menuitem.link}>" style="background-color:<{$menuitem.color}>;font:normal bold 9pt/12pt;"><{$menuitem.title}></a> &nbsp;
+<{else}>
   <a href="<{$myurlbase}>/<{$menuitem.link}>" style="background-color:<{$menuitem.color}>;font:normal bold 9pt/12pt;"><{$menuitem.title}></a> &nbsp;
+<{/if}>
 <{php}>if(++$menuitem_count>= 4){<{/php}>
 </div>
 <div width="95%" align="center">
