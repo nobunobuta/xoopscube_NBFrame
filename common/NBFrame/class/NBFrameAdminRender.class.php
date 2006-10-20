@@ -8,7 +8,7 @@ if (!class_exists('NBFrameAdminRender')) {
             $this->_loadAdminCommon();
             $this->mLanguage->setInAdmin(true);
         }
-        function start() {
+        function &start() {
             global $xoopsConfig, $xoopsModule;
             NBFrame::using('AdminTpl');
             $this->mXoopsTpl =& new NBFrameAdminTpl($this->mDirName, $this->mLanguage);

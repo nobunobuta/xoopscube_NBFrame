@@ -19,9 +19,7 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
         }
 
         function prepare() {
-            NBFrame::using('xoops.Block');
-            $NullEnv = null;
-            $this->mObjectHandler =& NBFrame::getHandler('NBFrameBlock', $NullEnv);
+            $this->mObjectHandler =& NBFrame::getHandler('NBFrame.xoops.Block', $this->mEnvironment);
 
             parent::prepare('NBFrameBlocksAdmin','NBFrameBlocksAdmin',$this->__l('Block Admin'));
 
@@ -131,9 +129,7 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
                                 
             $this->mXoopsTpl->assign('cachetimes', $cachetimes);
             
-            NBFrame::using('xoops.Module');
-            $NullEnv = null;
-            $moduleHandler =& NBFrame::getHandler('NBFrameModule', $NullEnv);
+            $moduleHandler =& NBFrame::getHandler('NBFrame.xoops.Module', $this->mEnvironment);
 
             $criteria = new CriteriaCompo(new Criteria('hasmain', 1));
             $criteria->add(new Criteria('isactive', 1));

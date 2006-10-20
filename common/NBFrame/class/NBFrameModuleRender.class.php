@@ -3,7 +3,7 @@ if (!class_exists('NBFrame')) exit();
 if (!class_exists('NBFrameModuleRender')) {
     NBFrame::using('Render');
     class NBFrameModuleRender extends NBFrameRender {
-        function start() {
+        function &start() {
             global $xoopsConfig, $xoopsOption, $xoopsModule, $xoopsTpl, $xoopsUser, $xoopsUserIsAdmin, $xoopsLogger;
             if (!empty($this->mTemplate)) {
                 $GLOBALS['xoopsOption']['template_main'] = $this->mTemplate;

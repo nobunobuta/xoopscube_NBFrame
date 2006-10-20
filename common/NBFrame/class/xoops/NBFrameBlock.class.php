@@ -1,8 +1,5 @@
 <?php
 if(!class_exists('NBFrameBlock')) {
-    NBFrame::using('Object');
-    NBFrame::using('ObjectHandler');
-
     class NBFrameBlock extends NBFrameObject
     {
         function NBFrameBlock() {
@@ -38,14 +35,13 @@ if(!class_exists('NBFrameBlock')) {
             $this->setAutoIncrementField('bid');
         }
 
-        function getVar_modules($value, $format) {
+        function &getVar_modules($value, $format) {
             if ($value === null) {
-                $modules = array();
-                $db =& $this->_handler->db;
-                $sql = 'SELECT module_id FROM '.$db->prefix('block_module_link').' WHERE block_id='.intval($this->getVar('bid'));
-                $result = $this->_handler->query($sql);
+                $blockModuleLinkHandler =& NBFrame::getHandler('NBFrame.xoops.BlockModuleLink', $this->mEnvironment);
+                $criteria =& new Criteria('block_id', $this->getVar('bid'));
+                $resultSet = $blockModuleLinkHandler->open($criteria);
                 $value = array();
-                while ($row = $db->fetchArray($result)) {
+                while ($row = $blockModuleLinkHandler->db->fetchArray($resultSet)) {
                     $value[] = intval($row['module_id']);
                 }
                 $this->vars['modules']['value'] = $value;
@@ -57,7 +53,7 @@ if(!class_exists('NBFrameBlock')) {
             $this->vars['modules']['value'] = $value;
             $this->vars['modules']['changed'] = true;
         }
-        
+
         function setVar_options($value) {
             if (is_array($value)) {
                 if (count($value)>0) {
@@ -69,8 +65,8 @@ if(!class_exists('NBFrameBlock')) {
             $this->vars['options']['value'] = $value;
             $this->vars['options']['changed'] = true;
         }
-        
-        function getVar_is_custom($value, $format) {
+
+        function &getVar_is_custom($value, $format) {
             if ($value === null) {
                 $value = ($this->getVar('block_type') == 'C' ||
                           $this->getVar('block_type') == 'E') ? true : false;
@@ -78,8 +74,8 @@ if(!class_exists('NBFrameBlock')) {
             }
             return $value;
         }
-        
-        function getVar_edit_form($value, $format) {
+
+        function &getVar_edit_form($value, $format) {
             if ($value === null) {
                 if (!$this->getVar('is_custom')) {
                     $edit_func = $this->getVar('edit_func');
@@ -104,9 +100,10 @@ if(!class_exists('NBFrameBlock')) {
             return $value;
         }
     }
-    
+
     class NBFrameBlockHandler extends NBFrameObjectHandler {
         var $tableName = 'newblocks';
+        var $mUseModuleTablePrefix = false;
 
         function insert(&$object,$force=false,$updateOnlyChanged=false)  {
             if ($object->isNew()) {
@@ -118,8 +115,7 @@ if(!class_exists('NBFrameBlock')) {
             $result = parent::insert($object, $force, $updateOnlyChanged);
             if ($result) {
                 if ($modules !== null) {
-                    NBFrame::using('xoops.BlockModuleLink');
-                    $blockModuleLinkHandler =& NBFrame::getHandler('NBFrameBlockModuleLink', $this->mEnvironment);
+                    $blockModuleLinkHandler =& NBFrame::getHandler('NBFrame.xoops.BlockModuleLink', $this->mEnvironment);
                     $blockModuleLinkHandler->insert($object->getVar('bid'), $modules, $force);
                 }
             }
@@ -129,8 +125,7 @@ if(!class_exists('NBFrameBlock')) {
         function delete(&$object, $force=false) {
             $result = parent::delete(&$object, $force=false);
             if($result) {
-                NBFrame::using('xoops.BlockModuleLink');
-                $blockModuleLinkHandler =& NBFrame::getHandler('NBFrameBlockModuleLink', $this->mEnvironment);
+                $blockModuleLinkHandler =& NBFrame::getHandler('NBFrame.xoops.BlockModuleLink', $this->mEnvironment);
                 $result = $blockModuleLinkHandler->deleteBlock($object->getVar('bid'));
             }
             return $result;

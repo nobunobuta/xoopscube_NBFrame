@@ -10,12 +10,13 @@ if (!class_exists('NBFrameObjectHandler')) {
         var $tableAlias = null;
         var $useFullCache;
         var $cacheLimit;
+        var $_className;
         var $_entityClassName;
         var $_errors;
         var $_fullCached;
         var $_sql;
         var $mEnvironment = null;
-
+        var $mUseModuleTablePrefix = true;
         /**
          * Enter description here...
          *
@@ -23,7 +24,8 @@ if (!class_exists('NBFrameObjectHandler')) {
          * @return NBFrameObjectHandler
          */
         function NBFrameObjectHandler($db) {
-            $this->_entityClassName = preg_replace("/handler$/i","", get_class($this));
+            $this->_className = get_class($this);
+            $this->_entityClassName = preg_replace("/handler$/i","", $this->_className);
             parent::XoopsObjectHandler($db);
             if ($this->tableBaseName) {
                 $this->tableName = $this->db->prefix($this->tableBaseName);
@@ -107,6 +109,7 @@ if (!class_exists('NBFrameObjectHandler')) {
                 $record->setAttribute('dobr', 1);
             }
             $record->_className = $this->_entityClassName;
+            $record->prepare();
             if ($isNew) {
                 $record->setNew();
             }
@@ -558,7 +561,7 @@ if (!class_exists('NBFrameObjectHandler')) {
 
         function getAutoIncrementValue()
         {
-            return $this->db->genId(get_class($this).'_id_seq');
+            return $this->db->genId($this->_className.'_id_seq');
         }
 
         function &query($sql, $force=false, $limit=0, $start=0) {

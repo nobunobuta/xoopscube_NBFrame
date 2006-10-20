@@ -1,9 +1,9 @@
 <?php
     class NBFrameTebleParser {
         var $mDB;
-        var $mPrimaryKeys = array();
         var $mFields = array();
-        var $mStructure = array();
+        var $mKeys = array();
+        var $mPrimaryKeys = array();
 
         function NBFrameTebleParser(&$db) {
             $this->db_=& $db;
@@ -12,7 +12,7 @@
         function setInitVars($table, &$object) {
             $this->parse($table);
             $name = false;
-            foreach($this->fetchStructure() as $field) {
+            foreach($this->mFields as $field) {
                 $key = $field['Field'];
                 $type = $this->convertXoopsObjectType($field['Type']);
                 $value = "";
@@ -61,7 +61,7 @@
         function setFormElements($table, &$object) {
             $this->parse($table);
             $name = false;
-            foreach($this->fetchStructure() as $field) {
+            foreach($this->mFields as $field) {
                 $key = $field['Field'];
                 $type = $this->convertXoopsObjectType($field['Type']);
                 $value = "";
@@ -94,7 +94,7 @@
             $this->parse($table);
             $name = false;
             $keys = array();
-            foreach($this->fetchStructure() as $field) {
+            foreach($this->mFields as $field) {
                 $key = $field['Field'];
                 $type = $this->convertXoopsObjectType($field['Type']);
                 $value = "";
@@ -128,34 +128,32 @@
         }
 
         function parse($table) {
-            $sql = 'SHOW KEYS FROM '.$table;
-            $res=$this->db_->queryF($sql);
+            static $sKeys = array(), $sPrimaryKeys = array(), $sFields = array();
+            
+            if (!isset($sFields[$table])) {
+                $sql = 'SHOW KEYS FROM '.$table;
+                $result = $this->db_->queryF($sql);
+                while($row = $this->db_->fetchArray($result)) {
+                    $sKeys[$table][] = $row;
+                    if($row['Key_name'] == 'PRIMARY') {
+                       $sPrimaryKeys[$table][$row['Seq_in_index']-1] = $row['Column_name'];
+                    }
+                    unset($row);
+                }
+                // Field
+                $sql = 'SHOW FULL FIELDS FROM '.$table;
+                $result2 = $this->db_->queryF($sql);
 
-            while($row=$this->db_->fetchArray($res)) {
-                $this->keys_[] = $row;
-                if($row['Key_name'] == 'PRIMARY') {
-                    $this->mPrimaryKeys[$row['Seq_in_index']-1] = $row['Column_name'];
+                while($row = $this->db_->fetchArray($result2)) {
+                    $sFields[$table][] = $row;
+                    unset($row);
                 }
             }
-
-            // Field
-            $sql ='SHOW FULL FIELDS FROM '.$table;
-            $res2=$this->db_->queryF($sql);
-
-            while($row=$this->db_->fetchArray($res2)) {
-                $this->mFields[]=$row;
-                unset($row);
-            }
+            $this->mKeys = $sKeys[$table];
+            $this->mPrimaryKeys = $sPrimaryKeys[$table];
+            $this->mFields = $sFields[$table];
         }
 
-        function fetchStructure() {
-            $ret = array();
-            foreach ( $this->mFields as $field ) {
-                $ret[] = $field;
-            }
-            return $ret;
-        }
-        
         function convertXoopsObjectType($type) {
             $type = strtolower($type);
             if(preg_match("/^(\w+)/",$type,$match)) {
@@ -176,11 +174,10 @@
                 }
                 return XOBJ_DTYPE_INT;
             }
-            return "ERROR";
+            return false;
         }
 
-        function fetchSizeFromField($type)
-        {
+        function fetchSizeFromField($type) {
             if(preg_match("/\(([\d]+)[,\)]$/",$type,$match)) {
                 return intval($match[1]);
             }

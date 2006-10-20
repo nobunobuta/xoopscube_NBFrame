@@ -4,6 +4,7 @@ if (!class_exists('NBFrame')) {
     if (!defined('NBFRAME_TARGET_MAIN')) define('NBFRAME_TARGET_MAIN',1);
     if (!defined('NBFRAME_TARGET_BLOCK')) define('NBFRAME_TARGET_BLOCK',2);
     if (!defined('NBFRAME_TARGET_INSTALLER')) define('NBFRAME_TARGET_INSTALLER',3);
+    if (!defined('NBFRAME_TARGET_SYS')) define('NBFRAME_TARGET_SYS', 4);
     if (!defined('NBFRAME_TARGET_TEMP')) define('NBFRAME_TARGET_TEMP', 99);
 
     if (!defined('NBFRAME_NO_DEFAULT_PARAM')) define('NBFRAME_NO_DEFAULT_PARAM', '__nodefault__');
@@ -16,7 +17,7 @@ if (!class_exists('NBFrame')) {
          * @param NBFrameEnvironment $environment
          * @param string $classType
          */
-        function using($className, $environment='', $classType='class') {
+        function using($className, $environment=null, $classType='class') {
             if (substr($className, 0, 1) == '+') { // if $className starts with '+', custom Override is disabled.
                 $noCustom = true;
                 $className = substr($className, 1);
@@ -72,7 +73,9 @@ if (!class_exists('NBFrame')) {
 
         function &getEnvironments($target=NBFRAME_TARGET_MAIN, $force = false) {
             static $mEnvironmentArr;
-            if (isset($mEnvironmentArr[$target])) {
+            if ($target == NBFRAME_TARGET_SYS) {
+                $ret = null;
+            } else if (isset($mEnvironmentArr[$target])) {
                 if ($target == NBFRAME_TARGET_TEMP && $force) {
                     unset($mEnvironmentArr[$target]);
                     NBFrame::using('Environment');
@@ -170,26 +173,36 @@ if (!class_exists('NBFrame')) {
         function &getHandler($className, &$environment) {
             static $mHandlerArr;
             $ret = false;
-            $dirName = $origDirName = '';
-            if (!empty($environment)) {
+            $dirName = '';
+
+            $classPath = str_replace('.', '/', basename($className));
+            $classBaseName = basename($classPath);
+            $classOffset = dirname('/'.$classPath);
+            if ($classOffset == '/') $classOffset = '';
+            $classOffsetName = str_replace('/', '.', dirname($classPath));
+
+            if (preg_match('/^NBFrame\.(.*)/', $className, $match)) {
+                $key = $className;
+            } else if (!empty($environment)) {
                 $dirName = $environment->mCurrentDirName;
-                $origDirName = $environment->mOrigDirName;;
                 $key = $dirName.'_'.$className;
-                if (empty($origDirName)) {
-                    $origDirName = $dirName;
-                }
             } else {
                 $key = $className;
             }
 
-            $handlerClassName = $className.'Handler';
+            $handlerClassName = $classBaseName.'Handler';
 
             if (!isset($mHandlerArr[$key])) {
-                if (!empty($dirName) && !class_exists($handlerClassName)) {
+                if (preg_match('/^NBFrame\.(.*)/', $className, $match)) {
                     NBFrame::using('Object');
                     NBFrame::using('ObjectHandler');
-
-                    $dirName = $environment->mCurrentDirName;
+                    $className = $match[1];
+                    NBFrame::using($className);
+                    $classBaseName = 'NBFrame'.$classBaseName;
+                    $handlerClassName = $classBaseName.'Handler';
+                } else if (!empty($environment) && !class_exists($handlerClassName)) {
+                    NBFrame::using('Object');
+                    NBFrame::using('ObjectHandler');
                     $fileName = NBFrame::findFile($className.'.class.php', $environment, 'class' , true, $dirName.'_');
                     if ($fileName) require_once $fileName;
                 }
@@ -199,11 +212,21 @@ if (!class_exists('NBFrame')) {
                 } else if (class_exists($handlerClassName)) {
                     $mHandlerArr[$key] =& new $handlerClassName($GLOBALS['xoopsDB']);
                     $ret =& $mHandlerArr[$key];
+                } else if (preg_match('/^realname\.(\w+)/',$className, $match)) {
+                    $handlerClassName = 'NBFrameRealTable'.$handlerClassName;
+                    $entityClassName = 'NBFrameRealTable'.$classBaseName;
+                    $mHandlerArr[$key] =& new NBFrameObjectHandler($GLOBALS['xoopsDB']);
+                    $ret =& $mHandlerArr[$key];
+                    $ret->setTableBaseName($match[1]);
+                    $ret->mUseModuleTablePrefix = false;
+                    $ret->_className = $handlerClassName;
+                    $ret->_entityClassName = $entityClassName;
                 }
-                if ($ret && !empty($environment)) {
+                
+                if ($ret && !empty($environment) && $ret->mUseModuleTablePrefix) {
                     $ret->setTableBaseName($dirName.'_'.$ret->getTableBaseName());
-                    $ret->mEnvironment = $environment;
                 }
+                $ret->mEnvironment =& $environment;
             } else {
                 $ret =& $mHandlerArr[$key];
             }
@@ -379,7 +402,7 @@ if (!class_exists('NBFrame')) {
             $envStr = serialize($environment);
             $str = 'if (!function_exists("b_'.$dirName.'_'.$className.'_edit")) {';
             $str .= 'function b_'.$dirName.'_'.$className.'_edit($option) {'."\n";
-            $str .= '  $environment =& unserialize(\''.$envStr.'\');'."\n";
+            $str .= '  $environment = unserialize(\''.$envStr.'\');'."\n";
             $str .= 'return '.$className.'::edit($environment, $option); }}';
             eval($str);
         }
@@ -389,7 +412,7 @@ if (!class_exists('NBFrame')) {
             $envStr = serialize($environment);
             $str = 'if (!function_exists("b_'.$dirName.'_'.$className.'_show")) {';
             $str .= 'function b_'.$dirName.'_'.$className.'_show($option) {'."\n";
-            $str .= '  $environment =& unserialize(\''.$envStr.'\');'."\n";
+            $str .= '  $environment = unserialize(\''.$envStr.'\');'."\n";
             $str .= 'return '.$className.'::show($environment, $option); }}';
             eval($str);
         }

@@ -38,6 +38,9 @@ if(!class_exists('NBFrameObject')) {
             $this->_className=get_class($this);
         }
         
+        function prepare() {
+        }
+        
         function initVar($key, $data_type, $value = null, $required = false, $maxlength = null, $options = '') {
             parent::initVar($key, $data_type, $value, $required, $maxlength, $options);
             $this->vars[$key]['var_class'] = XOBJ_VCLASS_TFIELD;
@@ -139,7 +142,7 @@ if(!class_exists('NBFrameObject')) {
                     //個別の変数Getがあれば実行;
                     $setMethod = 'setVar_'.$key;
                     if(method_exists($this, $setMethod)) {
-                        $ret =& $this->$setMethod($value, $not_gpc);
+                        $this->$setMethod($value, $not_gpc);
                         $this->setDirty();
                     } else {
                         $this->vars[$key]['value'] = $value;

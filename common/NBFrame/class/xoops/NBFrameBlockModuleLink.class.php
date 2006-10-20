@@ -1,20 +1,8 @@
 <?php
 if(!class_exists('NBFrameBlockModuleLink')) {
-    NBFrame::using('Object');
-    NBFrame::using('ObjectHandler');
-
-    class NBFrameBlockModuleLink extends NBFrameObject {
-        function NBFrameBlockModuleLink() {
-            parent::NBFrameObject();
-            $this->initVar('block_id', XOBJ_DTYPE_INT, 0, false);
-            $this->initVar('module_id', XOBJ_DTYPE_INT, 0, false);
-
-            $this->setKeyFields(array('block_id','module_id'));
-        }
-    }
-
     class NBFrameBlockModuleLinkHandler extends NBFrameObjectHandler {
         var $tableName = 'block_module_link';
+        var $mUseModuleTablePrefix = false;
         
         function insert($bid, $modules, $force=false) {
             $this->deleteBlock($bid);
@@ -37,7 +25,6 @@ if(!class_exists('NBFrameBlockModuleLink')) {
             $criteria =& new Criteria('Module_id', $mid);
             return $this->deleteAll($criteria, $force);
         }
-
     }
 }
 ?>

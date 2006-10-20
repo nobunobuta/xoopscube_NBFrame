@@ -11,7 +11,7 @@ if (!class_exists('NBFrameBlocksAdminForm')) {
             $this->addElement('side', new XoopsFormSelect($this->__l('Side'), 'side'));
             $this->addElement('weight', new XoopsFormText($this->__l('Weight'), 'weight', 2, 5));
             $this->addElement('visible', new XoopsFormRadioYN($this->__l('Visible'), 'visible'));
-            $this->addElement('modules', new XoopsFormSelect($this->__l('Visible in'), 'modules', '', 5, true));
+            $this->addElement('modules', new XoopsFormSelect($this->__l('Visible in'), 'modules', array(), 5, true));
             $this->addElement('title', new XoopsFormText($this->__l('Title'), 'title', 50, 255, ''));
             if (!$this->mAction->mObject->getVar('is_custom')) {
                 if ($this->mAction->mObject->getVar('edit_form') != false) {
@@ -32,18 +32,25 @@ if (!class_exists('NBFrameBlocksAdminForm')) {
             ));
 
             $this->addOptionArray('bcachetime', array(
-               '0' => _NOCACHE, '30' => sprintf(_SECONDS, 30), '60' => _MINUTE,
-               '300' => sprintf(_MINUTES, 5), '1800' => sprintf(_MINUTES, 30),
-               '3600' => _HOUR, '18000' => sprintf(_HOURS, 5), '86400' => _DAY,
-               '259200' => sprintf(_DAYS, 3), '604800' => _WEEK, '2592000' => _MONTH
+               '0' => _NOCACHE,
+               '30' => sprintf(_SECONDS, 30),
+               '60' => _MINUTE,
+               '300' => sprintf(_MINUTES, 5),
+               '1800' => sprintf(_MINUTES, 30),
+               '3600' => _HOUR,
+               '18000' => sprintf(_HOURS, 5),
+               '86400' => _DAY,
+               '259200' => sprintf(_DAYS, 3),
+               '604800' => _WEEK,
+               '2592000' => _MONTH
             ));
 
-            $module_handler =& xoops_gethandler('module');
+            $moduleHandler =& NBFrame::getHandler('NBFrame.xoops.Module', $this->mEnvironment);
             $criteria = new CriteriaCompo(new Criteria('hasmain', 1));
             $criteria->add(new Criteria('isactive', 1));
-            $module_list =& $module_handler->getList($criteria);
-            $module_list[-1] = $this->__l('Top Page');
-            $module_list[0] = $this->__l('All Pages');
+            $module_list =& $moduleHandler->getSelectOptionArray($criteria);
+            $module_list[-1] = $this->__L('Top Page');
+            $module_list[0] = $this->__L('All Pages');
             ksort($module_list);
             $this->addOptionArray('modules',$module_list);
         }
