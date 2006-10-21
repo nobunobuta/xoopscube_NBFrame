@@ -424,7 +424,7 @@ if (!class_exists('NBFrameObjectHandler')) {
                         $sql .= ' HAVING '.$having;
                     }
                 }
-                if ((is_array($criteria->getSort()) && count($criteria->getSorts()) > 0)) {
+                if ((is_array($criteria->getSort()) && count($criteria->getSort()) > 0)) {
                     $orderStr = 'ORDER BY ';
                     $orderDelim = "";
                     $sortVars = $criteria->getSort();
@@ -565,11 +565,9 @@ if (!class_exists('NBFrameObjectHandler')) {
         }
 
         function &query($sql, $force=false, $limit=0, $start=0) {
-            if (empty($GLOBALS['_xoopsTableQueryCount'])) {
-                $GLOBALS['_xoopsTableQueryCount'] = 1;
-            } else {
-                $GLOBALS['_xoopsTableQueryCount']++;
-            }
+            static $_xoopsTableQueryCount = 0;
+            $_xoopsTableQueryCount++;
+
             if (!empty($GLOBALS['wpdb'])) {
                 $GLOBALS['wpdb']->querycount++;
             }

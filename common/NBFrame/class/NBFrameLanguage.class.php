@@ -9,7 +9,7 @@ if (!class_exists('NBFrameLanguage')) {
 
         function NBFrameLanguage($target, $inAdmin=false) {
             $this->mEnvironment =& NBFrame::getEnvironments($target);
-            $this->mDirName = $this->mEnvironment->mCurrentDirName;
+            $this->mDirName = $this->mEnvironment->mDirName;
             if (!empty($this->mEnvironment->mOrigDirName)) {
                 $this->mOrigDirName = $this->mEnvironment->mOrigDirName;
             } else {
@@ -34,6 +34,7 @@ if (!class_exists('NBFrameLanguage')) {
         function setInAdmin($inAdmin) {
             $this->mInAdmin = $inAdmin;
             if ($inAdmin) {
+                $this->loadModuleLanguageFile('modinfo.php');
                 $this->loadModuleLanguageFile('admin.php');
             }
         }

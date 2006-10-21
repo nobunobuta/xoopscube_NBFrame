@@ -26,9 +26,8 @@ if (!class_exists('NBFrameAction')) {
         var $mLoadCommon = true;
 
         function NBFrameAction(&$environment) {
-            $this->_loadCommon();
             $this->mEnvironment = $environment;
-            $this->mDirName = $environment->mCurrentDirName;
+            $this->mDirName = $environment->mDirName;
             if (!empty($environment->mOrigDirName)) {
                 $this->mOrigDirName = $environment->mOrigDirName;
             } else {
@@ -181,15 +180,6 @@ if (!class_exists('NBFrameAction')) {
             if (preg_match('/["\'](\w*)["\']/',$str,$match)) {
                 $str = $match[1];
                 return $this->mLanguage->__e_s($str);
-            }
-        }
-
-        function _loadCommon() {
-            global $xoopsDB, $xoopsTpl, $xoopsRequestUri, $xoopsModule, $xoopsModuleConfig,
-                   $xoopsModuleUpdate, $xoopsUser, $xoopsUserIsAdmin, $xoopsTheme, $xoopsAction,
-                   $xoopsConfig, $xoopsOption, $xoopsCachedTemplate, $xoopsLogger, $xoopsDebugger;
-            if ($this->mLoadCommon) {
-                require_once XOOPS_ROOT_PATH.'/include/common.php';
             }
         }
     }

@@ -3,14 +3,14 @@ if (!class_exists('NBFrame')) exit();
 if (!class_exists('NBFrameEnvironment')) {
     class NBFrameEnvironment {
         var $mOrigDirName;
-        var $mCurrentDirBase;
-        var $mCurrentDirName;
-        var $mCurrentUrlBase;
+        var $mDirBase;
+        var $mDirName;
+        var $mUrlBase;
         var $mAttributeArr;
 
         function NBFrameEnvironment($origDirName='', $currentDirBase='') {
             $this->setOrigDirName($origDirName);
-            $this->setCurrentDirBase($currentDirBase);
+            $this->setDirBase($currentDirBase);
         }
 
         function setOrigDirName($origDirName='') {
@@ -19,11 +19,11 @@ if (!class_exists('NBFrameEnvironment')) {
             }
         }
 
-        function setCurrentDirBase($currentDirBase='') {
-            if (!empty($currentDirBase)) {
-                $this->mCurrentDirBase = $currentDirBase;
-                $this->mCurrentDirName = basename($currentDirBase);
-                $this->mCurrentUrlBase = XOOPS_URL.'/modules/'.$this->mCurrentDirName;
+        function setDirBase($dirBase='') {
+            if (!empty($dirBase)) {
+                $this->mDirBase = $dirBase;
+                $this->mDirName = basename($dirBase);
+                $this->mUrlBase = XOOPS_URL.'/modules/'.$this->mDirName;
             }
         }
 
@@ -42,7 +42,7 @@ if (!class_exists('NBFrameEnvironment')) {
         }
 
         function prefix($basename) {
-            return $this->mCurrentDirName.'_'.$basename;
+            return $this->mDirName.'_'.$basename;
         }
         
     }

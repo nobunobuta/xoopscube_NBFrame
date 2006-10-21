@@ -35,7 +35,7 @@ if (!class_exists('NBFrame')) {
                     require_once NBFRAME_BASE_DIR.$fileOffset;
                 }
             } else {
-                $dirName = $environment->mCurrentDirName;
+                $dirName = $environment->mDirName;
                 $fileName = NBFrame::findFile($className.'.class.php', $environment, $classType.$classOffset, true, $dirName.'_');
                 if ($fileName) require_once $fileName;
             }
@@ -48,7 +48,7 @@ if (!class_exists('NBFrame')) {
          */
         function prePrepare($currentDirBase) {
             $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_TEMP, true);
-            $environment->setCurrentDirBase($currentDirBase);
+            $environment->setDirBase($currentDirBase);
         }
 
         function &prepare($origDirName='', $target=NBFRAME_TARGET_MAIN) {
@@ -60,7 +60,7 @@ if (!class_exists('NBFrame')) {
                 } else {
                     $environment->setOrigDirName($envtemp->mOrigDirName);
                 }
-                $environment->setCurrentDirBase($envtemp->mCurrentDirBase);
+                $environment->setDirBase($envtemp->mDirBase);
                 $environment->mAttributeArr = $envtemp->mAttributeArr;
                 if ($target != NBFRAME_TARGET_MAIN) {
                     NBFrame::getLanguageManager($target);
@@ -149,7 +149,7 @@ if (!class_exists('NBFrame')) {
             } else {
                 NBFrame::using($className, $environment);
             }
-            $dirName = $environment->mCurrentDirName;
+            $dirName = $environment->mDirName;
             
             $instance = null;
 
@@ -184,7 +184,7 @@ if (!class_exists('NBFrame')) {
             if (preg_match('/^NBFrame\.(.*)/', $className, $match)) {
                 $key = $className;
             } else if (!empty($environment)) {
-                $dirName = $environment->mCurrentDirName;
+                $dirName = $environment->mDirName;
                 $key = $dirName.'_'.$className;
             } else {
                 $key = $className;
@@ -256,7 +256,7 @@ if (!class_exists('NBFrame')) {
             static $mInstallHelperArr;
 
             $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
-            $dirname = $environment->mCurrentDirName;
+            $dirname = $environment->mDirName;
             $origname = $environment->mOrigDirName;
 
             if (!isset($mInstallHelperArr[$dirname])) {
@@ -398,7 +398,7 @@ if (!class_exists('NBFrame')) {
         }
 
         function prepareBlockEditFunction($environment, $className) {
-            $dirName = $environment->mCurrentDirName;
+            $dirName = $environment->mDirName;
             $envStr = serialize($environment);
             $str = 'if (!function_exists("b_'.$dirName.'_'.$className.'_edit")) {';
             $str .= 'function b_'.$dirName.'_'.$className.'_edit($option) {'."\n";
@@ -408,7 +408,7 @@ if (!class_exists('NBFrame')) {
         }
 
         function prepareBlockShowFunction($environment, $className) {
-            $dirName = $environment->mCurrentDirName;
+            $dirName = $environment->mDirName;
             $envStr = serialize($environment);
             $str = 'if (!function_exists("b_'.$dirName.'_'.$className.'_show")) {';
             $str .= 'function b_'.$dirName.'_'.$className.'_show($option) {'."\n";
@@ -474,7 +474,7 @@ if (!class_exists('NBFrame')) {
         function findFile($name, $environment, $offset='', $searchCurrent=true, $customPrefix='') {
             static $fileNames;
             $origDirName = $environment->mOrigDirName;
-            $dirName = $environment->mCurrentDirName;
+            $dirName = $environment->mDirName;
             $key = md5($dirName.$origDirName.$offset.$name);
             if (isset($fileNames[$key])) {
                 return $fileNames[$key];
