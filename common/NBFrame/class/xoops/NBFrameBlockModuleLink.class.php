@@ -1,7 +1,7 @@
 <?php
 if(!class_exists('NBFrameBlockModuleLink')) {
     class NBFrameBlockModuleLinkHandler extends NBFrameObjectHandler {
-        var $tableName = 'block_module_link';
+        var $mTableName = 'block_module_link';
         var $mUseModuleTablePrefix = false;
         
         function insert($bid, $modules, $force=false) {

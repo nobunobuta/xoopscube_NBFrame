@@ -219,8 +219,8 @@ if (!class_exists('NBFrame')) {
                     $ret =& $mHandlerArr[$key];
                     $ret->setTableBaseName($match[1]);
                     $ret->mUseModuleTablePrefix = false;
-                    $ret->_className = $handlerClassName;
-                    $ret->_entityClassName = $entityClassName;
+                    $ret->mClassName = $handlerClassName;
+                    $ret->mEntityClassName = $entityClassName;
                 }
                 
                 if ($ret && !empty($environment) && $ret->mUseModuleTablePrefix) {
@@ -266,16 +266,6 @@ if (!class_exists('NBFrame')) {
             return $mInstallHelperArr[$dirname];
         }
 
-        function setModuleTemplate($basename) {
-            $installHelper =& NBFrame::getInstallHelper();
-            return $installHelper->setModuleTemplateforDuplicate($basename);
-        }
-        
-        function setBlockTemplate($basename, $isBlock=false) {
-            $installHelper =& NBFrame::getInstallHelper();
-            return $installHelper->setBlockTemplateforDuplicate($basename);
-        }
-        
         function executePreUpdateProcess($modversion) {
             $installHelper =& NBFrame::getInstallHelper();
             if ($installHelper->isPreModuleUpdate() && !$installHelper->isPreModuleUpdateDone() ) {
@@ -317,6 +307,17 @@ if (!class_exists('NBFrame')) {
             $dirName = $installHelper->mDirName;
             return 'b_'.$dirName.'_'.$className.'_edit';
         }
+
+        function setModuleTemplate($basename) {
+            $installHelper =& NBFrame::getInstallHelper();
+            return $installHelper->setModuleTemplateforDuplicate($basename);
+        }
+        
+        function setBlockTemplate($basename, $isBlock=false) {
+            $installHelper =& NBFrame::getInstallHelper();
+            return $installHelper->setBlockTemplateforDuplicate($basename);
+        }
+        
         // Utilitiy Functions for Blocks
 
         function prepareBlockFunction(&$environment) {

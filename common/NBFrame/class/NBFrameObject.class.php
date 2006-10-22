@@ -21,21 +21,18 @@ if(!class_exists('NBFrameObject')) {
 
     class NBFrameObject  extends XoopsObject
     {
-        var $_extra_vars = array();
-        var $_keys;
-        var $_nameField;
-        var $_autoIncrement;
-        var $_listTableElements;
-        var $_handler;
-        var $_form;
-        var $_list;
-        var $_className;
+        var $mExtraVars = array();
+        var $mKeys;
+        var $mNameField;
+        var $mAutoIncrement;
+        var $mHandler;
+        var $mClassName;
         
         function NBFrameObject() {
             //親クラスのコンストラクタ呼出
             $this->XoopsObject();
-            $this->_handler = null;
-            $this->_className=get_class($this);
+            $this->mHandler = null;
+            $this->mClassName = get_class($this);
         }
         
         function prepare() {
@@ -52,46 +49,45 @@ if(!class_exists('NBFrameObject')) {
         }
 
         function setKeyFields($keys) {
-            $this->_keys = $keys;
+            $this->mKeys = $keys;
         }
 
         function getKeyFields() {
-            return $this->_keys;
+            return $this->mKeys;
         }
 
         function isKey($field) {
-            return in_array($field,$this->_keys);
+            return in_array($field,$this->mKeys);
         }
 
         function cacheKey() {
             $recordKeys = $this->getKeyFields();
-            $recordVars = $this->getVars();
             $cacheKey = array();
-            foreach ($this->getKeyFields() as $k => $v) {
-                $cacheKey[$v] = $this->getVar($v);
+            foreach ($recordKeys as $key) {
+                $cacheKey[$key] = $this->getVar($key);
             }
-            return(serialize($cacheKey));
+            return serialize($cacheKey);
         }
 
         function getKey($format = 's') {
-            if (!array($this->_keys)) {
+            if (!array($this->mKeys)) {
                 return false;
             } else {
-                return $this->getVar($this->_keys[0], $format);;
+                return $this->getVar($this->mKeys[0], $format);;
             }
         }
 
         //AUTO_INCREMENT属性のフィールドはテーブルに一つしかない前提
         function setAutoIncrementField($fieldName) {
-            $this->_autoIncrement = $fieldName;
+            $this->mAutoIncrement = $fieldName;
         }
 
         function &getAutoIncrementField() {
-            return $this->_autoIncrement;
+            return $this->mAutoIncrement;
         }
 
         function isAutoIncrement($fieldName) {
-            return ($fieldName == $this->_autoIncrement);
+            return ($fieldName == $this->mAutoIncrement);
         }
 
         function resetChenged() {
@@ -109,20 +105,20 @@ if(!class_exists('NBFrameObject')) {
         }
 
         function &getExtraVar($key) {
-            return $this->_extra_vars[$key];
+            return $this->mExtraVars[$key];
         }
 
         function setExtraVar($key, $value) {
-            $this->_extra_vars[$key] =& $value;
+            $this->mExtraVars[$key] =& $value;
         }
 
         function setNameField($fieldname) {
-            $this->nameField = $fieldname;
+            $this->mNameField = $fieldname;
         }
 
         function getName($format = 's') {
-            if ($this->nameField) {
-                return $this->getVar($this->nameField, $format);
+            if ($this->mNameField) {
+                return $this->getVar($this->mNameField, $format);
             } else {
                 return false;
             }
@@ -196,7 +192,7 @@ if(!class_exists('NBFrameObject')) {
                     $this->$checkMethod($value, $mode);
                 }
             }
-            if (count($this->_errors) > 0) {
+            if (count($this->getErrors()) > 0) {
                 return false;
             }
             return true;
@@ -263,7 +259,7 @@ if(!class_exists('NBFrameObject')) {
             foreach ($this->vars as $k => $v) {
                 $wp_object->$k = $v['value'];
             }
-            foreach ($this->_extra_vars as $k => $v) {
+            foreach ($this->mExtraVars as $k => $v) {
                 $wp_object->$k = $v;
             }
             return $wp_object;

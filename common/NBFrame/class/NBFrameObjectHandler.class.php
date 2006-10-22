@@ -5,16 +5,13 @@ if (!class_exists('NBFrameObjectHandler')) {
 
     class NBFrameObjectHandler  extends XoopsObjectHandler
     {
-        var $tableName = null;
-        var $tableBaseName = null;
-        var $tableAlias = null;
-        var $useFullCache;
-        var $cacheLimit;
-        var $_className;
-        var $_entityClassName;
-        var $_errors;
-        var $_fullCached;
-        var $_sql;
+        var $mTableName = null;
+        var $mTableBaseName = null;
+        var $mTableAlias = null;
+        var $mClassName;
+        var $mEntityClassName;
+        var $mErrors;
+        var $mSql;
         var $mEnvironment = null;
         var $mUseModuleTablePrefix = true;
         /**
@@ -24,18 +21,18 @@ if (!class_exists('NBFrameObjectHandler')) {
          * @return NBFrameObjectHandler
          */
         function NBFrameObjectHandler($db) {
-            $this->_className = get_class($this);
-            $this->_entityClassName = preg_replace("/handler$/i","", $this->_className);
+            $this->mClassName = get_class($this);
+            $this->mEntityClassName = preg_replace("/handler$/i","", $this->mClassName);
             parent::XoopsObjectHandler($db);
-            if ($this->tableBaseName) {
-                $this->tableName = $this->db->prefix($this->tableBaseName);
+            if ($this->mTableBaseName) {
+                $this->mTableName = $this->db->prefix($this->mTableBaseName);
             } else {
-                if ($this->tableName) {
-                    $this->tableBaseName = $this->tableName;
-                    $this->tableName = $this->db->prefix($this->tableName);
+                if ($this->mTableName) {
+                    $this->mTableBaseName = $this->mTableName;
+                    $this->mTableName = $this->db->prefix($this->mTableName);
                 }
             }
-            $this->_errors = array();
+            $this->mErrors = array();
         }
 
         /**
@@ -44,7 +41,7 @@ if (!class_exists('NBFrameObjectHandler')) {
          * @return string
          */
         function getTableBaseName() {
-            return $this->tableBaseName;
+            return $this->mTableBaseName;
         }
 
         /**
@@ -54,37 +51,37 @@ if (!class_exists('NBFrameObjectHandler')) {
          */
         function setTableBaseName($name) {
             if ($name) {
-                $this->tableBaseName = $name;
-                $this->tableName = $this->db->prefix($name);
+                $this->mTableBaseName = $name;
+                $this->mTableName = $this->db->prefix($name);
             }
         }
 
         function getErrors($html=true, $clear=true) {
             $error_str = "";
             $delim = $html ? "<br />\n" : "\n";
-            if (count($this->_errors)) {
-                $error_str = implode($delim, $this->_errors);
+            if (count($this->mErrors)) {
+                $error_str = implode($delim, $this->mErrors);
             }
             if ($clear) {
-                $this->_errors = array();
+                $this->mErrors = array();
             }
             return $error_str;
         }
         
         function hasError() {
-            return (count($this->_errors)) ? true : false;
+            return (count($this->mErrors)) ? true : false;
         }
         
         function setError($error_str) {
-            $this->_errors[] = $error_str;
+            $this->mErrors[] = $error_str;
         }
 
         function setAlias($alias) {
-            $this->tableAlias = $alias;
+            $this->mTableAlias = $alias;
         }
 
         function getAlias() {
-            return($this->tableAlias);
+            return($this->mTableAlias);
         }
 
         /**
@@ -95,25 +92,25 @@ if (!class_exists('NBFrameObjectHandler')) {
          * @return  NBFrameObject
          */
         function &create($isNew = true) {
-            if (class_exists($this->_entityClassName)) {
-                $record = new $this->_entityClassName;
+            if (class_exists($this->mEntityClassName)) {
+                $record = new $this->mEntityClassName;
             } else {
                 $record =& new NBFrameObject;
                 NBFrame::using('TebleParser');
                 $parser = new NBFrameTebleParser($this->db);
-                $parser->setInitVars($this->tableName, $record);
+                $parser->setInitVars($this->mTableName, $record);
                 $record->setAttribute('dohtml', 0);
                 $record->setAttribute('doxcode', 1);
                 $record->setAttribute('dosmiley', 1);
                 $record->setAttribute('doimage', 1);
                 $record->setAttribute('dobr', 1);
             }
-            $record->_className = $this->_entityClassName;
+            $record->mClassName = $this->mEntityClassName;
             $record->prepare();
             if ($isNew) {
                 $record->setNew();
             }
-            $record->_handler =& $this;
+            $record->mHandler =& $this;
             return $record;
         }
 
@@ -127,11 +124,9 @@ if (!class_exists('NBFrameObjectHandler')) {
         function &get($keys) {
             $ret = false;
             $record =& $this->create(false);
-            $recordKeys = $record->getKeyFields();
-            $recordVars = $record->getVars();
 
             if ($whereStr = $this->_key2where($keys)) {
-                $sql = sprintf("SELECT * FROM %s WHERE %s",$this->tableName, $whereStr);
+                $sql = sprintf("SELECT * FROM %s WHERE %s",$this->mTableName, $whereStr);
 
                 if ( !$result =& $this->query($sql) ) {
                     return $ret;
@@ -149,11 +144,12 @@ if (!class_exists('NBFrameObjectHandler')) {
             return $ret;
         }
 
+
         function _key2where($keys) {
             $record =& $this->create(false);
             $recordKeys = $record->getKeyFields();
             $recordVars = $record->getVars();
-            if (gettype($keys) != 'array') {
+            if (!is_array($keys)) {
                 if (count($recordKeys) == 1) {
                     $keys = array($recordKeys[0] => $keys);
                 } else {
@@ -162,15 +158,15 @@ if (!class_exists('NBFrameObjectHandler')) {
             }
             $whereStr = "";
             $whereAnd = "";
-            foreach ($record->getKeyFields() as $k => $v) {
-                if (array_key_exists($v, $keys)) {
-                    $whereStr .= $whereAnd . "`$v` = ";
-                    if ($recordVars[$v]['data_type'] == XOBJ_DTYPE_INT) {
-                        $whereStr .= intval($keys[$v]);
-                    } else if ($recordVars[$v]['data_type'] == XOBJ_DTYPE_FLOAT) {
-                        $whereStr .= floatval($keys[$v]);
+            foreach ($recordKeys as $key) {
+                if (array_key_exists($key, $keys)) {
+                    $whereStr .= $whereAnd . "`$key` = ";
+                    if ($recordVars[$key]['data_type'] == XOBJ_DTYPE_INT) {
+                        $whereStr .= intval($keys[$key]);
+                    } else if ($recordVars[$key]['data_type'] == XOBJ_DTYPE_FLOAT) {
+                        $whereStr .= floatval($keys[$key]);
                     } else {
-                        $whereStr .= $this->db->quoteString($keys[$v]);
+                        $whereStr .= $this->db->quoteString($keys[$key]);
                     }
                     $whereAnd = " AND ";
                 } else {
@@ -191,14 +187,14 @@ if (!class_exists('NBFrameObjectHandler')) {
          * @return  bool    成功の時は TRUE
          */
         function insert(&$record,$force=false,$updateOnlyChanged=false) {
-            if (is_a($record, 'NBFrameObject') && $record->_className != $this->_entityClassName ) {
+            if (is_a($record, 'NBFrameObject') && $record->mClassName != $this->mEntityClassName ) {
                 return false;
             }
             if ( !$record->isDirty() ) {
                 return true;
             }
             if (!$record->cleanVars()) {
-                $this->_errors += $record->getErrors();
+                $this->mErrors += $record->getErrors();
                 return false;
             }
             $vars = $record->getVars();
@@ -243,7 +239,7 @@ if (!class_exists('NBFrameObjectHandler')) {
                 }
                 $fieldList .= ")";
                 $valueList .= ")";
-                $sql = sprintf("INSERT INTO %s %s VALUES %s", $this->tableName,$fieldList,$valueList);
+                $sql = sprintf("INSERT INTO %s %s VALUES %s", $this->mTableName,$fieldList,$valueList);
             } else {
                 $setList = "";
                 $setDelim = "";
@@ -280,7 +276,7 @@ if (!class_exists('NBFrameObjectHandler')) {
                     $record->resetChenged();
                     return true;
                 }
-                $sql = sprintf("UPDATE %s SET %s WHERE %s", $this->tableName, $setList, $whereList);
+                $sql = sprintf("UPDATE %s SET %s WHERE %s", $this->mTableName, $setList, $whereList);
             }
             if (!$result =& $this->query($sql, $force)) {
                 return false;
@@ -308,11 +304,11 @@ if (!class_exists('NBFrameObjectHandler')) {
          * @return  bool    成功の時は TRUE
          */
         function delete(&$record, $force=false) {
-            if (is_a($record, 'NBFrameObject') && $record->_className != $this->_entityClassName ) {
+            if (is_a($record, 'NBFrameObject') && $record->mClassName != $this->mEntityClassName ) {
                 return false;
             }
             if (!$record->cleanVars()) {
-                $this->_errors[] = $this->db->error();
+                $this->mErrors[] = $this->db->error();
                 return false;
             }
             $vars = $record->getVars();
@@ -329,7 +325,7 @@ if (!class_exists('NBFrameObjectHandler')) {
                     $whereDelim = " AND ";
                 }
             }
-            $sql = sprintf("DELETE FROM %s WHERE %s", $this->tableName, $whereList);
+            $sql = sprintf("DELETE FROM %s WHERE %s", $this->mTableName, $whereList);
             if (!$result =& $this->query($sql, $force)) {
                 return false;
             }
@@ -395,22 +391,22 @@ if (!class_exists('NBFrameObjectHandler')) {
             }
             if ($fieldlist) {
                 if ($this->getAlias() != '') {
-                    $sql = 'SELECT '.$distinct.$fieldlist.' FROM '.$this->tableName.' AS '.$this->getAlias();
+                    $sql = 'SELECT '.$distinct.$fieldlist.' FROM '.$this->mTableName.' AS '.$this->getAlias();
                 } else {
-                    $sql = 'SELECT '.$distinct.$fieldlist.' FROM '.$this->tableName;
+                    $sql = 'SELECT '.$distinct.$fieldlist.' FROM '.$this->mTableName;
                 }
             } else {
                 if ($this->getAlias() != '') {
-                    $sql = 'SELECT '.$distinct.'* FROM '.$this->tableName.' AS '.$this->getAlias();
+                    $sql = 'SELECT '.$distinct.'* FROM '.$this->mTableName.' AS '.$this->getAlias();
                 } else {
-                    $sql = 'SELECT '.$distinct.'* FROM '.$this->tableName;
+                    $sql = 'SELECT '.$distinct.'* FROM '.$this->mTableName;
                 }
             }
             if ($joindef) {
                 if ($this->getAlias() != '') {
                     $sql .= $joindef->render($this->getAlias());
                 } else {
-                    $sql .= $joindef->render($this->tableName);
+                    $sql .= $joindef->render($this->mTableName);
                 }
             }
             if (isset($criteria) && is_subclass_of($criteria, 'criteriaelement')) {
@@ -469,7 +465,7 @@ if (!class_exists('NBFrameObjectHandler')) {
          */
         function getCount($criteria = null)
         {
-            $sql = 'SELECT COUNT(*) FROM '.$this->tableName;
+            $sql = 'SELECT COUNT(*) FROM '.$this->mTableName;
             if (isset($criteria) && is_subclass_of($criteria, 'criteriaelement')) {
                 $sql .= ' '.$this->_renderWhere($criteria);
             }
@@ -504,7 +500,7 @@ if (!class_exists('NBFrameObjectHandler')) {
                 $fieldvalue = $this->db->quoteString($fieldvalue);
             }
             $set_clause = $fieldname.' = '.$fieldvalue;
-            $sql = 'UPDATE '.$this->tableName.' SET '.$set_clause;
+            $sql = 'UPDATE '.$this->mTableName.' SET '.$set_clause;
             if (isset($criteria) && is_subclass_of($criteria, 'criteriaelement')) {
                 $sql .= ' '.$this->_renderWhere($criteria);
             }
@@ -524,7 +520,7 @@ if (!class_exists('NBFrameObjectHandler')) {
          */
         function deleteAll($criteria = null, $force=false)
         {
-            $sql = 'DELETE FROM '.$this->tableName;
+            $sql = 'DELETE FROM '.$this->mTableName;
             if (isset($criteria) && is_subclass_of($criteria, 'criteriaelement')) {
                 $sql .= ' '.$this->_renderWhere($criteria);
             }
@@ -535,12 +531,12 @@ if (!class_exists('NBFrameObjectHandler')) {
         }
 
         function getName($keys, $format='s'){
-            if ($GLOBALS['_NBFrameTableCache']->exists($this->tableName.'__getName_'.$format, serialize($keys))) {
-                return $GLOBALS['_NBFrameTableCache']->get($this->tableName.'__getName_'.$format, serialize($keys));
+            if ($GLOBALS['_NBFrameTableCache']->exists($this->mTableName.'__getName_'.$format, serialize($keys))) {
+                return $GLOBALS['_NBFrameTableCache']->get($this->mTableName.'__getName_'.$format, serialize($keys));
             }
             if ($record =& $this->get($keys)) {
                 $value = $record->getName($format);
-                $GLOBALS['_NBFrameTableCache']->set($this->tableName.'__getName_'.$format, serialize($keys), $value);
+                $GLOBALS['_NBFrameTableCache']->set($this->mTableName.'__getName_'.$format, serialize($keys), $value);
                 return $value;
             } else {
                 return false;
@@ -561,7 +557,7 @@ if (!class_exists('NBFrameObjectHandler')) {
 
         function getAutoIncrementValue()
         {
-            return $this->db->genId($this->_className.'_id_seq');
+            return $this->db->genId($this->mClassName.'_id_seq');
         }
 
         function &query($sql, $force=false, $limit=0, $start=0) {
@@ -576,12 +572,12 @@ if (!class_exists('NBFrameObjectHandler')) {
             } else {
                 $result =& $this->db->query($sql, $limit, $start);
             }
-            $this->_sql = $sql;
+            $this->mSql = $sql;
             $this->_start = $start;
             $this->_limit = $limit;
 
             if (!$result) {
-                $this->_errors[] = $this->db->error();
+                $this->mErrors[] = $this->db->error();
                 $result = false;
             }
             return $result;
@@ -589,7 +585,7 @@ if (!class_exists('NBFrameObjectHandler')) {
 
         function getLastSQL()
         {
-            return $this->_sql;
+            return $this->mSql;
         }
 
         function _renderWhere($criteria) {

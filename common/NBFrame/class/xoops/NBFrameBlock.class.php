@@ -102,7 +102,7 @@ if(!class_exists('NBFrameBlock')) {
     }
 
     class NBFrameBlockHandler extends NBFrameObjectHandler {
-        var $tableName = 'newblocks';
+        var $mTableName = 'newblocks';
         var $mUseModuleTablePrefix = false;
 
         function insert(&$object,$force=false,$updateOnlyChanged=false)  {

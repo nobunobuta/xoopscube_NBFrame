@@ -5,22 +5,15 @@ if (!class_exists('NBFrameCachedObjectHandler')) {
 
     class NBFrameCachedObjectHandler  extends NBFrameObjectHandler
     {
-        var $tableName;
-        var $useFullCache;
-        var $cacheLimit;
-        var $_entityClassName;
-        var $_errors;
-        var $_fullCached;
-        var $_sql;
+        var $mUseFullCache;
+        var $mCacheLimit;
+        var $mFullCached;
 
-        function NBFrameObjectHandler($db)
-        {
-            $this->_entityClassName = preg_replace("/handler$/i","", get_class($this));
-            $this->XoopsObjectHandler($db);
-            $this->_errors = array();
-            $this->useFullCache = true;
-            $this->cacheLimit = 0;
-            $this->_fullCached = false;
+        function NBFrameCachedObjectHandler($db)  {
+            parent::NBFrameObjectHandler($db);
+            $this->mUseFullCache = true;
+            $this->mCacheLimit = 0;
+            $this->mFullCached = false;
         }
 
         /**
@@ -30,58 +23,43 @@ if (!class_exists('NBFrameCachedObjectHandler')) {
          *
          * @return  object  {@link NBFrameObject}, FALSE on fail
          */
-        function &get($keys)
-        {
+        function &get($keys) {
             $ret = false;
+            if ($cacheKey = $this->_getCacheKey($keys)) {
+                if ($GLOBALS['_NBFrameTableCache']->exists($this->mTableName, $cacheKey)) {
+                    $record->assignVars($GLOBALS['_NBFrameTableCache']->get($this->mTableName, $cacheKey));
+                    $ret = $record;
+                } else {
+                    $ret = parent::get($keys);
+                    $GLOBALS['_NBFrameTableCache']->set($this->tableName, $cacheKey, $ret, $this->cacheLimit);
+                }
+            }
+            return $ret;
+        }
+
+        function _getCacheKey($keys) {
             $record =& $this->create(false);
             $recordKeys = $record->getKeyFields();
-            $recordVars = $record->getVars();
-            if (gettype($keys) != 'array') {
+            $cacheKey = array();
+            if (!is_array($keys)) {
                 if (count($recordKeys) == 1) {
                     $keys = array($recordKeys[0] => $keys);
                 } else {
-                    return $ret;
+                    return false;
                 }
             }
-            $whereStr = "";
-            $whereAnd = "";
-            $cacheKey = array();
-            foreach ($record->getKeyFields() as $k => $v) {
-                if (array_key_exists($v, $keys)) {
-                    $whereStr .= $whereAnd . "`$v` = ";
-                    if (($recordVars[$v]['data_type'] == XOBJ_DTYPE_INT) || ($recordVars[$v]['data_type'] == XOBJ_DTYPE_FLOAT)) {
-                        $whereStr .= $keys[$v];
-                    } else {
-                        $whereStr .= $this->db->quoteString($keys[$v]);
-                    }
-                    $whereAnd = " AND ";
-                    $cacheKey[$v] = $keys[$v];
+            foreach ($recordKeys as $key) {
+                if (array_key_exists($key, $keys)) {
+                    $cacheKey[$key] = $this->getVar($key);
                 } else {
-                    return $ret;
+                    unset($record);
+                    return false;
                 }
-            }
-            $cacheKey = serialize($cacheKey);
-            if ($GLOBALS['_NBFrameTableCache']->exists($this->tableName, $cacheKey)) {
-                $record->assignVars($GLOBALS['_NBFrameTableCache']->get($this->tableName, $cacheKey));
-                return $record;
-            }
-            $sql = sprintf("SELECT * FROM %s WHERE %s",$this->tableName, $whereStr);
-
-            if ( !$result =& $this->query($sql) ) {
-                return $ret;
-            }
-            $numrows = $this->db->getRowsNum($result);
-//      echo $numrows."<br/>";
-            if ( $numrows == 1 ) {
-                $row = $this->db->fetchArray($result);
-                $record->assignVars($row);
-                $GLOBALS['_NBFrameTableCache']->set($this->tableName, $cacheKey, $row, $this->cacheLimit);
-                $this->db->freeRecordSet($result);
-                return $record;
             }
             unset($record);
-            return $ret;
+            return serialize($cacheKey);
         }
+
         /**
          * レコードの保存
          *
@@ -92,117 +70,9 @@ if (!class_exists('NBFrameCachedObjectHandler')) {
          */
         function insert(&$record,$force=false,$updateOnlyChanged=false)
         {
-            if ( get_class($record) != $this->_entityClassName ) {
-                return false;
-            }
-            if ( !$record->isDirty() ) {
-                return true;
-            }
-            if (!$record->cleanVars()) {
-                $this->_errors += $record->getErrors();
-                return false;
-            }
-            $vars = $record->getVars();
-            $cacheRow = array();
-            if ($record->isNew()) {
-                $fieldList = "(";
-                $valueList = "(";
-                $delim = "";
-                foreach ($record->cleanVars as $k => $v) {
-                    if ($vars[$k]['var_class'] != XOBJ_VCLASS_TFIELD) {
-                        continue;
-                    }
-                    $fieldList .= $delim ."`$k`";
-                    if ($record->isAutoIncrement($k)) {
-                        $v = $this->getAutoIncrementValue();
-                    }
-                    if (preg_match("/^__MySqlFunc__/", $v)) {  // for value using MySQL function.
-                        $value = preg_replace('/^__MySqlFunc__/', '', $v);
-                    } elseif ($vars[$k]['data_type'] == XOBJ_DTYPE_INT) {
-                        if (!is_null($v)) {
-                            $v = intval($v);
-                            $v = ($v) ? $v : 0;
-                            $valueList .= $delim . $v;
-                        } else {
-                            $valueList .= $delim . 'null';
-                        }
-                    } elseif ($vars[$k]['data_type'] == XOBJ_DTYPE_FLOAT) {
-                        if (!is_null($v)) {
-                            $v = (float)($v);
-                            $v = ($v) ? $v : 0;
-                            $valueList .= $delim . $v;
-                        } else {
-                            $valueList .= $delim . 'null';
-                        }
-                    } else {
-                        if (!is_null($v)) {
-                            $valueList .= $delim . $this->db->quoteString($v);
-                        } else {
-                            $valueList .= $delim . $this->db->quoteString('');;
-                        }
-                    }
-                    $cacheRow[$k] = $v;
-                    $delim = ", ";
-                }
-                $fieldList .= ")";
-                $valueList .= ")";
-                $sql = sprintf("INSERT INTO %s %s VALUES %s", $this->tableName,$fieldList,$valueList);
-            } else {
-                $setList = "";
-                $setDelim = "";
-                $whereList = "";
-                $whereDelim = "";
-                foreach ($record->cleanVars as $k => $v) {
-                    if ($vars[$k]['var_class'] != XOBJ_VCLASS_TFIELD) {
-                        continue;
-                    }
-                    if (preg_match("/^__MySqlFunc__/", $v)) {  // for value using MySQL function.
-                        $value = preg_replace('/^__MySqlFunc__/', '', $v);
-                    } elseif ($vars[$k]['data_type'] == XOBJ_DTYPE_INT) {
-                        $v = intval($v);
-                        $value = ($v) ? $v : 0;
-                    } elseif ($vars[$k]['data_type'] == XOBJ_DTYPE_FLOAT) {
-                        $v = (float)($v);
-                        $value = ($v) ? $v : 0;
-                    } else {
-                        $value = $this->db->quoteString($v);
-                    }
-
-                    if ($record->isKey($k)) {
-                        $whereList .= $whereDelim . "`$k` = ". $value;
-                        $whereDelim = " AND ";
-                    } else {
-                        if ($updateOnlyChanged && !$vars[$k]['changed']) {
-                            continue;
-                        }
-                        $setList .= $setDelim . "`$k` = ". $value . " ";
-                        $setDelim = ", ";
-                    }
-                    $cacheRow[$k] = $v;
-                }
-                if (!$setList) {
-                    $record->resetChenged();
-                    return true;
-                }
-                $sql = sprintf("UPDATE %s SET %s WHERE %s", $this->tableName, $setList, $whereList);
-            }
-            if (!$result =& $this->query($sql, $force)) {
-                return false;
-            }
-            if ($record->isNew()) {
-                $idField=$record->getAutoIncrementField();
-                $idValue=$this->db->getInsertId();
-                $record->assignVar($idField,$idValue);
-                $cacheRow[$idField] = $idValue;
-            }
-            if (!$updateOnlyChanged) {
-                $GLOBALS['_NBFrameTableCache']->set($this->tableName, $record->cacheKey() ,$cacheRow, $this->cacheLimit);
-            } else {
-                $GLOBALS['_NBFrameTableCache']->reset($this->tableName, $record->cacheKey());
-                $this->_fullCached = false;
-            }
-            $record->resetChenged();
-            return true;
+            $GLOBALS['_NBFrameTableCache']->reset($this->mTableName, $record->cacheKey());
+            $this->mFullCached = false;
+            return parent::insert($record,$force,$updateOnlyChanged);
         }
 
         /**
@@ -215,7 +85,7 @@ if (!class_exists('NBFrameCachedObjectHandler')) {
          */
         function delete(&$record,$force=false)
         {
-            $GLOBALS['_NBFrameTableCache']->reset($this->tableName, $record->cacheKey());
+            $GLOBALS['_NBFrameTableCache']->reset($this->mTableName, $record->cacheKey());
             return parent::delete($record,$force);
         }
 
@@ -231,8 +101,8 @@ if (!class_exists('NBFrameCachedObjectHandler')) {
         {
             $records = array();
             //今のところは、非常に限定された条件でしかキャッシュを使えない
-            if (($this->useFullCache) && ($this->_fullCached) && (empty($criteria))&& (!$fieldlist) && (!$distinct) && (!$joindef)) {
-                foreach ($GLOBALS['_NBFrameTableCache']->getFull($this->tableName) as $myrow) {
+            if (($this->mUseFullCache) && ($this->mFullCached) && (empty($criteria))&& (!$fieldlist) && (!$distinct) && (!$joindef)) {
+                foreach ($GLOBALS['_NBFrameTableCache']->getFull($this->mTableName) as $myrow) {
                     $record =& $this->create(false);
                     $record->assignVars($myrow);
                     if (!$id_as_key) {
@@ -256,8 +126,8 @@ if (!class_exists('NBFrameCachedObjectHandler')) {
             }
 
             if ($result =& $this->open($criteria, $fieldlist, $distinct, $joindef)) {
-                if (($this->useFullCache) && (empty($criteria)) && (!$fieldlist) && (!$distinct) && (!$joindef)) {
-                    $this->_fullCached = true;
+                if (($this->mUseFullCache) && (empty($criteria)) && (!$fieldlist) && (!$distinct) && (!$joindef)) {
+                    $this->mFullCached = true;
                 }
                 while ($myrow = $this->db->fetchArray($result)) {
                     $record =& $this->create(false);
@@ -280,7 +150,7 @@ if (!class_exists('NBFrameCachedObjectHandler')) {
                         }
                     }
                     if (!$fieldlist) {
-                        $GLOBALS['_NBFrameTableCache']->set($this->tableName, $record->cacheKey(), $myrow, $this->cacheLimit);
+                        $GLOBALS['_NBFrameTableCache']->set($this->mTableName, $record->cacheKey(), $myrow, $this->mCacheLimit);
                     }
                     unset($record);
                 }
@@ -295,7 +165,7 @@ if (!class_exists('NBFrameCachedObjectHandler')) {
                 $record =& $this->create(false);
                 $record->assignVars($myrow);
                 if ($setCache) {
-                    $GLOBALS['_NBFrameTableCache']->set($this->tableName, $record->cacheKey(), $myrow, $this->cacheLimit);                }
+                    $GLOBALS['_NBFrameTableCache']->set($this->mTableName, $record->cacheKey(), $myrow, $this->mCacheLimit);                }
                 return $record;
             } else {
                 $result = false;
@@ -315,8 +185,8 @@ if (!class_exists('NBFrameCachedObjectHandler')) {
          */
         function updateAll($fieldname, $fieldvalue, $criteria = null, $force=false)
         {
-            $GLOBALS['_NBFrameTableCache']->clear($this->tableName);
-            $this->_fullCached = false;
+            $GLOBALS['_NBFrameTableCache']->clear($this->mTableName);
+            $this->mFullCached = false;
             return parent::updateAll($fieldname, $fieldvalue, $criteria, $force);
         }
 
@@ -330,14 +200,9 @@ if (!class_exists('NBFrameCachedObjectHandler')) {
          */
         function deleteAll($criteria = null, $force=false)
         {
-            $GLOBALS['_NBFrameTableCache']->clear($this->tableName);
-            $this->_fullCached = false;
+            $GLOBALS['_NBFrameTableCache']->clear($this->mTableName);
+            $this->mFullCached = false;
             return parent::deleteAll($criteria, $force);
-        }
-
-        function getAutoIncrementValue()
-        {
-            return $this->db->genId(get_class($this).'_id_seq');
         }
     }
 }
