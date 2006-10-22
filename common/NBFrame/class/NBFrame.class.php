@@ -276,27 +276,6 @@ if (!class_exists('NBFrame')) {
             return $installHelper->setBlockTemplateforDuplicate($basename);
         }
         
-        function onInstallProcess(&$module, $options=null) {
-            $installHelper =& NBFrame::getInstallHelper();
-            $ret = $installHelper->postInstallProcessforDuplicate();
-            if (!$installHelper->executeCustomInstallProcess($options, $module)) $ret = false;
-            return $ret;
-        }
-
-        function onUpdateProcess(&$module, $prevVer, $options=null) {
-            $installHelper =& NBFrame::getInstallHelper();
-            $installHelper->putPreProcessMsg();
-            $ret = $installHelper->postUpdateProcessforDuplicate();
-            if (!$installHelper->executeCustomUpdatellProcess($options, $module, $prevVer)) $ret = false;
-            return $ret;
-        }
-
-        function onUninstallProcess(&$module, $options=null) {
-            $installHelper =& NBFrame::getInstallHelper();
-            $ret = $installHelper->executeCustomInstallProcess($options);
-            return $ret;
-        }
-
         function executePreUpdateProcess($modversion) {
             $installHelper =& NBFrame::getInstallHelper();
             if ($installHelper->isPreModuleUpdate() && !$installHelper->isPreModuleUpdateDone() ) {
@@ -325,54 +304,6 @@ if (!class_exists('NBFrame')) {
             $modversion['onInstall'] = 'include/NBFrameInstall.inc.php';
             $modversion['onUpdate'] = 'include/NBFrameInstall.inc.php';
             $modversion['onUninstall'] = 'include/NBFrameInstall.inc.php';
-        }
-
-        function prepareOnInstallFunction() {
-            $installHelper =& NBFrame::getInstallHelper();
-            $options = $installHelper->mOnInstallOption;
-            $dirName = $installHelper->mDirName;
-            $str = 'function xoops_module_install_'.$dirName.'(&$module) {';
-            $str .= '$options=array();';
-            if (is_array($options) && !empty($options['file']) && !empty($options['func'])) {
-                $str .= '$options["file"]="'.$options['file'].'";';
-                foreach($options['func'] as $funcname) {
-                    $str .= '$options["func"][]="'.$funcname.'";';
-                }
-            }
-            $str .= 'return NBFrame::onInstallProcess(&$module, $options); }';
-            eval($str);
-        }
-
-        function prepareOnUpdateFunction() {
-            $installHelper =& NBFrame::getInstallHelper();
-            $options = $installHelper->mOnUpdateOption;
-            $dirName = $installHelper->mDirName;
-            $str = 'function xoops_module_update_'.$dirName.'(&$module, $prevVer) {';
-            $str .= '$options=array();';
-            if (is_array($options) && !empty($options['file']) && !empty($options['func'])) {
-                $str .= '$options["file"]="'.$options['file'].'";';
-                foreach($options['func'] as $funcname) {
-                    $str .= '$options["func"][]="'.$funcname.'";';
-                }
-            }
-            $str .= 'return NBFrame::onUpdateProcess(&$module, $prevVer, $options); }';
-            eval($str);
-        }
-
-        function prepareOnUninstallFunction() {
-            $installHelper =& NBFrame::getInstallHelper();
-            $options = $installHelper->mOnUninstallOption;
-            $dirName = $installHelper->mDirName;
-            $str = 'function xoops_module_uninstall_'.$dirName.'(&$module) {';
-            $str .= '$options=array();';
-            if (is_array($options) && !empty($options['file']) && !empty($options['func'])) {
-                $str .= '$options["file"]="'.$options['file'].'";';
-                foreach($options['func'] as $funcname) {
-                    $str .= '$options["func"][]="'.$funcname.'";';
-                }
-            }
-            $str .= 'return NBFrame::onUninstallProcess(&$module, $options); }';
-            eval($str);
         }
 
         function getBlockShowFunction($className) {

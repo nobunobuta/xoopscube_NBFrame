@@ -27,7 +27,7 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
             $this->mAllowedOp = array('list', 'edit', 'delete', 'deleteok', 'clone', 'order', 'save', 'insert',);
             $this->mFormTemplate = 'NBFrameAdminForm.html';
             $this->setObjectForm('NBFrame.admin.BlocksAdmin');
-            $this->mListTemplate = 'NBFrameAdminBlocksAdmin.html';
+            $this->mListTemplate = 'admin/NBFrameAdminBlocksAdmin.html';
         }
 
         function executeListOp() {

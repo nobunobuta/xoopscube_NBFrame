@@ -16,12 +16,10 @@ if (!class_exists('NBFrameAdminMaintAction')) {
             parent::prepare($name, $name, $caption);
             $this->mDefaultOp = 'list';
             $this->mAllowedOp = array('list','new','edit','insert','save','delete','deleteok');
-            NBFrame::using('AdminTpl');
-            $this->mXoopsTpl =& new NBFrameAdminTpl($this->mDirName, $this->mLanguage);
 
-            $this->mFormTemplate = 'NBFrameAdminForm.html';
+            $this->mFormTemplate = 'admin/NBFrameAdminForm.html';
             $this->setObjectForm('admin.'.$name.'Admin');
-            $this->mListTemplate = 'NBFrameAdminList.html';
+            $this->mListTemplate = 'admin/NBFrameAdminList.html';
             $this->setObjectList('admin.'.$name.'Admin');
         }
         function viewFormOp() {

@@ -247,7 +247,6 @@ if (!class_exists('NBFrameObjectAction')) {
             $start = isset($_GET['start']) ? intval($_GET['start']) : 0;
             $order = (isset($_GET['order'])&& $_GET['order']=='desc') ? 'desc' : 'asc';
             $sort = isset($_GET['sort']) ? htmlspecialchars($_GET['sort'],ENT_QUOTES) : $this->mObjectKeyField;
-            if (!$this->mObjectList->inKey($sort)) $sort = $this->mObjectKeyField;
             if ($this->mListFilterCriteria) {
                 $criteria =& $this->mListFilterCriteria;
             } else {
@@ -287,16 +286,22 @@ if (!class_exists('NBFrameObjectAction')) {
             $this->mCurrentTemplate = $this->mFormTemplate;
         }
         function viewFormOp() {
+            if (empty($this->mObjectForm)) {
+                $this->setObjectForm('dummyForm');
+            }
             if (is_object($this->mObjectForm)) {
                 $this->mObjectForm->bindAction($this, 1);
                 $this->mObjectForm->prepare();
 
                 $xoopForm =& $this->mObjectForm->buildEditForm($this->mObject);
-                $xoopForm->assign($this->mXoopsTpl);
-                
-                $this->mXoopsTpl->assign('title', $this->mCaption);
-                $this->mXoopsTpl->assign('formhtml', $xoopForm->render());
-                $this->mXoopsTpl->assign('errmsg', $this->mErrorMsg);
+                if ($this->mRender->mTemplate) {
+                    $xoopForm->assign($this->mXoopsTpl);
+                    $this->mXoopsTpl->assign('title', $this->mCaption);
+                    $this->mXoopsTpl->assign('formhtml', $xoopForm->render());
+                    $this->mXoopsTpl->assign('errmsg', $this->mErrorMsg);
+                } else {
+                    echo $xoopForm->render();
+                }
             }
         }
 
@@ -305,16 +310,25 @@ if (!class_exists('NBFrameObjectAction')) {
         }
         
         function viewListOp() {
+            if (empty($this->mObjectList)) {
+                $this->setObjectList('dummyList');
+            }
             if (is_object($this->mObjectList)) {
                 $this->mObjectList->buildList($this->mObjectArr, $this->mListSort, $this->mListOrder);
                 $this->_getPageNav();
-                
-                $this->mXoopsTpl->assign('title',$this->mCaption.' &raquo; '.$this->__l('List'));
-                $this->mXoopsTpl->assign('headers',$this->mObjectList->mListHeaders);
-                $this->mXoopsTpl->assign('records',$this->mObjectList->mListRecords);
-                $this->mXoopsTpl->assign('lang', array('new'=>$this->__l('New')));
-                $this->mXoopsTpl->assign('newlink', $this->addUrlParam('op=new'));
-                $this->mXoopsTpl->assign('pagenav', $this->mPageNav->renderNav());
+                if ($this->mRender->mTemplate) {
+                    $this->mXoopsTpl->assign('title',$this->mCaption.' &raquo; '.$this->__l('List'));
+                    $this->mXoopsTpl->assign('headers',$this->mObjectList->mListHeaders);
+                    $this->mXoopsTpl->assign('records',$this->mObjectList->mListRecords);
+                    $this->mXoopsTpl->assign('lang', array('new'=>$this->__l('New')));
+                    $this->mXoopsTpl->assign('newlink', $this->addUrlParam('op=new'));
+                    $this->mXoopsTpl->assign('pagenav', $this->mPageNav->renderNav());
+                } else {
+                    $headers = $this->mObjectList->mListHeaders;
+                    $records = $this->mObjectList->mListRecords;
+                    $pagenav = $this->mPageNav->renderNav();
+                    include NBFRAME_BASE_DIR.'/templates/NBFrameList.tpl.php';
+                }
             }
         }
 
@@ -339,11 +353,15 @@ if (!class_exists('NBFrameObjectAction')) {
         }
 
         function viewDeleteOp() {
-            ob_start();
+            if ($this->mRender->mTemplate) {
+                ob_start();
+            }
             $key = intval($_GET[$this->mObjectKeyField]);            xoops_confirm(array('op'=>'deleteok',$this->mObjectKeyField=>$key), $this->mUrl, $this->__l("Delete this Record? [ID=%d]",$key));
-            $this->mXoopsTpl->assign('formhtml',ob_get_contents());
-            ob_end_clean();
-            $this->mXoopsTpl->assign('title',$this->mCaption.' &raquo; '.$this->__l('Delete'));
+            if ($this->mRender->mTemplate) {
+                $this->mXoopsTpl->assign('formhtml',ob_get_contents());
+                ob_end_clean();
+                $this->mXoopsTpl->assign('title',$this->mCaption.' &raquo; '.$this->__l('Delete'));
+            }
         }
 
     }

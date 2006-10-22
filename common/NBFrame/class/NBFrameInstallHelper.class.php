@@ -169,6 +169,71 @@ if (!class_exists('NBFrameInstallHelper')) {
         }
 
         // Methods for Custom Installer process
+        function prepareOnInstallFunction() {
+            $options = $this->mOnInstallOption;
+            $dirName = $this->mDirName;
+            $str = 'function xoops_module_install_'.$dirName.'(&$module) {';
+            $str .= '$options=array();';
+            if (is_array($options) && !empty($options['file']) && !empty($options['func'])) {
+                $str .= '$options["file"]="'.$options['file'].'";';
+                foreach($options['func'] as $funcname) {
+                    $str .= '$options["func"][]="'.$funcname.'";';
+                }
+            }
+            $str .= '$installHelper =& NBFrame::getInstallHelper();';
+            $str .= 'return $installHelper->onInstallProcess(&$module, $options); }';
+            eval($str);
+        }
+
+        function prepareOnUpdateFunction() {
+            $options = $this->mOnInstallOption;
+            $dirName = $this->mDirName;
+            $str = 'function xoops_module_update_'.$dirName.'(&$module, $prevVer) {';
+            $str .= '$options=array();';
+            if (is_array($options) && !empty($options['file']) && !empty($options['func'])) {
+                $str .= '$options["file"]="'.$options['file'].'";';
+                foreach($options['func'] as $funcname) {
+                    $str .= '$options["func"][]="'.$funcname.'";';
+                }
+            }
+            $str .= '$installHelper =& NBFrame::getInstallHelper();';
+            $str .= 'return $installHelper->onUpdateProcess(&$module, $prevVer, $options); }';
+            eval($str);
+        }
+
+        function prepareOnUninstallFunction() {
+            $options = $this->mOnInstallOption;
+            $dirName = $this->mDirName;
+            $str = 'function xoops_module_uninstall_'.$dirName.'(&$module) {';
+            $str .= '$options=array();';
+            if (is_array($options) && !empty($options['file']) && !empty($options['func'])) {
+                $str .= '$options["file"]="'.$options['file'].'";';
+                foreach($options['func'] as $funcname) {
+                    $str .= '$options["func"][]="'.$funcname.'";';
+                }
+            }
+            $str .= '$installHelper =& NBFrame::getInstallHelper();';
+            $str .= 'return $installHelper->onUninstallProcess(&$module, $options); }';
+            eval($str);
+        }
+
+        function onInstallProcess(&$module, $options=null) {
+            $ret = $this->postInstallProcessforDuplicate();
+            if (!$this->executeCustomInstallProcess($options, $module)) $ret = false;
+            return $ret;
+        }
+
+        function onUpdateProcess(&$module, $prevVer, $options=null) {
+            $ret = $this->postUpdateProcessforDuplicate();
+            if (!$this->executeCustomUpdatellProcess($options, $module, $prevVer)) $ret = false;
+            return $ret;
+        }
+
+        function onUninstallProcess(&$module, $options=null) {
+            $ret = $this->executeCustomInstallProcess($options);
+            return $ret;
+        }
+
         function executeCustomInstallProcess($options, &$module) {
             $ret = true;
             if (is_array($options) && !empty($options['file']) && !empty($options['func'])) {

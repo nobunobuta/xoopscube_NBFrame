@@ -83,7 +83,7 @@ if (!class_exists('NBFrameAdminRender')) {
             }
             $this->mXoopsTpl->assign('adminmenu', $adminmenu);
             $this->mXoopsTpl->assign('myurlbase', XOOPS_URL.'/modules/'.$this->mDirName);
-            $this->mXoopsTpl->display('NBFrameAdminMyMenu.html');
+            $this->mXoopsTpl->display('admin/NBFrameAdminMyMenu.html');
         }
         
         function _loadAdminCommon() {
