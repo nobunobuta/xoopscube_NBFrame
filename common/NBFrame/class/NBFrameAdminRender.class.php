@@ -38,7 +38,7 @@ if (!class_exists('NBFrameAdminRender')) {
                                  )
                                );
                 } else if (class_exists('XCube_Root')) {
-                    if (is_dir(XOOPS_ROOT_PATH.'/modules/base/legacy/')) {
+                    if (is_dir(XOOPS_ROOT_PATH.'/modules/legacy/')) {
                         $sysDir = 'legacy';
                     } else {
                         $sysDir = 'base';
