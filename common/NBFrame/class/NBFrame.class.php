@@ -80,11 +80,13 @@ if (!class_exists('NBFrame')) {
                     unset($mEnvironmentArr[$target]);
                     NBFrame::using('Environment');
                     $mEnvironmentArr[$target] =& new NBFrameEnvironment();
+                    $mEnvironmentArr[$target]->mTarget = $target;
                 }
                 $ret =& $mEnvironmentArr[$target];
             } else if ($force) {
                 NBFrame::using('Environment');
                 $mEnvironmentArr[$target] =& new NBFrameEnvironment();
+                $mEnvironmentArr[$target]->mTarget = $target;
                 $ret =& $mEnvironmentArr[$target];
             } else {
                 $ret = null;
@@ -227,6 +229,7 @@ if (!class_exists('NBFrame')) {
                     $ret->setTableBaseName($dirName.'_'.$ret->getTableBaseName());
                 }
                 $ret->mEnvironment =& $environment;
+                $ret->mLanguage =& NBFrame::getLanguageManager($environment->mTarget);
             } else {
                 $ret =& $mHandlerArr[$key];
             }
@@ -270,7 +273,10 @@ if (!class_exists('NBFrame')) {
             $installHelper =& NBFrame::getInstallHelper();
             if ($installHelper->isPreModuleUpdate() && !$installHelper->isPreModuleUpdateDone() ) {
                 $installHelper->preUpdateProcessforDuplicate();
-                $installHelper->preBlockUpdateProcess($modversion);
+                if(!defined('XOOPS_CUBE_LEGACY')) {
+                    $installHelper->preBlockUpdateProcess($modversion);
+                }
+                $installHelper->putPreProcessMsg();
             }
         }
 

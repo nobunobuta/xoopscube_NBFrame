@@ -12,12 +12,14 @@ if(!class_exists('NBFrameObject')) {
 
     if (!defined('XOBJ_DTYPE_FLOAT')) define('XOBJ_DTYPE_FLOAT', 101);
     if (!defined('XOBJ_DTYPE_CUSTOM')) define('XOBJ_DTYPE_CUSTOM', 102);
+    if (!defined('XOBJ_DTYPE_BOOL')) define('XOBJ_DTYPE_BOOL', 103);
+
     if (!defined('XOBJ_VCLASS_TFIELD')) define('XOBJ_VCLASS_TFIELD', 1);
     if (!defined('XOBJ_VCLASS_ATTRIB')) define('XOBJ_VCLASS_ATTRIB', 2);
     if (!defined('XOBJ_VCLASS_EXTRA')) define('XOBJ_VCLASS_EXTRA', 3);
+
     if (!defined('XOBJ_DTYPE_STRING')) define('XOBJ_DTYPE_STRING', 1);
     if (!defined('XOBJ_DTYPE_TEXT')) define('XOBJ_DTYPE_TEXT', 2);
-    if (!defined('XOBJ_DTYPE_BOOL')) define('XOBJ_DTYPE_BOOL', 103);
 
     class NBFrameObject  extends XoopsObject
     {
@@ -46,6 +48,40 @@ if(!class_exists('NBFrameObject')) {
         function setAttribute($key, $value, $data_type=XOBJ_DTYPE_OTHER) {
             $this->vars[$key] = array('value' => $value, 'required' => false, 'data_type' => $data_type, 'maxlength' => null, 'changed' => false, 'options' => '');
             $this->vars[$key]['var_class'] = XOBJ_VCLASS_ATTRIB;
+        }
+
+        function setVarType($key, $data_type) {
+            if (isset($this->vars[$key])) {
+                $this->vars[$key]['data_type'] = $data_type;
+            }
+        }
+        
+        function setVarRequired($key, $required) {
+            if (isset($this->vars[$key])) {
+                $this->vars[$key]['required'] = $required;
+            }
+        }
+        
+        function setVarMaxLength($key, $maxlength) {
+            if (isset($this->vars[$key])) {
+                $this->vars[$key]['maxlength'] = $maxlength;
+            }
+        }
+        
+        function setVarOptions($key, $options) {
+            if (isset($this->vars[$key])) {
+                $this->vars[$key]['options'] = $options;
+            }
+        }
+        
+        function varsDefined() {
+            if (count($this->vars)==0) return false;
+            foreach($this->vars as $var) {
+                if ($var['var_class'] == XOBJ_VCLASS_TFIELD) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         function setKeyFields($keys) {
@@ -154,6 +190,16 @@ if(!class_exists('NBFrameObject')) {
                 }
             }
         }
+        
+        function setVarAsSQLFunc($key, $func, $param) {
+            if (!empty($key) && isset($func) && isset($param) && isset($this->vars[$key])) {
+                $this->vars[$key]['func'] = $func;
+                $this->vars[$key]['value'] =& $param;
+                $this->vars[$key]['not_gpc'] = $not_gpc;
+                $this->vars[$key]['changed'] = true;
+                $this->setDirty();
+            }
+        }
 
 	    /**
         * returns a specific variable for the object in a proper format
@@ -205,18 +251,22 @@ if(!class_exists('NBFrameObject')) {
                 if (!$v['changed']) {
                 } else {
                     $cleanv = is_string($cleanv) ? trim($cleanv) : $cleanv;
-                    switch ($v['data_type']) {
-                    case XOBJ_DTYPE_FLOAT:
-                        $cleanv = (float)($cleanv);
+                    if (isset($v['func'])) {
                         $this->cleanVars[$k] =& $cleanv;
-                        break;
-                    default:
-                        break;
-                    }
-                    //個別の変数チェックがあれば実行;
-                    $checkMethod = 'checkVar_'.$k;
-                    if(method_exists($this, $checkMethod)) {
-                        $this->$checkMethod($cleanv);
+                    } else {
+                        switch ($v['data_type']) {
+                            case XOBJ_DTYPE_FLOAT:
+                                $cleanv = (float)($cleanv);
+                                $this->cleanVars[$k] =& $cleanv;
+                                break;
+                            default:
+                                break;
+                        }
+                        //個別の変数チェックがあれば実行;
+                        $checkMethod = 'checkVar_'.$k;
+                        if(method_exists($this, $checkMethod)) {
+                            $this->$checkMethod($cleanv);
+                        }
                     }
                 }
                 unset($cleanv);

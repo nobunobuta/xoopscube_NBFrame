@@ -2,37 +2,16 @@
 if(!class_exists('NBFrameBlock')) {
     class NBFrameBlock extends NBFrameObject
     {
-        function NBFrameBlock() {
-            parent::NBFrameObject();
-            $this->initVar('bid', XOBJ_DTYPE_INT, null, false);
-            $this->initVar('mid', XOBJ_DTYPE_INT, 0, false);
-            $this->initVar('func_num', XOBJ_DTYPE_INT, 0, false);
-            $this->initVar('options', XOBJ_DTYPE_CUSTOM, null, false, 255);
-            $this->initVar('name', XOBJ_DTYPE_TXTBOX, null, true, 150);
-            $this->initVar('title', XOBJ_DTYPE_TXTBOX, null, false, 150);
-            $this->initVar('content', XOBJ_DTYPE_TXTAREA, null, false);
-            $this->initVar('side', XOBJ_DTYPE_INT, 0, false);
-            $this->initVar('weight', XOBJ_DTYPE_INT, 0, false);
-            $this->initVar('visible', XOBJ_DTYPE_INT, 0, false);
-            $this->initVar('block_type', XOBJ_DTYPE_OTHER, null, false);
-            $this->initVar('c_type', XOBJ_DTYPE_OTHER, null, false);
-            $this->initVar('isactive', XOBJ_DTYPE_INT, null, false);
-            $this->initVar('dirname', XOBJ_DTYPE_TXTBOX, null, false, 50);
-            $this->initVar('func_file', XOBJ_DTYPE_TXTBOX, null, false, 50);
-            $this->initVar('show_func', XOBJ_DTYPE_TXTBOX, null, false, 50);
-            $this->initVar('edit_func', XOBJ_DTYPE_TXTBOX, null, false, 50);
-            $this->initVar('template', XOBJ_DTYPE_OTHER, null, false);
-            $this->initVar('bcachetime', XOBJ_DTYPE_INT, 0, false);
-            $this->initVar('last_modified', XOBJ_DTYPE_INT, 0, false);
+        function prepare() {
+            $this->setVarType('options', XOBJ_DTYPE_CUSTOM);
+            $this->setVarType('block_type', XOBJ_DTYPE_OTHER);
+            $this->setVarType('template', XOBJ_DTYPE_OTHER);
 
             $this->setAttribute('modules', null, XOBJ_DTYPE_CUSTOM);
             $this->setAttribute('is_custom', null, XOBJ_DTYPE_CUSTOM);
             $this->setAttribute('edit_form', null, XOBJ_DTYPE_CUSTOM);
 
-            $this->setKeyFields(array('bid'));
             $this->setNameField('name');
-
-            $this->setAutoIncrementField('bid');
         }
 
         function &getVar_modules($value, $format) {
@@ -129,6 +108,43 @@ if(!class_exists('NBFrameBlock')) {
                 $result = $blockModuleLinkHandler->deleteBlock($object->getVar('bid'));
             }
             return $result;
+        }
+
+        function getSideListArray() {
+            return array(
+                0 => $this->__l('Left block'),
+                1 => $this->__l('Right block'),
+                3 => $this->__l('Center block - left'),
+                4 => $this->__l('Center block - right'),
+                5 => $this->__l('Center block - center'),
+            );
+        }
+
+        function getBlockCacheTimeListArray() {
+            return array(
+               '0' => _NOCACHE,
+               '30' => sprintf(_SECONDS, 30),
+               '60' => _MINUTE,
+               '300' => sprintf(_MINUTES, 5),
+               '1800' => sprintf(_MINUTES, 30),
+               '3600' => _HOUR,
+               '18000' => sprintf(_HOURS, 5),
+               '86400' => _DAY,
+               '259200' => sprintf(_DAYS, 3),
+               '604800' => _WEEK,
+               '2592000' => _MONTH
+            );
+        }
+
+        function getModuleListArray() {
+            $moduleHandler =& NBFrame::getHandler('NBFrame.xoops.Module', $this->mEnvironment);
+            $criteria = new CriteriaCompo(new Criteria('hasmain', 1));
+            $criteria->add(new Criteria('isactive', 1));
+            $module_list =& $moduleHandler->getSelectOptionArray($criteria);
+            $module_list[-1] = $this->__l('Top Page');
+            $module_list[0] = $this->__l('All Pages');
+            ksort($module_list);
+            return $module_list;
         }
     }
 }

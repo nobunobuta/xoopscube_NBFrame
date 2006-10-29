@@ -6,11 +6,11 @@ if (!class_exists('NBFrameAdminTpl')) {
         var $mDirName;
         var $mLanguage;
 
-        function NBFrameAdminTpl($dirname, $language)
+        function NBFrameAdminTpl($dirname, &$language)
         {
             parent::XoopsTpl();
             $this->mDirName = $dirname;
-            $this->mLanguage = $language;
+            $this->mLanguage =& $language;
             $this->template_dir = NBFRAME_BASE_DIR . '/templates';
             $this->error_reporting = error_reporting();
         }

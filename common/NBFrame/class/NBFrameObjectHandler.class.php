@@ -14,6 +14,7 @@ if (!class_exists('NBFrameObjectHandler')) {
         var $mSql;
         var $mEnvironment = null;
         var $mUseModuleTablePrefix = true;
+        var $mLanguage;
         /**
          * Enter description here...
          *
@@ -96,6 +97,8 @@ if (!class_exists('NBFrameObjectHandler')) {
                 $record = new $this->mEntityClassName;
             } else {
                 $record =& new NBFrameObject;
+            }
+            if (!$record->varsDefined()) {
                 NBFrame::using('TebleParser');
                 $parser = new NBFrameTebleParser($this->db);
                 $parser->setInitVars($this->mTableName, $record);
@@ -202,35 +205,35 @@ if (!class_exists('NBFrameObjectHandler')) {
                 $fieldList = "(";
                 $valueList = "(";
                 $delim = "";
-                foreach ($record->cleanVars as $k => $v) {
-                    if ($vars[$k]['var_class'] != XOBJ_VCLASS_TFIELD) {
+                foreach ($record->cleanVars as $field => $value) {
+                    if ($vars[$field]['var_class'] != XOBJ_VCLASS_TFIELD) {
                         continue;
                     }
-                    $fieldList .= $delim ."`$k`";
-                    if ($record->isAutoIncrement($k)) {
-                        $v = $this->getAutoIncrementValue();
+                    $fieldList .= $delim ."`$field`";
+                    if ($record->isAutoIncrement($field)) {
+                        $value = $this->getAutoIncrementValue();
                     }
-                    if (preg_match("/^__MySqlFunc__/", $v)) {  // for value using MySQL function.
-                        $value = preg_replace('/^__MySqlFunc__/', '', $v);
-                    } elseif ($vars[$k]['data_type'] == XOBJ_DTYPE_INT) {
-                        if (!is_null($v)) {
-                            $v = intval($v);
-                            $v = ($v) ? $v : 0;
-                            $valueList .= $delim . $v;
+                    if (isset($vars[$field]['func'])) {  // for value using MySQL function.
+                        $value = $vars[$field]['func'].'('.$value.')';
+                    } elseif ($vars[$field]['data_type'] == XOBJ_DTYPE_INT) {
+                        if (!is_null($value)) {
+                            $value = intval($value);
+                            $value = ($value) ? $value : 0;
+                            $valueList .= $delim . $value;
                         } else {
                             $valueList .= $delim . 'null';
                         }
-                    } elseif ($vars[$k]['data_type'] == XOBJ_DTYPE_FLOAT) {
-                        if (!is_null($v)) {
-                            $v = (float)($v);
-                            $v = ($v) ? $v : 0;
-                            $valueList .= $delim . $v;
+                    } elseif ($vars[$field]['data_type'] == XOBJ_DTYPE_FLOAT) {
+                        if (!is_null($value)) {
+                            $value = (float)($value);
+                            $value = ($value) ? $value : 0;
+                            $valueList .= $delim . $value;
                         } else {
                             $valueList .= $delim . 'null';
                         }
                     } else {
-                        if (!is_null($v)) {
-                            $valueList .= $delim . $this->db->quoteString($v);
+                        if (!is_null($value)) {
+                            $valueList .= $delim . $this->db->quoteString($value);
                         } else {
                             $valueList .= $delim . $this->db->quoteString('');;
                         }
@@ -239,36 +242,36 @@ if (!class_exists('NBFrameObjectHandler')) {
                 }
                 $fieldList .= ")";
                 $valueList .= ")";
-                $sql = sprintf("INSERT INTO %s %s VALUES %s", $this->mTableName,$fieldList,$valueList);
+                $sql = sprintf("INSERT INTO %s %s VALUES %s", $this->mTableName, $fieldList, $valueList);
             } else {
                 $setList = "";
                 $setDelim = "";
                 $whereList = "";
                 $whereDelim = "";
-                foreach ($record->cleanVars as $k => $v) {
-                    if ($vars[$k]['var_class'] != XOBJ_VCLASS_TFIELD) {
+                foreach ($record->cleanVars as $field => $value) {
+                    if ($vars[$field]['var_class'] != XOBJ_VCLASS_TFIELD) {
                         continue;
                     }
-                    if (preg_match("/^__MySqlFunc__/", $v)) {  // for value using MySQL function.
-                        $value = preg_replace('/^__MySqlFunc__/', '', $v);
-                    } elseif ($vars[$k]['data_type'] == XOBJ_DTYPE_INT) {
-                        $v = intval($v);
-                        $value = ($v) ? $v : 0;
-                    } elseif ($vars[$k]['data_type'] == XOBJ_DTYPE_FLOAT) {
-                        $v = (float)($v);
-                        $value = ($v) ? $v : 0;
+                    if (isset($vars[$field]['func'])) {  // for value using MySQL function.
+                        $value = $vars[$field]['func'].'('.$value.')';
+                    } elseif ($vars[$field]['data_type'] == XOBJ_DTYPE_INT) {
+                        $value = intval($value);
+                        $value = ($value) ? $value : 0;
+                    } elseif ($vars[$field]['data_type'] == XOBJ_DTYPE_FLOAT) {
+                        $value = (float)($value);
+                        $value = ($value) ? $value : 0;
                     } else {
-                        $value = $this->db->quoteString($v);
+                        $value = $this->db->quoteString($value);
                     }
 
-                    if ($record->isKey($k)) {
-                        $whereList .= $whereDelim . "`$k` = ". $value;
+                    if ($record->isKey($field)) {
+                        $whereList .= $whereDelim . "`$field` = ". $value;
                         $whereDelim = " AND ";
                     } else {
-                        if ($updateOnlyChanged && !$vars[$k]['changed']) {
+                        if ($updateOnlyChanged && !$vars[$field]['changed']) {
                             continue;
                         }
-                        $setList .= $setDelim . "`$k` = ". $value . " ";
+                        $setList .= $setDelim . "`$field` = ". $value . " ";
                         $setDelim = ", ";
                     }
                 }
@@ -314,14 +317,14 @@ if (!class_exists('NBFrameObjectHandler')) {
             $vars = $record->getVars();
             $whereList = "";
             $whereDelim = "";
-            foreach ($record->cleanVars as $k => $v) {
-                if ($record->isKey($k)) {
-                    if (($vars[$k]['data_type'] == XOBJ_DTYPE_INT)||($vars[$k]['data_type'] == XOBJ_DTYPE_FLOAT)) {
-                        $value = $v;
+            foreach ($record->cleanVars as $field => $value) {
+                if ($record->isKey($field)) {
+                    if (($vars[$field]['data_type'] == XOBJ_DTYPE_INT)||($vars[$field]['data_type'] == XOBJ_DTYPE_FLOAT)) {
+                        $value = $value;
                     } else {
-                        $value = $this->db->quoteString($v);
+                        $value = $this->db->quoteString($value);
                     }
-                    $whereList .= $whereDelim . "`$k` = ". $value;
+                    $whereList .= $whereDelim . "`$field` = ". $value;
                     $whereDelim = " AND ";
                 }
             }
@@ -739,6 +742,16 @@ if (!class_exists('NBFrameObjectHandler')) {
            }
            return $result;
         }
+
+        function __l($msg) {
+            $args = func_get_args();
+            return $this->mLanguage->__l($msg, $this->mLanguage->_getParams($args));
+        }
+
+        function __e($msg) {
+            $args = func_get_args();
+            return $this->mLanguage->__e($msg, $this->mLanguage->_getParams($args));
+        }
     }
 
     class NBFrameJoinCriteria
@@ -783,7 +796,6 @@ if (!class_exists('NBFrameObjectHandler')) {
         function getMainAlias() {
             return $this->_main_alias;
         }
-
     }
 
     class NBFrameTableCache

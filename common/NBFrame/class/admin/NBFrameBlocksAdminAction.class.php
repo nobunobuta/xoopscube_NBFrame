@@ -25,7 +25,7 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
 
             $this->mDefaultOp = 'list';
             $this->mAllowedOp = array('list', 'edit', 'delete', 'deleteok', 'clone', 'order', 'save', 'insert',);
-            $this->mFormTemplate = 'NBFrameAdminForm.html';
+            $this->mFormTemplate = 'admin/NBFrameAdminForm.html';
             $this->setObjectForm('NBFrame.admin.BlocksAdmin');
             $this->mListTemplate = 'admin/NBFrameAdminBlocksAdmin.html';
         }
@@ -114,30 +114,8 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
         {
             $this->mXoopsTpl->assign('modulename', $GLOBALS['xoopsModule']->getVar( 'name' ));
             $this->mXoopsTpl->assign('title', $this->__l('Blocks Admin'));
-            // cachetime options
-            $cachetimes = array('0' => _NOCACHE,
-                                '30' => sprintf(_SECONDS, 30),
-                                '60' => _MINUTE,
-                                '300' => sprintf(_MINUTES, 5),
-                                '1800' => sprintf(_MINUTES, 30),
-                                '3600' => _HOUR,
-                                '18000' => sprintf(_HOURS, 5),
-                                '86400' => _DAY,
-                                '259200' => sprintf(_DAYS, 3),
-                                '604800' => _WEEK,
-                                '2592000' => _MONTH);
-                                
-            $this->mXoopsTpl->assign('cachetimes', $cachetimes);
-            
-            $moduleHandler =& NBFrame::getHandler('NBFrame.xoops.Module', $this->mEnvironment);
-
-            $criteria = new CriteriaCompo(new Criteria('hasmain', 1));
-            $criteria->add(new Criteria('isactive', 1));
-            $moduleList =& $moduleHandler->getSelectOptionArray($criteria);
-            $moduleList[-1] = $this->__L('Top Page');
-            $moduleList[0] = $this->__L('All Pages');
-            ksort($moduleList);
-            $this->mXoopsTpl->assign('modulelist', $moduleList);
+            $this->mXoopsTpl->assign('cachetimes', $this->mObjectHandler->getBlockCacheTimeListArray());
+            $this->mXoopsTpl->assign('modulelist', $this->mObjectHandler->getModuleListArray());
 
             $blockConfigs = $GLOBALS['xoopsModule']->getInfo('blocks');
 

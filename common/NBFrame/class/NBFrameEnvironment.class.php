@@ -7,6 +7,7 @@ if (!class_exists('NBFrameEnvironment')) {
         var $mDirName;
         var $mUrlBase;
         var $mAttributeArr;
+        var $mTarget;
 
         function NBFrameEnvironment($origDirName='', $currentDirBase='') {
             $this->setOrigDirName($origDirName);

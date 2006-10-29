@@ -103,7 +103,7 @@ if (!class_exists('NBFrameObjectAction')) {
                 $this->mObjectForm =& New NBFrameObjectForm($this->mEnvironment);
                 NBFrame::using('TebleParser');
                 $parser = new NBFrameTebleParser($this->mObjectHandler->db);
-                $parser->setFormElements($this->mObjectHandler->tableName, $this->mObjectForm);
+                $parser->setFormElements($this->mObjectHandler->mTableName, $this->mObjectForm);
             }
         }
 

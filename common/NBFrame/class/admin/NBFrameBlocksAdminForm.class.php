@@ -22,37 +22,9 @@ if (!class_exists('NBFrameBlocksAdminForm')) {
             $this->addElement('bcachetime', new XoopsFormSelect($this->__l('Cache time'), 'bcachetime'));
             $this->addElement('bid', new XoopsFormHidden('bid', 0));
 
-
-            $this->addOptionArray('side', array(
-                0 => $this->__l('Left block'),
-                1 => $this->__l('Right block'),
-                3 => $this->__l('Center block - left'),
-                4 => $this->__l('Center block - right'),
-                5 => $this->__l('Center block - center'),
-            ));
-
-            $this->addOptionArray('bcachetime', array(
-               '0' => _NOCACHE,
-               '30' => sprintf(_SECONDS, 30),
-               '60' => _MINUTE,
-               '300' => sprintf(_MINUTES, 5),
-               '1800' => sprintf(_MINUTES, 30),
-               '3600' => _HOUR,
-               '18000' => sprintf(_HOURS, 5),
-               '86400' => _DAY,
-               '259200' => sprintf(_DAYS, 3),
-               '604800' => _WEEK,
-               '2592000' => _MONTH
-            ));
-
-            $moduleHandler =& NBFrame::getHandler('NBFrame.xoops.Module', $this->mEnvironment);
-            $criteria = new CriteriaCompo(new Criteria('hasmain', 1));
-            $criteria->add(new Criteria('isactive', 1));
-            $module_list =& $moduleHandler->getSelectOptionArray($criteria);
-            $module_list[-1] = $this->__L('Top Page');
-            $module_list[0] = $this->__L('All Pages');
-            ksort($module_list);
-            $this->addOptionArray('modules',$module_list);
+            $this->addOptionArray('side', $this->mAction->mObjectHandler->getSideListArray());
+            $this->addOptionArray('bcachetime', $this->mAction->mObjectHandler->getBlockCacheTimeListArray());
+            $this->addOptionArray('modules',$this->mAction->mObjectHandler->getModuleListArray());
         }
     }
 }
