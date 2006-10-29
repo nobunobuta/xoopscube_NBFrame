@@ -276,7 +276,6 @@ if (!class_exists('NBFrame')) {
                 if(!defined('XOOPS_CUBE_LEGACY')) {
                     $installHelper->preBlockUpdateProcess($modversion);
                 }
-                $installHelper->putPreProcessMsg();
             }
         }
 

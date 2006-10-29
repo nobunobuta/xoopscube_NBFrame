@@ -34,6 +34,7 @@ if (!class_exists('NBFrameInstallHelper')) {
         function postInstallProcessforDuplicate() {
             $this->renameTables();
             $this->renameTemplates();
+            $this->storeTemplates();
             return true;
         }
         
@@ -44,6 +45,7 @@ if (!class_exists('NBFrameInstallHelper')) {
         
         function postUpdateProcessforDuplicate() {
             $this->renameTemplates();
+            $this->storeTemplates();
             return true;
         }
 
@@ -57,7 +59,35 @@ if (!class_exists('NBFrameInstallHelper')) {
                 $this->addMsg('  <b>'.$orig_table.'</b> to <b>'.$table.'</b>');
             }
         }
-        
+
+        function storeTemplates($reverse = false) {
+            $tplHandler =& xoops_gethandler('tplfile');
+            $criteria =& new CriteriaCompo(new Criteria('tpl_module', $this->mDirName));
+            $tplObjects = $tplHandler->getObjects($criteria);
+            $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
+            $this->addMsg('Storing template content');
+
+            foreach($tplObjects as $object) {
+                $tplFile = $object->getVar('tpl_file');
+                $tplType = $object->getVar('tpl_type');
+                $fileName = preg_replace('/^'.$this->mDirName.'_/', '', $tplFile);
+                if ($tplType == 'module') {
+                    $fileName = NBFrame::findFile($fileName, $environment, 'templates', false);
+                } else {
+                    $fileName = NBFrame::findFile($fileName, $environment, 'templates/blocks', false);
+                }
+                if ($fileName) {
+                    $fileContent = file($fileName);
+                    $fileContent = implode('', $fileContent);
+                    $object->setVar('tpl_source', $fileContent);
+                    $object->setVar('tpl_lastmodified', filemtime($fileName));
+                    $tplHandler->insert($object);
+                    $this->addMsg('  <b>'.$tplFile.'</b>');
+                }
+            }
+            
+        }
+
         function renameTemplates($reverse = false) {
             $moduleInfo = $this->_getModuleInfo();
             $tplHandler =& xoops_gethandler('tplfile');
@@ -109,7 +139,7 @@ if (!class_exists('NBFrameInstallHelper')) {
                 $template['file'] = $this->mDupMark.$this->mOrigName.$this->mDupMark.'_'.$tplName;
             } else {
                 $template['file'] = $this->mDirName.'_'.$tplName;
-                $template['orig_file'] = $this->mDupMark.$this->mOrigName.$this->mDupMark.'_'.$tplName;
+                $template['orig_file'] = $tplName;
             }
             return $template;
         }
@@ -120,7 +150,7 @@ if (!class_exists('NBFrameInstallHelper')) {
                 $template['template'] = $this->mDupMark.$this->mOrigName.$this->mDupMark.'_'.$tplName;
             } else {
                 $template['template'] = $this->mDirName.'_'.$tplName;
-                $template['orig_template'] = $this->mDupMark.$this->mOrigName.$this->mDupMark.'_'.$tplName;
+                $template['orig_template'] = $tplName;
             }
             return $template;
         }
@@ -224,6 +254,7 @@ if (!class_exists('NBFrameInstallHelper')) {
         }
 
         function onUpdateProcess(&$module, $prevVer, $options=null) {
+            $this->putPreProcessMsg();
             $ret = $this->postUpdateProcessforDuplicate();
             if (!$this->executeCustomUpdatellProcess($options, $module, $prevVer)) $ret = false;
             return $ret;
