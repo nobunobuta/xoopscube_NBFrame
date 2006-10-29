@@ -38,7 +38,7 @@ if (!class_exists('NBFrameAdminRender')) {
                                  )
                                );
                 } else if (class_exists('XCube_Root')) {
-                    if (is_dir(XOOPS_ROOT_PATH.'/modules/legacy/')) {
+                    if (is_dir(XOOPS_ROOT_PATH.'/modules/base/legacy/')) {
                         $sysDir = 'legacy';
                     } else {
                         $sysDir = 'base';
@@ -53,7 +53,7 @@ if (!class_exists('NBFrameAdminRender')) {
                     array_push($adminmenu,
                                  array( 'title' => _PREFERENCES ,
                                         'absolute' => true,
-                                        'link' => XOOPS_URL.'/modules/system/admin/admin.php?fct=preferences&op=showmod&mod=' . $module->getvar('mid')
+                                        'link' => XOOPS_URL.'/modules/system/admin.php?fct=preferences&op=showmod&mod=' . $module->getvar('mid')
                                  )
                                );
                 }
