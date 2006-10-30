@@ -31,7 +31,7 @@ $modversion['tables'][0] = $modEnv->prefix('table');
 
 // Templates
 
-$modversion['templates'][1] = NBFrame::setModuleTemplate('index.html');
+$modversion['templates'][1] = NBFrame::setModuleTemplate('main.html');
 $modversion['templates'][1]['description'] = '';
 
 $modversion['hasAdmin'] = 1;
