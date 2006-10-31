@@ -16,7 +16,7 @@ if (!class_exists('NBFrameInstallHelper')) {
         var $mOnUninstallOption = null;
         
         var $mModuleInfo = null;
-        
+
         function NBFrameInstallHelper($dirname, $orig_name, $dupmark='XX') {
             $this->mOrigName = $orig_name;
             $this->mDirName = $dirname;
@@ -34,7 +34,6 @@ if (!class_exists('NBFrameInstallHelper')) {
         function postInstallProcessforDuplicate() {
             $this->renameTables();
             $this->renameTemplates();
-            $this->storeTemplates();
             return true;
         }
         
@@ -45,7 +44,6 @@ if (!class_exists('NBFrameInstallHelper')) {
         
         function postUpdateProcessforDuplicate() {
             $this->renameTemplates();
-            $this->storeTemplates();
             return true;
         }
 
@@ -60,79 +58,69 @@ if (!class_exists('NBFrameInstallHelper')) {
             }
         }
 
-        function storeTemplates($reverse = false) {
-            $tplHandler =& xoops_gethandler('tplfile');
-            $criteria =& new CriteriaCompo(new Criteria('tpl_module', $this->mDirName));
-            $tplObjects = $tplHandler->getObjects($criteria);
-            $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
-            $this->addMsg('Storing template content');
-
-            foreach($tplObjects as $object) {
-                $tplFile = $object->getVar('tpl_file');
-                $tplType = $object->getVar('tpl_type');
-                $fileName = preg_replace('/^'.$this->mDirName.'_/', '', $tplFile);
-                if ($tplType == 'module') {
-                    $fileName = NBFrame::findFile($fileName, $environment, 'templates', false);
-                } else {
-                    $fileName = NBFrame::findFile($fileName, $environment, 'templates/blocks', false);
-                }
-                if ($fileName) {
-                    $fileContent = file($fileName);
-                    $fileContent = implode('', $fileContent);
-                    $object->setVar('tpl_source', $fileContent);
-                    $object->setVar('tpl_lastmodified', filemtime($fileName));
-                    $tplHandler->insert($object);
-                    $this->addMsg('  <b>'.$tplFile.'</b>');
-                }
-            }
-            
-        }
-
         function renameTemplates($reverse = false) {
+            $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
             $moduleInfo = $this->_getModuleInfo();
             $tplHandler =& xoops_gethandler('tplfile');
             $criteria =& new CriteriaCompo(new Criteria('tpl_module', $this->mDirName));
             $tplObjects = $tplHandler->getObjects($criteria);
-            if (!$reverse) {
-                $this->addMsg('Rename Templates');
-            } else {
-                $this->addPreMsg('Rename Templates for updating module.');
-            }
-            foreach($tplObjects as $object) {
-                $orig_fname = $object->getVar('tpl_file');
-                if (!$reverse) {
-                    $fname = preg_replace('/'.$this->mDupMark.$this->mOrigName.$this->mDupMark.'_/', $this->mDirName.'_', $orig_fname);
-                    $object->setVar('tpl_file', $fname);
-                    $tplHandler->insert($object);
-                    $this->addMsg('  <b>'.$orig_fname.'</b> to <b>'.$fname.'</b>');
-                } else {
-                    $fname = preg_replace('/^'.$this->mDirName.'_/', $this->mDupMark.$this->mOrigName.$this->mDupMark.'_', $orig_fname);
-                    $object->setVar('tpl_file', $fname);
-                    $tplHandler->insert($object);
-                    $this->addPreMsg('  <b>'.$orig_fname.'</b> to <b>'.$fname.'</b>');
-                }
-            }
+
             if (!class_exists('XoopsBlock')) {
                 require_once XOOPS_ROOT_PATH.'/class/xoopsblock.php';
             }
             $blockObject =& new XoopsBlock();
             $blockObjects =& $blockObject->getByModule($moduleInfo['mid']);
-            foreach($blockObjects as $object) {
-                $orig_fname = $object->getVar('template');
-                if (!$reverse) {
-                    $fname = preg_replace('/'.$this->mDupMark.$this->mOrigName.$this->mDupMark.'_/', $this->mDirName.'_', $orig_fname);
+
+            if (!$reverse) {
+                $this->addMsg('Rename Templates');
+                foreach($tplObjects as $object) {
+                    $origFileName = $object->getVar('tpl_file');
+                    $fileName = preg_replace('/'.$this->mDupMark.$this->mOrigName.$this->mDupMark.'_/', $this->mDirName.'_', $origFileName);
+                    $object->setVar('tpl_file', $fileName);
+                    $this->addMsg('  <b>'.$origFileName.'</b> to <b>'.$fileName.'</b>');
+
+                    $tplType = $object->getVar('tpl_type');
+                    $srcFileName = preg_replace('/^'.$this->mDirName.'_/', '', $fileName);
+                    if ($tplType == 'module') {
+                        $srcFileName = NBFrame::findFile($srcFileName, $environment, 'templates', false);
+                    } else {
+                        $srcFileName = NBFrame::findFile($srcFileName, $environment, 'templates/blocks', false);
+                    }
+                    if ($srcFileName) {
+                        $fileContent = file($srcFileName);
+                        $fileContent = implode('', $fileContent);
+                        $object->setVar('tpl_source', $fileContent);
+                        $object->setVar('tpl_lastmodified', filemtime($srcFileName));
+                        $this->addMsg('  Storing tpl source <b>'.$fileName.'</b>');
+                    }
+                    $tplHandler->insert($object);
+                }
+                foreach($blockObjects as $object) {
+                    $origFileName = $object->getVar('template');
+                    $fname = preg_replace('/'.$this->mDupMark.$this->mOrigName.$this->mDupMark.'_/', $this->mDirName.'_', $origFileName);
                     $object->setVar('template', $fname);
                     $object->store();
-                    $this->addMsg('Rename Block Template <b>'.$orig_fname.'</b> to <b>'.$fname.'</b>');
-                } else {
-                    $fname = preg_replace('/^'.$this->mDirName.'_/', $this->mDupMark.$this->mOrigName.$this->mDupMark.'_', $orig_fname);
+                    $this->addMsg('  Rename Block Template <b>'.$origFileName.'</b> to <b>'.$fname.'</b>');
+                }
+            } else {
+                $this->addPreMsg('Rename Templates for updating module.');
+                foreach($tplObjects as $object) {
+                    $origFileName = $object->getVar('tpl_file');
+                    $fname = preg_replace('/^'.$this->mDirName.'_/', $this->mDupMark.$this->mOrigName.$this->mDupMark.'_', $origFileName);
+                    $object->setVar('tpl_file', $fname);
+                    $tplHandler->insert($object);
+                    $this->addPreMsg('  <b>'.$origFileName.'</b> to <b>'.$fname.'</b>');
+                }
+                foreach($blockObjects as $object) {
+                    $origFileName = $object->getVar('template');
+                    $fname = preg_replace('/^'.$this->mDirName.'_/', $this->mDupMark.$this->mOrigName.$this->mDupMark.'_', $origFileName);
                     $object->setVar('template', $fname);
                     $object->store();
-                    $this->addPreMsg('Rename Block Template <b>'.$orig_fname.'</b> to <b>'.$fname.'</b>');
+                    $this->addPreMsg('  Rename Block Template <b>'.$origFileName.'</b> to <b>'.$fname.'</b>');
                 }
             }
         }
-        
+
         function setModuleTemplateforDuplicate($tplName) {
             $template = array();
             if($this->isPreModuleInstall()||$this->isPreModuleUpdate()) {
@@ -216,7 +204,7 @@ if (!class_exists('NBFrameInstallHelper')) {
         }
 
         function prepareOnUpdateFunction() {
-            $options = $this->mOnInstallOption;
+            $options = $this->mOnUpdateOption;
             $dirName = $this->mDirName;
             $str = 'function xoops_module_update_'.$dirName.'(&$module, $prevVer) {';
             $str .= '$options=array();';
@@ -232,7 +220,7 @@ if (!class_exists('NBFrameInstallHelper')) {
         }
 
         function prepareOnUninstallFunction() {
-            $options = $this->mOnInstallOption;
+            $options = $this->mOnUninstallOption;
             $dirName = $this->mDirName;
             $str = 'function xoops_module_uninstall_'.$dirName.'(&$module) {';
             $str .= '$options=array();';
