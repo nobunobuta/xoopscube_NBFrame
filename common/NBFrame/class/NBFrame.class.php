@@ -269,7 +269,51 @@ if (!class_exists('NBFrame')) {
             return $mInstallHelperArr[$dirname];
         }
 
-        function executePreUpdateProcess($modversion) {
+        function parseXoopsVerionFile(&$modversion) {
+            $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
+
+            $modversion['name'] .= ' ['.$environment->mDirName.']';
+            $modversion['dirname'] = $environment->mDirName;
+            if (!empty($modversion['image'])) {
+                $modversion['image'] = '?action=NBFrame.GetModuleIcon&file='.basename($modversion['image']);
+            } else {
+                $modversion['image'] = '?action=NBFrame.GetModuleIcon';
+            }
+
+            if ($modversion['hasAdmin']){
+                $modversion['adminindex'] = 'index.php?action='.$environment->getAttribute('AdminMainAction');
+                $modversion['adminmenu'] = 'include/NBFrameAdminMenu.inc.php';
+            }
+            if (isset($modversion['tables'])){
+                foreach($modversion['tables'] as $key=>$tableName) {
+                    $modversion['tables'][$key] = $environment->prefix($tableName);
+                }
+            }
+            
+            if (isset($modversion['templates'])){
+                foreach($modversion['templates'] as $key=>$template) {
+                    $template_tmp = NBFrame::setModuleTemplate($template['file']);
+                    unset($template['file']);
+                    $modversion['templates'][$key] = array_merge($template_tmp, $template);
+                }
+            }
+            
+            foreach($modversion['blocks'] as $key=>$block) {
+                if (isset($block['template'])) {
+                    $block_tmp = NBFrame::setBlockTemplate($block['template']);
+                    unset($block['template']);
+                    $modversion['blocks'][$key] = array_merge($block_tmp, $block);
+                }
+                if (isset($block['show_func'])) {
+                    $modversion['blocks'][$key]['show_func'] = $environment->prefix($block['show_func']);
+                }
+                if (isset($block['edit_func'])) {
+                    $modversion['blocks'][$key]['edit_func'] = $environment->prefix($block['edit_func']);
+                }
+            }
+            
+            NBFrame::prepareInstaller($modversion);
+
             $installHelper =& NBFrame::getInstallHelper();
             if ($installHelper->isPreModuleUpdate() && !$installHelper->isPreModuleUpdateDone() ) {
                 $installHelper->preUpdateProcessforDuplicate();
@@ -337,8 +381,8 @@ if (!class_exists('NBFrame')) {
         function prepareBlockEditFunction($environment, $className) {
             $dirName = $environment->mDirName;
             $envStr = serialize($environment);
-            $str = 'if (!function_exists("b_'.$dirName.'_'.$className.'_edit")) {';
-            $str .= 'function b_'.$dirName.'_'.$className.'_edit($option) {'."\n";
+            $str = 'if (!function_exists("'.$dirName.'_b_'.$className.'_edit")) {';
+            $str .= 'function '.$dirName.'_b_'.$className.'_edit($option) {'."\n";
             $str .= '  $environment = unserialize(\''.$envStr.'\');'."\n";
             $str .= 'return '.$className.'::edit($environment, $option); }}';
             eval($str);
@@ -347,8 +391,8 @@ if (!class_exists('NBFrame')) {
         function prepareBlockShowFunction($environment, $className) {
             $dirName = $environment->mDirName;
             $envStr = serialize($environment);
-            $str = 'if (!function_exists("b_'.$dirName.'_'.$className.'_show")) {';
-            $str .= 'function b_'.$dirName.'_'.$className.'_show($option) {'."\n";
+            $str = 'if (!function_exists("'.$dirName.'_b_'.$className.'_show")) {';
+            $str .= 'function '.$dirName.'_b_'.$className.'_show($option) {'."\n";
             $str .= '  $environment = unserialize(\''.$envStr.'\');'."\n";
             $str .= 'return '.$className.'::show($environment, $option); }}';
             eval($str);
@@ -370,7 +414,7 @@ if (!class_exists('NBFrame')) {
                 return false;
             }
         }
-        
+
         function checkAltSys($dirOnly=true) {
             if (defined('XOOPS_TRUST_PATH')) {
                 if (is_dir(XOOPS_TRUST_PATH.'/libs/altsys')) {

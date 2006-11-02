@@ -5,13 +5,18 @@ if (!class_exists('NBFrameGetModuleIconAction')) {
         var $mLoadCommon = false;
         function executeDefaultOp() {
             error_reporting(E_ERROR);
-            $fileName = NBFrame::findFile('logo.gif', $this->mEnvironment, 'images');
-            if (!empty($fileName)) {
-                $mimeType = 'image/gif';
+            if (!empty($_GET['file'])) {
+                $fileBaseName = basename($_GET['file']);
+                $fileName = NBFrame::findFile($fileBaseName, $this->mEnvironment, 'images');
             } else {
-                $fileName = NBFrame::findFile('logo.png', $this->mEnvironment, 'images');
+                $fileName = NBFrame::findFile('logo.gif', $this->mEnvironment, 'images');
                 if (!empty($fileName)) {
-                    $mimeType = 'image/png';
+                    $mimeType = 'image/gif';
+                } else {
+                    $fileName = NBFrame::findFile('logo.png', $this->mEnvironment, 'images');
+                    if (!empty($fileName)) {
+                        $mimeType = 'image/png';
+                    }
                 }
             }
             if (!empty($fileName)) {
