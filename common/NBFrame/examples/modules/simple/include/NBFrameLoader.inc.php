@@ -3,10 +3,10 @@ $xoopsOption['nocommon'] = true;
 require_once dirname(dirname(dirname(dirname(__FILE__)))).'/mainfile.php';
 
 if (!defined('NBFRAME_BASE_DIR')) {
-    if (defined('XOOPS_TRUST_PATH') && file_exists(XOOPS_TRUST_PATH.'/NBFrame/include/NBFrameCommon.inc.php')) {
-        define('NBFRAME_BASE_DIR', XOOPS_TRUST_PATH.'/NBFrame');
-    } else if (file_exists(XOOPS_ROOT_PATH.'/common/NBFrame/include/NBFrameCommon.inc.php')) {
-        define('NBFRAME_BASE_DIR', XOOPS_ROOT_PATH.'/common/NBFrame');
+    if (defined('XOOPS_TRUST_PATH') && file_exists(XOOPS_TRUST_PATH.'/libs/NBFrame/include/NBFrameCommon.inc.php')) {
+        define('NBFRAME_BASE_DIR', XOOPS_TRUST_PATH.'/libs/NBFrame');
+    } else if (file_exists(XOOPS_ROOT_PATH.'/common/libs/NBFrame/include/NBFrameCommon.inc.php')) {
+        define('NBFRAME_BASE_DIR', XOOPS_ROOT_PATH.'/common/libs/NBFrame');
     } else {
         define('NBFRAME_BASE_DIR', dirname(__FILE__));
     }
