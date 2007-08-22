@@ -150,7 +150,11 @@
                 }
             }
             $this->mKeys = $sKeys[$table];
-            $this->mPrimaryKeys = $sPrimaryKeys[$table];
+            if (isset($sPrimaryKeys[$table])) {
+                $this->mPrimaryKeys = $sPrimaryKeys[$table];
+            } else {
+                $this->mPrimaryKeys =  array();
+            }
             $this->mFields = $sFields[$table];
         }
 

@@ -29,6 +29,9 @@ if (!class_exists('NBFrameLanguage')) {
                     break;
             }
             $this->setInAdmin($inAdmin);
+            if (defined('NBFRAME_BASE_DIR') && file_exists(NBFRAME_BASE_DIR.'/language/'.$GLOBALS['xoopsConfig']['language'].'/NBFrameCommon.php')) {
+                $this->_load(NBFRAME_BASE_DIR.'/language/'.$GLOBALS['xoopsConfig']['language'].'/NBFrameCommon.php');
+            }
         }
 
         function setInAdmin($inAdmin) {
@@ -40,11 +43,24 @@ if (!class_exists('NBFrameLanguage')) {
         }
 
         function loadModuleLanguageFile($filename) {
+            $languageFile=null;
             $fileOffset = '/modules/'.$this->mOrigDirName.'/language/'.$GLOBALS['xoopsConfig']['language'].'/'.$filename;
             if (defined('XOOPS_TRUST_PATH') && file_exists(XOOPS_TRUST_PATH. $fileOffset)) {
-                require_once XOOPS_TRUST_PATH.$fileOffset;
+                $languageFile = XOOPS_TRUST_PATH.$fileOffset;
             } else if (file_exists(XOOPS_ROOT_PATH.'/common'.$fileOffset)) {
-                require_once XOOPS_ROOT_PATH.'/common'.$fileOffset;
+                $languageFile =  XOOPS_ROOT_PATH.'/common'.$fileOffset;
+            }
+            $this->_load($languageFile);
+        }
+
+        function _load($languageFile) {
+            if (!empty($languageFile)) {
+                if (defined('XOOPS_CUBE_LEGACY')) {
+                    $root=&XCube_Root::getSingleton();
+                    $root->mLanguageManager->_loadFile($languageFile);
+                } else {
+                    require_once $languageFile;
+                }
             }
         }
 
@@ -73,18 +89,17 @@ if (!class_exists('NBFrameLanguage')) {
         }
 
         function getLangResouce($msg, $params=array(), $type='LANG', $retSouce=false) {
-            if (defined('NBFRAME_BASE_DIR') && file_exists(NBFRAME_BASE_DIR.'/language/'.$GLOBALS['xoopsConfig']['language'].'/NBFrameCommon.php')) {
-                require_once NBFRAME_BASE_DIR.'/language/'.$GLOBALS['xoopsConfig']['language'].'/NBFrameCommon.php';
-            }
             $msgKey = str_replace(' ','_',strtoupper($msg));
             $msgKey = preg_replace('/[^A-Z0-9_]/','', $msgKey);
-            if (!$this->mInAdmin) {
+            if ($this->mInAdmin) {
                 $msgConstPrefix = 'AD_';
             } else {
                 $msgConstPrefix = '';
             }
             if (defined('_'.$msgConstPrefix.strtoupper($this->mOrigDirName).'_'.$type.'_'.$msgKey)) {
                 $msgExpr ='constant("'.'_'.$msgConstPrefix.strtoupper($this->mOrigDirName).'_'.$type.'_'.$msgKey.'")';
+            } else if (defined('_'.strtoupper($this->mOrigDirName).'_'.$type.'_'.$msgKey)) {
+                $msgExpr ='constant("'.'_'.strtoupper($this->mOrigDirName).'_'.$type.'_'.$msgKey.'")';
             } else if (isset($GLOBALS['NBFrameLanguage'][$msg])) {
                 $msgExpr ='$GLOBALS["NBFrameLanguage"]["'.$msg.'"]';
             } else if (isset($GLOBALS['NBFrameLanguage'][$msgKey])) {

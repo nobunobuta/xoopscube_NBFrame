@@ -298,17 +298,19 @@ if (!class_exists('NBFrame')) {
                 }
             }
             
-            foreach($modversion['blocks'] as $key=>$block) {
-                if (isset($block['template'])) {
-                    $block_tmp = NBFrame::setBlockTemplate($block['template']);
-                    unset($block['template']);
-                    $modversion['blocks'][$key] = array_merge($block_tmp, $block);
-                }
-                if (isset($block['show_func'])) {
-                    $modversion['blocks'][$key]['show_func'] = $environment->prefix($block['show_func']);
-                }
-                if (isset($block['edit_func'])) {
-                    $modversion['blocks'][$key]['edit_func'] = $environment->prefix($block['edit_func']);
+            if (isset($modversion['blocks'])){
+                foreach($modversion['blocks'] as $key=>$block) {
+                    if (isset($block['template'])) {
+                        $block_tmp = NBFrame::setBlockTemplate($block['template']);
+                        unset($block['template']);
+                        $modversion['blocks'][$key] = array_merge($block_tmp, $block);
+                    }
+                    if (isset($block['show_func'])) {
+                        $modversion['blocks'][$key]['show_func'] = $environment->prefix($block['show_func']);
+                    }
+                    if (isset($block['edit_func'])) {
+                        $modversion['blocks'][$key]['edit_func'] = $environment->prefix($block['edit_func']);
+                    }
                 }
             }
             

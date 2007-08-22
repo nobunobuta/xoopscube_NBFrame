@@ -114,7 +114,7 @@ if (!class_exists('NBFrameObjectAction')) {
                 $this->mObjectList =& New NBFrameObjectList($this->mEnvironment);
                 NBFrame::using('TebleParser');
                 $parser = new NBFrameTebleParser($this->mObjectHandler->db);
-                $parser->setListElements($this->mObjectHandler->tableName, $this->mObjectList);
+                $parser->setListElements($this->mObjectHandler->mTableName, $this->mObjectList);
             }
             $this->mObjectList->bindAction($this);
             $this->mObjectList->prepare();

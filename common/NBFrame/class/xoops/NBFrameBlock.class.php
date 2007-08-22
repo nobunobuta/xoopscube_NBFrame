@@ -6,6 +6,7 @@ if(!class_exists('NBFrameBlock')) {
             $this->setVarType('options', XOBJ_DTYPE_CUSTOM);
             $this->setVarType('block_type', XOBJ_DTYPE_OTHER);
             $this->setVarType('template', XOBJ_DTYPE_OTHER);
+            $this->setVarRequired('content', false);
 
             $this->setAttribute('modules', null, XOBJ_DTYPE_CUSTOM);
             $this->setAttribute('is_custom', null, XOBJ_DTYPE_CUSTOM);

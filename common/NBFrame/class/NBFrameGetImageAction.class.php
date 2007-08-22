@@ -7,7 +7,7 @@ if (!class_exists('NBFrameGetImageAction')) {
             error_reporting(E_ERROR);
             $fileBaseName = basename($_GET['file']);
             $fileName = NBFrame::findFile($fileBaseName, $this->mEnvironment, 'images');
-            if (!empty($fileName) && preg_match('/\.(jpeg|jpg|gif|png)$/', strtolower($fileBaseName), $match)) {
+            if (!empty($fileName) && preg_match('/\.(jpeg|jpg|gif|png|swf)$/', strtolower($fileBaseName), $match)) {
                 $fileExt = $match[1];
                 if ($fileExt =='jpeg' || $fileExt =='jpg') {
                     $mimeType = 'image/jpeg';
@@ -15,6 +15,8 @@ if (!class_exists('NBFrameGetImageAction')) {
                     $mimeType = 'image/gif';
                 } else if ($fileExt =='png'){
                     $mimeType = 'image/png';
+                } else if ($fileExt =='swf'){
+                    $mimeType = 'application/x-shockwave-flash';
                 }
                 NBFrame::using('HTTPOutput');
                 NBFrameHTTPOutput::putFile($fileName, $mimeType);

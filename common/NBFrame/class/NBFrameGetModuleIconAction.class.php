@@ -58,11 +58,11 @@ if (!class_exists('NBFrameGetModuleIconAction')) {
         }
         
         function overlayText(&$image, $dirname, $origdirname) {
-            if ((imagesx($image) == 92)&&(imagesy($image) == 52)) {
+            if ((imagesx($image) == 92)&&(imagesy($image) == 52)) {//XCube2.1 Style
                 $color = imagecolorallocate( $image , 0 , 0 , 0 ) ; // black
                 $px = ( 92 - 6 * strlen( $dirname ) ) / 2 ;
                 imagestring( $image , 2 , $px , 34 , $dirname , $color );
-            } else if ((imagesx($image) == 127)&&(imagesy($image) == 24)) {
+            } else if ((imagesx($image) == 127)&&(imagesy($image) == 24)) {//XOOPS 2.0.x Style
                 $color_b = imagecolorallocate( $image , 200 , 200 , 200 ) ;
                 $color_f1= imagecolorallocate( $image , 0 , 70 , 0 );
                 $color_f= imagecolorallocate( $image , 60 , 160 , 60 );
