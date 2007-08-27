@@ -14,13 +14,34 @@ if (empty($_REQUEST['action']) || !in_array($_REQUEST['action'], $noCommonAction
            exit();
         }
     }
-    require_once XOOPS_ROOT_PATH.'/include/functions.php';
-    require_once XOOPS_ROOT_PATH.'/class/errorhandler.php';
-    require_once XOOPS_ROOT_PATH.'/class/logger.php';
-    require_once XOOPS_ROOT_PATH.'/include/functions.php';
-    require_once XOOPS_ROOT_PATH.'/class/database/databasefactory.php';
-    require_once XOOPS_ROOT_PATH.'/kernel/object.php';
-    require_once XOOPS_ROOT_PATH.'/class/criteria.php';
-    require_once XOOPS_ROOT_PATH.'/class/module.textsanitizer.php';
+    if (class_exists('XCube_Root')) {
+        $root=&XCube_Root::getSingleton();
+        $root->mController->executeCommonSubset(true);
+
+        $handler =& xoops_gethandler('config');
+        $criteria =& new CriteriaCompo(new Criteria('conf_modid', 0));
+        $criteria->add(new Criteria('conf_catid', XOOPS_CONF));
+        $criteria->add(new Criteria('conf_name', 'language'));
+        $configs =& $handler->getConfigs($criteria);
+    
+        if (count($configs) > 0) {
+            $language = $configs[0]->get('conf_value', 'none');
+        }
+
+        $filename = XOOPS_MODULE_PATH . '/legacy/language/' . $language . '/charset_' . XOOPS_DB_TYPE . '.php';
+        if (file_exists($filename)) {
+            require_once($filename);
+        }
+    } else if (empty($GLOBALS['xoopsDB'])) {
+        require_once XOOPS_ROOT_PATH.'/include/functions.php';
+        require_once XOOPS_ROOT_PATH.'/class/errorhandler.php';
+        require_once XOOPS_ROOT_PATH.'/class/logger.php';
+        require_once XOOPS_ROOT_PATH.'/include/functions.php';
+        require_once XOOPS_ROOT_PATH.'/class/database/databasefactory.php';
+        require_once XOOPS_ROOT_PATH.'/kernel/object.php';
+        require_once XOOPS_ROOT_PATH.'/class/criteria.php';
+        require_once XOOPS_ROOT_PATH.'/class/module.textsanitizer.php';
+        $GLOBALS['xoopsDB'] =& XoopsDatabaseFactory::getDatabaseConnection();
+    }
 }
 ?>

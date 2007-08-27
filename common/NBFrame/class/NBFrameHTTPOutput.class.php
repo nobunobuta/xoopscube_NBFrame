@@ -2,11 +2,19 @@
 if (!class_exists('NBFrame')) exit();
 if (!class_exists('NBFrameHTTPOutput')) {
     class NBFrameHTTPOutput {
-        function putFile($fileName, $contentType) {
+        function putFile($fileName, $contentType, $static=true) {
             error_reporting(E_ERROR);
             if (file_exists($fileName)) {
                 header('Content-Type: '.$contentType);
-                NBFrameHTTPOutput::staticContentHeader(filemtime($fileName), $fileName);
+                if ($static) {
+                    header('Content-Disposition: inline; filename="'.basename($fileName).'"');
+                    NBFrameHTTPOutput::staticContentHeader(filemtime($fileName), $fileName);
+                } else {
+                    header('Pragma: no-cache');
+                    header('Cache-Control: no-store, no-cache, must-revalidate,post-check=0, pre-check=0');
+                    header('Expires: '.gmdate('D, d M Y H:i:s', time()-60).' GMT');
+                    header('Content-Disposition: inline; filename="'.basename($fileName).'"');
+                }
                 $handle = fopen($fileName,'rb');
                 $content = '';
                 while (!feof($handle)) {

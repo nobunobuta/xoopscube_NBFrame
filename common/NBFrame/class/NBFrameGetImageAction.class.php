@@ -5,7 +5,13 @@ if (!class_exists('NBFrameGetImageAction')) {
         var $mLoadCommon = false;
         function executeDefaultOp() {
             error_reporting(E_ERROR);
-            $fileBaseName = basename($_GET['file']);
+            if (isset($_GET['NBImgFile'])) {
+                $fileBaseName = basename($_GET['NBImgFile']);
+            } else if (isset($_GET['file'])) {
+                $fileBaseName = basename($_GET['file']);
+            } else {
+                return;
+            }
             $fileName = NBFrame::findFile($fileBaseName, $this->mEnvironment, 'images');
             if (!empty($fileName) && preg_match('/\.(jpeg|jpg|gif|png|swf)$/', strtolower($fileBaseName), $match)) {
                 $fileExt = $match[1];

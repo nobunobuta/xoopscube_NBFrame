@@ -295,7 +295,7 @@ if (!class_exists('NBFrameInstallHelper')) {
         function isPreModuleInstall() {
             if (defined('XOOPS_CUBE_LEGACY') && class_exists('XCube_Root')) {
                 $action =& $this->_getActionFrame();
-                if (is_a($action,'Legacy_ActionFrame')) {
+                if (is_a($action,'Legacy_ActionFrame') || is_a($action,'NBFrameDummyActionFrame')) {
                     if ($action->mAdminFlag && 
                         (($action->mActionName == 'ModuleInstall')||($action->mActionName == 'InstallWizard')) &&
                         $_SERVER['REQUEST_METHOD'] == 'POST' && $_REQUEST['dirname'] == $this->mDirName) {
@@ -328,7 +328,7 @@ if (!class_exists('NBFrameInstallHelper')) {
         function isPreModuleUpdate() {
             if (defined('XOOPS_CUBE_LEGACY') && class_exists('XCube_Root')) {
                 $action =& $this->_getActionFrame();
-                if (is_a($action,'Legacy_ActionFrame')) {
+                if (is_a($action,'Legacy_ActionFrame') || is_a($action,'NBFrameDummyActionFrame')) {
                     if ($action->mAdminFlag && 
                         $action->mActionName == 'ModuleUpdate' &&
                         $_SERVER['REQUEST_METHOD'] == 'POST' &&
@@ -353,7 +353,7 @@ if (!class_exists('NBFrameInstallHelper')) {
         function isPreModuleUninstall() {
             if (defined('XOOPS_CUBE_LEGACY') && class_exists('XCube_Root')) {
                 $action =& $this->_getActionFrame();
-                if (is_a($action,'Legacy_ActionFrame')) {
+                if (is_a($action,'Legacy_ActionFrame') || is_a($action,'NBFrameDummyActionFrame')) {
                     if ($action->mAdminFlag && 
                         $action->mActionName == 'ModuleUninstall' &&
                         $_SERVER['REQUEST_METHOD'] == 'POST' &&
@@ -434,8 +434,19 @@ if (!class_exists('NBFrameInstallHelper')) {
                 foreach($callbacks0 as $callbacks) {
                     foreach($callbacks as $callback) {
                         if (is_array($callback[0]) && is_object($callback[0][0])) {
-                            $action =& $callback[0][0];
+                            $action = $callback[0][0];
                         }
+                    }
+                }
+            }
+            if ($action == null) {
+                if (is_object($root->mContext->mXoopsModule)) {
+                    $moduleName = $root->mContext->mXoopsModule->getVar('dirname');
+                    if (($moduleName == 'legacy') && (preg_match('!/modules/legacy/admin/!',$_SERVER['REQUEST_URI']))) {
+                        $dummyAction =& new NBFrameDummyActionFrame;
+                        $dummyAction->mActionName = xoops_getrequest('action');
+                        $dummyAction->mAdminFlag = true;
+                        return $dummyAction;
                     }
                 }
             }
@@ -444,6 +455,11 @@ if (!class_exists('NBFrameInstallHelper')) {
             }
             return $action;
         }
+    }
+    class NBFrameDummyActionFrame
+    {
+        var $mActionName;
+        var $mAdminFlag;
     }
 }
 ?>
