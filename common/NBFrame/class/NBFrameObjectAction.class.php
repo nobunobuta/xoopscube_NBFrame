@@ -293,14 +293,14 @@ if (!class_exists('NBFrameObjectAction')) {
                 $this->mObjectForm->bindAction($this, 1);
                 $this->mObjectForm->prepare();
 
-                $xoopForm =& $this->mObjectForm->buildEditForm($this->mObject);
+                $xoopsForm =& $this->mObjectForm->buildEditForm($this->mObject);
                 if ($this->mRender->mTemplate) {
-                    $xoopForm->assign($this->mXoopsTpl);
+                    $xoopsForm->assign($this->mXoopsTpl);
                     $this->mXoopsTpl->assign('title', $this->mCaption);
-                    $this->mXoopsTpl->assign('formhtml', $xoopForm->render());
+                    $this->mXoopsTpl->assign('formhtml', $xoopsForm->render());
                     $this->mXoopsTpl->assign('errmsg', $this->mErrorMsg);
                 } else {
-                    echo $xoopForm->render();
+                    echo $xoopsForm->render();
                 }
             }
         }

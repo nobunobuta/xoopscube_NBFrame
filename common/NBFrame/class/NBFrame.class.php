@@ -361,7 +361,8 @@ if (!class_exists('NBFrame')) {
 
         function setModuleTemplate($basename) {
             $installHelper =& NBFrame::getInstallHelper();
-            return $installHelper->setModuleTemplateforDuplicate($basename);
+            $template =& $installHelper->setModuleTemplateforDuplicate($basename);
+            return $template;
         }
         
         function setBlockTemplate($basename, $isBlock=false) {
