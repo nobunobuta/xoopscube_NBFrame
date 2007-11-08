@@ -8,6 +8,7 @@ if (class_exists('NBFrame')) {
                                                           'admin.SimpleTable1Admin',
                                                           'NBFrame.admin.BlocksAdmin',
                                                           'NBFrame.admin.AltSys',
+                                                          'NBFrame.GetModuleIcon',
                                                        ));
 
     $environment->setAttribute('BlockHandler', array('simpleblock'));
