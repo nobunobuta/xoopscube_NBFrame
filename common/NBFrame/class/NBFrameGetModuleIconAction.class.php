@@ -58,20 +58,34 @@ if (!class_exists('NBFrameGetModuleIconAction')) {
         }
         
         function overlayText(&$image, $dirname, $origdirname) {
-            if ((imagesx($image) == 92)&&(imagesy($image) == 52)) {//XCube2.1 Style
+            $gdInfo = gd_info();
+            if ($gdInfo['FreeType Support']) {
+                $useTTF = true;
+                $fonrFileName = NBFRAME_BASE_DIR.'/include/FreeSansBold.ttf';
+            } else {
+                $useTTF = false;
+            }
+            if ((imagesx($image) == 92)&&(imagesy($image) == 52)) {//XCube2.0.x Style
                 $color = imagecolorallocate( $image , 0 , 0 , 0 ) ; // black
                 $px = ( 92 - 6 * strlen( $dirname ) ) / 2 ;
                 imagestring( $image , 2 , $px , 34 , $dirname , $color );
-            } else if ((imagesx($image) == 127)&&(imagesy($image) == 24)) {//XOOPS 2.0.x Style
+            } else if ((imagesx($image) == 127)&&(imagesy($image) == 24)) {//XOOPS 2.1 Style
+                $origdirname = ucfirst($origdirname);
                 $color_b = imagecolorallocate( $image , 200 , 200 , 200 ) ;
-                $color_f1= imagecolorallocate( $image , 0 , 70 , 0 );
+                $color_f1= imagecolorallocate( $image , 0 , 80 , 0 );
                 $color_f= imagecolorallocate( $image , 60 , 160 , 60 );
-                imagestring( $image , 2 , 42 , 2 , $origdirname , $color_b ) ;
-                imagestring( $image , 2 , 52 , 13 , "[".$dirname."]" , $color_b ) ;
-                imagestring( $image , 2 , 41 , 1 , $origdirname , $color_f ) ;
-                imagestring( $image , 2 , 51 , 12 , "[".$dirname."]" , $color_f ) ;
-                imagestring( $image , 2 , 40 , 0 , $origdirname , $color_f1) ;
-                imagestring( $image , 2 , 50 , 11 , "[".$dirname."]" , $color_f1) ;
+                
+                if ($useTTF) {
+                    imagettftext ( $image,9, 0, 42, 11,$color_f1,$fonrFileName, $origdirname );
+                    imagettftext ( $image,8, 0, 42, 20,$color_f1,$fonrFileName,  " - [".$dirname."]"  );
+                } else {
+                    imagestring( $image , 2 , 42 , 2 , $origdirname , $color_b ) ;
+                    imagestring( $image , 2 , 52 , 13 , "[".$dirname."]" , $color_b ) ;
+                    imagestring( $image , 2 , 41 , 1 , $origdirname , $color_f ) ;
+                    imagestring( $image , 2 , 51 , 12 , "[".$dirname."]" , $color_f ) ;
+                    imagestring( $image , 2 , 40 , 0 , $origdirname , $color_f1) ;
+                    imagestring( $image , 2 , 50 , 11 , "[".$dirname."]" , $color_f1) ;
+                }
             }
         }
     }
