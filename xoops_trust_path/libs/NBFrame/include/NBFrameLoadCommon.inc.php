@@ -4,6 +4,8 @@ $noCommonActions = $environment->getAttribute('NoCommonAction');
 if (!is_array($noCommonActions)) {
     $noCommonActions = array();
 }
+$noCommonActions[] = 'NBFrame.GetModuleIcon';
+$noCommonActions[] = 'NBFrame.GetImage';
 if (empty($_REQUEST['action']) || !in_array($_REQUEST['action'], $noCommonActions)) {
     require_once XOOPS_ROOT_PATH .'/include/common.php';
 } else {

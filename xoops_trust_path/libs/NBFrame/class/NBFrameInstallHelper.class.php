@@ -3,7 +3,6 @@ if (!class_exists('NBFrame')) exit();
 if (!class_exists('NBFrameInstallHelper')) {
     class NBFrameInstallHelper
     {
-        var $mDupMark;
         var $mOrigName;
         var $mDirName;
 
@@ -17,10 +16,9 @@ if (!class_exists('NBFrameInstallHelper')) {
         
         var $mModuleInfo = null;
 
-        function NBFrameInstallHelper($dirname, $orig_name, $dupmark='XX') {
+        function NBFrameInstallHelper($dirname, $orig_name) {
             $this->mOrigName = $orig_name;
             $this->mDirName = $dirname;
-            $this->mDupMark = $dupmark;
             if( defined('XOOPS_CUBE_LEGACY')) {
                 $root =& XCube_Root::getSingleton();
                 $root->mDelegateManager->add('Legacy.Admin.Event.ModuleInstall.'.ucfirst($dirname).'.Success', array(&$this, 'putCubeMsg'));
@@ -32,117 +30,331 @@ if (!class_exists('NBFrameInstallHelper')) {
         // Method for Duplicated Modules
         
         function postInstallProcessforDuplicate() {
-            $this->renameTables();
-            $this->renameTemplates();
+            $this->createTables();
+            $this->installTemplates();
             return true;
         }
         
         function preUpdateProcessforDuplicate() {
-            $this->renameTemplates(true);
             return true;
         }
         
         function postUpdateProcessforDuplicate() {
-            $this->renameTemplates();
+            $this->installTemplates();
+            $this->alterTables();
             return true;
         }
 
-        function renameTables() {
-            $moduleInfo = $this->_getModuleInfo();
-            $this->addMsg('Rename Tables');
-            foreach($moduleInfo['tables'] as $table) {
-                $orig_table = preg_replace('/^'.$this->mDirName.'_/',$this->mDupMark.$this->mOrigName.$this->mDupMark.'_', $table);
-                $sql = 'RENAME TABLE '.$GLOBALS['xoopsDB']->prefix($orig_table).' TO '.$GLOBALS['xoopsDB']->prefix($table);
-                $GLOBALS['xoopsDB']->query($sql);
-                $this->addMsg('  <b>'.$orig_table.'</b> to <b>'.$table.'</b>');
+        function createTables() {
+            $this->addMsg('NBFrame Automatic Table Creater start...');
+            $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
+            if ($fname = NBFrame::findFile('tabledef.inc.php',$environment, '/include')) @include $fname;
+            if (($fname0 = NBFrame::findFile('tabledef.inc.php',$environment, '/include', false, $this->mDirName.'_'))&&($fname!=$fname0)) @include $fname0;
+            foreach($tableDef[$this->mOrigName] as $key =>$value) {
+                $tableName = $GLOBALS['xoopsDB']->prefix($this->mDirName.'_'.$key);
+                $this->addMsg(' Table '.$tableName);
+                $this->_createTable($tableName, $value);
             }
+            $this->addMsg('NBFrame Automatic Table Creater ends...');
         }
 
-        function renameTemplates($reverse = false) {
+        function alterTables() {
+            $this->addMsg('NBFrame Automatic Table Updater start...');
             $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
-            $moduleInfo = $this->_getModuleInfo();
-            $tplHandler =& xoops_gethandler('tplfile');
-            $criteria =& new CriteriaCompo(new Criteria('tpl_module', $this->mDirName));
-            $tplObjects = $tplHandler->getObjects($criteria);
+            if ($fname = NBFrame::findFile('tabledef.inc.php',$environment, '/include', false, $this->mDirName.'_')) @include $fname;
+            if (($fname0 = NBFrame::findFile('tabledef.inc.php',$environment, '/include', false, $this->mDirName.'_'))&&($fname!=$fname0)) @include $fname0;                foreach($tableDef[$this->mOrigName] as $key =>$value) {
+                $tableName = $GLOBALS['xoopsDB']->prefix($this->mDirName.'_'.$key);
+                $this->addMsg(' Table '.$tableName);
+                $this->addMsg('   Create table '.$tableName.' if it does not exist.');
+                $this->_createTable($tableName, $value, true);
 
-            if (!class_exists('XoopsBlock')) {
-                require_once XOOPS_ROOT_PATH.'/class/xoopsblock.php';
-            }
-            $blockObject =& new XoopsBlock();
-            $blockObjects =& $blockObject->getByModule($moduleInfo['mid']);
+                $alterParts  = array();
+                //Get existing table definition
+                $sql = 'SHOW COLUMNS FROM '.$tableName;
+                $resultColumuns = $GLOBALS['xoopsDB']->query($sql);
 
-            if (!$reverse) {
-                $this->addMsg('Rename Templates');
-                foreach($tplObjects as $object) {
-                    $origFileName = $object->getVar('tpl_file');
-                    $fileName = preg_replace('/'.$this->mDupMark.$this->mOrigName.$this->mDupMark.'_/', $this->mDirName.'_', $origFileName);
-                    $object->setVar('tpl_file', $fileName);
-                    $this->addMsg('  <b>'.$origFileName.'</b> to <b>'.$fileName.'</b>');
-
-                    $tplType = $object->getVar('tpl_type');
-                    $srcFileName = preg_replace('/^'.$this->mDirName.'_/', '', $fileName);
-                    if ($tplType == 'module') {
-                        $srcFileName = NBFrame::findFile($srcFileName, $environment, 'templates', false);
+                $tableFields = array();
+                while($row =$GLOBALS['xoopsDB']->fetchArray($resultColumuns)) {
+                    $name = $row['Field'];
+                    $defMatch = true;
+                    if (isset($value['fields'][$name])) {
+                        if (preg_match('/\s*(\w+)\s*(\(\s*(\d+)\s*\))?(\s+(.*))?/', $value['fields'][$name][0], $match)) {
+                            $defType = strtolower($match[1]);
+                            if (!empty($match[2])) $defType .='('.$match[3].')';
+                            if (!empty($match[5])) $defType .=' '.strtolower($match[5]);
+                        }
+                        if ($defType != $row['Type']) {
+                            $this->addMsg('   Field('.$name.') type is changed.');
+                            $defMatch = false;
+                        }
+                        $nulldef = strtoupper(trim($value['fields'][$name][1]));
+                        if (!((($nulldef=='NOT NULL')&&($row['Null']=='NO'))||(($nulldef=='NULL')&&($row['Null']=='YES')))) {
+                            $this->addMsg('   Field('.$name.') null definition is changed.');
+                            $defMatch = false;
+                        }
+                        if (strtolower($value['fields'][$name][3])!=$row['Extra']) {
+                            $this->addMsg('   Field('.$name.') default definition is changed.');
+                            $defMatch = false;
+                        }
+                        if (!$defMatch) {
+                            $this->addMsg('   Field('.$name.') default definition is changed.');
+                            $alterParts[] = 'CHANGE COLUMN `'.$row['Field'].'` '.$this->_createFieldPart($name, $value['fields'][$name]);
+                        }
                     } else {
-                        $srcFileName = NBFrame::findFile($srcFileName, $environment, 'templates/blocks', false);
+                        $this->addMsg('   Field('.$name.') will be dropped.');
+                        $alterParts[] = 'DROP COLUMN `'.$row['Field'].'`';
                     }
-                    if ($srcFileName) {
-                        $fileContent = file($srcFileName);
-                        $fileContent = implode('', $fileContent);
-                        $object->setVar('tpl_source', $fileContent);
-                        $object->setVar('tpl_lastmodified', filemtime($srcFileName));
-                        $this->addMsg('  Storing tpl source <b>'.$fileName.'</b>');
-                    }
-                    $tplHandler->insert($object);
+                    $tableFields[$row['Field']] = $row;
+                    unset($row);
                 }
-                foreach($blockObjects as $object) {
-                    $origFileName = $object->getVar('template');
-                    $fname = preg_replace('/'.$this->mDupMark.$this->mOrigName.$this->mDupMark.'_/', $this->mDirName.'_', $origFileName);
-                    $object->setVar('template', $fname);
-                    $object->store();
-                    $this->addMsg('  Rename Block Template <b>'.$origFileName.'</b> to <b>'.$fname.'</b>');
+                $prevField = '';
+                foreach($value['fields'] as $name=>$defArray) {
+                    if (!isset($tableFields[$name])) {
+                        $alterPart = 'ADD COLUMN `'.$this->_createFieldPart($name, $defArray).'`';
+                        if ($prevField == '') {
+                            $alterPart .= ' FIRST';
+                        } else {
+                            $alterPart .= ' AFTER '.$prevField;
+                        }
+                        $this->addMsg('   Field('.$name.') will be added.');
+                        $alterParts[] = $alterPart;
+                    }
+                    $prevField = $name;
+                }
+
+                $sql = 'SHOW INDEX FROM `'.$tableName.'`';
+                $resultKeys = $GLOBALS['xoopsDB']->query($sql);
+
+                $tablePrimaryKeys = array();
+                $tableKeys = array();
+                $tabkeUniqueKeys = array();
+                
+                while($row = $GLOBALS['xoopsDB']->fetchArray($resultKeys)) {
+                    if($row['Key_name'] == 'PRIMARY') {
+                       $tablePrimaryKeys[$row['Seq_in_index']-1] = $row['Column_name'];
+                    } else if ($row['Non_unique'] == 1) {
+                       $tableKeys[$row['Key_name']][$row['Seq_in_index']-1] = $row['Column_name'];
+                    } else {
+                       $tabkeUniqueKeys[$row['Key_name']][$row['Seq_in_index']-1] = $row['Column_name'];
+                    }
+                    unset($row);
+                }
+                if (!empty($value['primary'])) {
+                    if (count($tablePrimaryKeys)) {
+                        $value['primary'] = preg_replace('/\s/', '', $value['primary']);
+                        $primaryArray = explode(',', $value['primary']);
+                        $unMatch = true;
+                        if (count($primaryArray) == count($tablePrimaryKeys)) {
+                            $unMatch = false;
+                            for ($i=0; $i<count($primaryArray); $i++) {
+                                if ($primaryArray[$i] != $tablePrimaryKeys[$i]) $unMatch = true;
+                            }
+                        }
+                        if ($unMatch) {
+                            $alterParts[] = 'DROP PRIMARY KEY';
+                            $alterParts[] = 'ADD PRIMARY KEY ('.$value['primary'].')';
+                        }
+                    } else {
+                        $alterParts[] = 'ADD PRIMARY KEY ('.$value['primary'].')';
+                    }
+                } else if (!empty($tablePrimaryKeys)) {
+                    $alterParts[] = 'DROP PRIMARY KEY';
+                }
+                if (!empty($value['keys'])) {
+                    foreach ($value['keys'] as $name =>$def) {
+                        if (isset($tableKeys[$name])) {
+                            $def = preg_replace('/\s/', '', $def);
+                            $defArray = explode(',', $def);
+                            $unMatch = true;
+                            if (count($defArray) == count($tableKeys[$name])) {
+                                $unMatch = false;
+                                for ($i=0; $i<count($defArray); $i++) {
+                                    if ($defArray[$i] != $tableKeys[$name][$i]) $unMatch = true;
+                                }
+                            }
+                            if ($unMatch) {
+                                $alterParts[] = 'DROP INDEX '.$name;
+                                $alterParts[] = 'ADD INDEX '.$name.' ('.$def.')';
+                            }
+                        } else {
+                            $alterParts[] = 'ADD INDEX '.$name.' ('.$def.')';
+                        }
+                    }
+                }
+                foreach ($tableKeys as $name=>$def) {
+                    if (!isset($value['keys']) || !isset($value['keys'][$name])) {
+                        $alterParts[] = 'DROP INDEX '.$name;
+                    }
+                }
+                if (!empty($value['unique'])) {
+                    foreach ($value['unique'] as $name =>$def) {
+                        if (isset($tabkeUniqueKeys[$name])) {
+                            $def = preg_replace('/\s/', '', $def);
+                            $defArray = explode(',', $def);
+                            $unMatch = true;
+                            if (count($defArray) == count($tabkeUniqueKeys[$name])) {
+                                $unMatch = false;
+                                for ($i=0; $i<count($defArray); $i++) {
+                                    if ($defArray[$i] != $tabkeUniqueKeys[$name][$i]) $unMatch = true;
+                                }
+                            }
+                            if ($unMatch) {
+                                $alterParts[] = 'DROP UNIQUE';
+                                $alterParts[] = 'ADD UNIQUE ('.$def.')';
+                            }
+                        } else {
+                            $alterParts[] = 'ADD UNIQUE ('.$def.')';
+                        }
+                    }
+                }
+                foreach ($tabkeUniqueKeys as $name=>$def) {
+                    if (empty($value['unique']) || !isset($value['unique'][$name])) {
+                        $alterParts[] = 'DROP UNIQUE '.$name;
+                    }
+                }
+                if (count($alterParts)) {
+                    $alterSQL = 'ALTER TABLE `'. $tableName.'` ';
+                    $comma = '';
+                    foreach($alterParts as $alterPart) {
+                        $alterSQL .= $comma.$alterPart;
+                        $comma = ",\n";
+                    }
+//                  $this->addMsg($alterSQL);
+                    $this->addMsg('   Alter table '.$tableName.'.');
+                    $GLOBALS['xoopsDB']->query($alterSQL);
+                }
+            }
+            $this->addMsg('NBFrame Automatic Table Updater ends...');
+        }
+
+        function _createTable($tableName, $tableDef, $createIfNotExists=false)
+        {
+            if ($createIfNotExists) {
+                $ifStr = 'IF NOT EXISTS ';
+            } else {
+                $ifStr = '';
+            }
+            $createSQL = 'CREATE TABLE '.$ifStr.'`'.$tableName.'` (';
+            $comma = '';
+            if (!empty($tableDef['fields'])) {
+                foreach ($tableDef['fields'] as $name =>$defArray) {
+                    $createSQL .= $comma. $this->_createFieldPart($name, $defArray);
+                    $comma = ', ';
                 }
             } else {
-                $this->addPreMsg('Rename Templates for updating module.');
-                foreach($tplObjects as $object) {
-                    $origFileName = $object->getVar('tpl_file');
-                    $fname = preg_replace('/^'.$this->mDirName.'_/', $this->mDupMark.$this->mOrigName.$this->mDupMark.'_', $origFileName);
-                    $object->setVar('tpl_file', $fname);
-                    $tplHandler->insert($object);
-                    $this->addPreMsg('  <b>'.$origFileName.'</b> to <b>'.$fname.'</b>');
-                }
-                foreach($blockObjects as $object) {
-                    $origFileName = $object->getVar('template');
-                    $fname = preg_replace('/^'.$this->mDirName.'_/', $this->mDupMark.$this->mOrigName.$this->mDupMark.'_', $origFileName);
-                    $object->setVar('template', $fname);
-                    $object->store();
-                    $this->addPreMsg('  Rename Block Template <b>'.$origFileName.'</b> to <b>'.$fname.'</b>');
+                contiue;
+            }
+            if (!empty($tableDef['primary'])) {
+                $createSQL .= $comma. 'PRIMARY KEY ('.$tableDef['primary']. ')';
+            }
+            if (!empty($tableDef['keys'])) {
+                foreach ($tableDef['keys'] as $name =>$def) {
+                    $createSQL .= $comma. 'KEY '.$name.' ('.$def. ')';
                 }
             }
+            if (!empty($tableDef['unique'])) {
+                foreach ($tableDef['unique'] as $name =>$def) {
+                    $createSQL .= $comma. 'UNIQUE '.$name.' ('.$def. ')';
+                }
+            }
+            if (!empty($tableDef['fulltext'])) {
+                foreach ($tableDef['fulltext'] as $name =>$def) {
+                    $createSQL .= $comma. 'FULLTEXT '.$name.' ('.$def. ')';
+                }
+            }
+            $createSQL .= ') TYPE=MyISAM';
+//          $this->addMsg($createSQL);
+            if (!$createIfNotExists) {
+                $this->addMsg('   Create table '.$tableName.'.');
+            }
+            $GLOBALS['xoopsDB']->query($createSQL);
         }
 
+        function _createFieldPart($name, $defArray) {
+            $createSQL = '`'.$name.'` '.$defArray[0]. ' '. $defArray[1];
+            if ($defArray[2] != null) {
+                $createSQL .= ' default '."'".mysql_real_escape_string($defArray[2])."'";
+            }
+            if (!empty($defArray[3])) {
+                $createSQL .= ' '.$defArray[3];
+            }
+            return $createSQL;
+        }
+
+        function installTemplates() {
+            $this->addMsg('NBFrame Duplicatable Template Definition starts...');
+            $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
+            $tempaltePath = NBFrame::findFile('templates',$environment, '');
+            $moduleInfo = $this->_getModuleInfo();
+            $tplFileHandler =& NBFrame::getHandler('NBFrame.xoops.TplFile', $environment);
+            $templateFiles = glob($tempaltePath.'/*.html');
+            foreach ($templateFiles as $templateFile) {
+                $templateFileBaseName = basename($templateFile);
+                $templateFile = NBFrame::findFile($templateFileBaseName, $environment, '/templates', false, $this->mDirName.'_');
+                $templateName = $this->mDirName.'_'.$templateFileBaseName;
+                $fileContent = file($templateFile);
+                $fileContent = implode('', $fileContent);
+                $tplFileObject =& $tplFileHandler->create();
+                $tplFileObject->setVar('tpl_refid', $moduleInfo['mid']);
+                $tplFileObject->setVar('tpl_module', $this->mDirName);
+                $tplFileObject->setVar('tpl_tplset', 'default');
+                $tplFileObject->setVar('tpl_file', $templateName);
+                $tplFileObject->setVar('tpl_desc', '');
+                $tplFileObject->setVar('tpl_lastmodified', filemtime($templateFile));
+                $tplFileObject->setVar('tpl_type', 'module');
+                $tplFileObject->setVar('tpl_source', $fileContent);
+                $tplFileHandler->insert($tplFileObject);
+                $this->addMsg('  Define Module Template('.$templateName.')');
+            }
+            
+            foreach($moduleInfo['blocks'] as $key=>$blockDef) {
+                if (isset($blockDef['template'])) {
+                    $basename = preg_replace('/^'.$this->mDirName.'_/','', $blockDef['template']);
+                    $templateFile = NBFrame::findFile($basename, $environment, '/templates/blocks', false, $this->mDirName.'_');
+                    if ($templateFile) {
+                        $templateName = $this->mDirName.'_'.$basename;
+                        $fileContent = file($templateFile);
+                        $fileContent = implode('', $fileContent);
+                        $criteria =& new CriteriaCompo(new Criteria('tpl_module', $this->mDirName));
+                        $criteria->add(new Criteria('tpl_file', $templateName));
+                        $criteria->add(new Criteria('tpl_type', 'block'));
+                        if ($tplFileObjects = $tplFileHandler->getObjects($criteria)) {
+                            foreach($tplFileObjects as $tplFileObject) {
+                                $tplFileObject->setVar('tpl_lastmodified', filemtime($templateFile));
+                                $tplFileObject->setVar('tpl_source', $fileContent);
+                                $tplFileHandler->insert($tplFileObject);
+                            }
+                        } else {
+                            $tplFileObject =& $tplFileHandler->create();
+                            $tplFileObject->setVar('tpl_refid', $key);
+                            $tplFileObject->setVar('tpl_module', $this->mDirName);
+                            $tplFileObject->setVar('tpl_tplset', 'default');
+                            $tplFileObject->setVar('tpl_file', $templateName);
+                            $tplFileObject->setVar('tpl_desc', '');
+                            $tplFileObject->setVar('tpl_lastmodified', filemtime($templateFile));
+                            $tplFileObject->setVar('tpl_type', 'block');
+                            $tplFileObject->setVar('tpl_source', $fileContent);
+                            $tplFileHandler->insert($tplFileObject);
+                        }
+                        $this->addMsg('  Define Block Template('.$templateName.')');
+                    }
+                }
+            }
+            $this->addMsg('NBFrame Duplicatable Template Definition ends...');
+        }
+/*
         function setModuleTemplateforDuplicate($tplName) {
             $template = array();
-            if($this->isPreModuleInstall()||$this->isPreModuleUpdate()) {
-                $template['file'] = $this->mDupMark.$this->mOrigName.$this->mDupMark.'_'.$tplName;
-            } else {
-                $template['file'] = $this->mDirName.'_'.$tplName;
-                $template['orig_file'] = $tplName;
-            }
+            $template['file'] = $this->mDirName.'_'.$tplName;
             return $template;
         }
 
         function setBlockTemplateforDuplicate($tplName) {
             $template = array();
-            if($this->isPreModuleInstall()||$this->isPreModuleUpdate()) {
-                $template['template'] = $this->mDupMark.$this->mOrigName.$this->mDupMark.'_'.$tplName;
-            } else {
-                $template['template'] = $this->mDirName.'_'.$tplName;
-                $template['orig_template'] = $tplName;
-            }
+            $template['template'] = $this->mDirName.'_'.$tplName;
             return $template;
         }
-
+*/
         // Method for Keep Block options
         function preBlockUpdateProcess($moduleInfo) {
             $moduleInfo = $this->_getModuleInfo($moduleInfo);
@@ -377,10 +589,12 @@ if (!class_exists('NBFrameInstallHelper')) {
 
         // Methods for Installer Messages.
         function addPreMsg($msg) {
+            $msg = str_replace(' ','&nbsp;',$msg);
             $this->mPreProcessMsg[] = $msg;
         }
 
         function addMsg($msg) {
+            $msg = str_replace(' ','&nbsp;',$msg);
             if(defined('XOOPS_CUBE_LEGACY')) {
                 $this->mPostProcessMsg[] = $msg;
             } else {

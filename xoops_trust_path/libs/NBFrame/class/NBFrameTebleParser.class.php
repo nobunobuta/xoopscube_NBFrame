@@ -12,6 +12,8 @@
         function setInitVars($table, &$object) {
             $this->parse($table);
             $name = false;
+            $parent = false;
+            
             foreach($this->mFields as $field) {
                 $key = $field['Field'];
                 $type = $this->convertXoopsObjectType($field['Type']);
@@ -28,6 +30,9 @@
                             $name = $key;
                         }
                     }
+                }
+                if (is_a($object, 'NBFrameTreeObject') && !$parent && $type==XOBJ_DTYPE_INT && $field['Key']!="PRI" && preg_match('/parent/i', $key)) {
+                    $parent = $key;
                 }
                 switch ($type) {
                     case XOBJ_DTYPE_INT:
@@ -55,6 +60,9 @@
                 if ($name) {
                     $object->setNameField($name);
                 }
+                if ($parent) {
+                    $object->setParentField($parent);
+                }
             }
         }
 
@@ -79,7 +87,7 @@
                             $object->addElement($key, new XoopsFormText($object->__l($key), $key, 35, $maxlenth));
                             break;
                         case XOBJ_DTYPE_TXTAREA:
-                            $object->addElement($key, new XoopsFormDhtmlTextArea($object->__l($key), $key, '', 8, 40));
+                            $object->addElement($key, new XoopsFormDhtmlTextArea($object->__l($key), $key, '', 8, 60));
                             break;
                         default:
                             $maxlenth=$this->fetchSizeFromField($field['Type']);
@@ -141,7 +149,7 @@
                     unset($row);
                 }
                 // Field
-                $sql = 'SHOW FULL FIELDS FROM '.$table;
+                $sql = 'SHOW COLUMNS FROM '.$table;
                 $result2 = $this->db_->queryF($sql);
 
                 while($row = $this->db_->fetchArray($result2)) {

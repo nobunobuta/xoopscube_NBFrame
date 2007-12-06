@@ -77,6 +77,8 @@ if (!class_exists('NBFrameObjectAction')) {
 
         var $mAttributes;
         
+        var $mHalfAuto = false;
+        
         function prepare($classprefix, $name, $caption) {
             parent::prepare();
             $this->mDefaultOp = 'edit';
@@ -104,6 +106,10 @@ if (!class_exists('NBFrameObjectAction')) {
                 NBFrame::using('TebleParser');
                 $parser = new NBFrameTebleParser($this->mObjectHandler->db);
                 $parser->setFormElements($this->mObjectHandler->mTableName, $this->mObjectForm);
+            } else if ($this->mHalfAuto) {
+                NBFrame::using('TebleParser');
+                $parser = new NBFrameTebleParser($this->mObjectHandler->db);
+                $parser->setFormElements($this->mObjectHandler->mTableName, $this->mObjectForm);
             }
         }
 
@@ -112,6 +118,10 @@ if (!class_exists('NBFrameObjectAction')) {
             if (!$this->mObjectList) {
                 NBFrame::using('ObjectList');
                 $this->mObjectList =& New NBFrameObjectList($this->mEnvironment);
+                NBFrame::using('TebleParser');
+                $parser = new NBFrameTebleParser($this->mObjectHandler->db);
+                $parser->setListElements($this->mObjectHandler->mTableName, $this->mObjectList);
+            } else if ($this->mHalfAuto) {
                 NBFrame::using('TebleParser');
                 $parser = new NBFrameTebleParser($this->mObjectHandler->db);
                 $parser->setListElements($this->mObjectHandler->mTableName, $this->mObjectList);
@@ -261,10 +271,16 @@ if (!class_exists('NBFrameObjectAction')) {
             $this->mListSort = $sort;
             $this->mListOrder = $order;
             
-            $this->mObjectArr =& $this->mObjectHandler->getObjects($criteria);
+            $this->mObjectArr =& $this->getListObjects($criteria);
             $this->mObjectAllCount = $this->mObjectHandler->getCount($criteria);
             return NBFRAME_ACTION_VIEW_DEFAULT;
             break;
+        }
+
+        function &getListObjects($criteria)
+        {
+            $objects =& $this->mObjectHandler->getObjects($criteria);
+            return $objects;
         }
 
         function executeViewOp() {

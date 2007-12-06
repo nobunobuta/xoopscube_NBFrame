@@ -14,7 +14,7 @@ if (!class_exists('NBFrame')) {
          * Declaration of NBFrame Class
          *
          * @param string $className
-         * @param NBFrameEnvironment $environment
+         * @param NBFrameEnvironment $environment  if null, using NBFrame core classes;
          * @param string $classType
          */
         function using($className, $environment=null, $classType='class') {
@@ -35,8 +35,12 @@ if (!class_exists('NBFrame')) {
                     require_once NBFRAME_BASE_DIR.$fileOffset;
                 }
             } else {
-                $dirName = $environment->mDirName;
-                $fileName = NBFrame::findFile($className.'.class.php', $environment, $classType.$classOffset, true, $dirName.'_');
+                if ($noCustom) {
+                    $fileName = NBFrame::findFile($className.'.class.php', $environment, $classType.$classOffset, true);
+                } else {
+                    $dirName = $environment->mDirName;
+                    $fileName = NBFrame::findFile($className.'.class.php', $environment, $classType.$classOffset, true, $dirName.'_');
+                }
                 if ($fileName) require_once $fileName;
             }
         }
@@ -108,6 +112,15 @@ if (!class_exists('NBFrame')) {
                     $allowedAction = $environment->getAttribute('AllowedAction');
                 }
             }
+            if ($environment->getAttribute('UseAltSys')) {
+                $allowedAction[] = 'NBFrame.admin.AltSys';
+            }
+            if ($environment->getAttribute('UseBlockAdmin')) {
+                $allowedAction[] = 'NBFrame.admin.BlocksAdmin';
+            }
+            $allowedAction[] = 'NBFrame.GetModuleIcon';
+            $allowedAction[] = 'NBFrame.GetImage';
+            
             if ($allowedAction && !empty($_REQUEST['action'])) {
                 $requestAction = basename($_REQUEST['action']);
                 if (in_array($requestAction, $allowedAction)) {
@@ -156,6 +169,7 @@ if (!class_exists('NBFrame')) {
             $instance = null;
 
             if (class_exists($dirName.'_'.$classBaseName)) {
+                // This class may be Module Custom Class
                 $classBaseName = $dirName.'_'.$classBaseName;
                 $instance =& new $classBaseName($environment);
             } else if (class_exists($classBaseName)) {
@@ -209,12 +223,14 @@ if (!class_exists('NBFrame')) {
                     if ($fileName) require_once $fileName;
                 }
                 if (class_exists($dirName.'_'.$handlerClassName)) {
+                    // This handler may be Module custom handler
                     $mHandlerArr[$key] =& new $dirName.'_'.$handlerClassName($GLOBALS['xoopsDB']);
                     $ret =& $mHandlerArr[$key];
                 } else if (class_exists($handlerClassName)) {
                     $mHandlerArr[$key] =& new $handlerClassName($GLOBALS['xoopsDB']);
                     $ret =& $mHandlerArr[$key];
-                } else if (preg_match('/^realname\.(\w+)/',$className, $match)) {
+                } else if (preg_match('/^realname\.(\w+)/i', $className, $match)) {
+                    // Automatic Creating Handler Class with Table Names
                     $handlerClassName = 'NBFrameRealTable'.$handlerClassName;
                     $entityClassName = 'NBFrameRealTable'.$classBaseName;
                     $mHandlerArr[$key] =& new NBFrameObjectHandler($GLOBALS['xoopsDB']);
@@ -240,11 +256,11 @@ if (!class_exists('NBFrame')) {
             static $mLanguageArr;
             NBFrame::using('Language');
             $environment =& NBFrame::getEnvironments($target);
-            $origDirName = $environment->mOrigDirName;
-            if (empty($mLanguageArr[$origDirName][$target])) {
-                $mLanguageArr[$origDirName][$target] =& new NBFrameLanguage($target);
+            $dirName = $environment->mDirName;
+            if (empty($mLanguageArr[$dirName][$target])) {
+                $mLanguageArr[$dirName][$target] =& new NBFrameLanguage($target);
             }
-            return $mLanguageArr[$origDirName][$target];
+            return $mLanguageArr[$dirName][$target];
         }
 
         // Utilitiy Functions for Install Module
@@ -255,7 +271,7 @@ if (!class_exists('NBFrame')) {
             return $fileName;
         }
         
-        function &getInstallHelper($dupmark='XX') {
+        function &getInstallHelper() {
             static $mInstallHelperArr;
 
             $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
@@ -264,7 +280,7 @@ if (!class_exists('NBFrame')) {
 
             if (!isset($mInstallHelperArr[$dirname])) {
                 NBFrame::using('InstallHelper');
-                $mInstallHelperArr[$dirname] =& new NBFrameInstallHelper($dirname, $origname, $dupmark);
+                $mInstallHelperArr[$dirname] =& new NBFrameInstallHelper($dirname, $origname);
             }
             return $mInstallHelperArr[$dirname];
         }
@@ -284,26 +300,27 @@ if (!class_exists('NBFrame')) {
                 $modversion['adminindex'] = 'index.php?action='.$environment->getAttribute('AdminMainAction');
                 $modversion['adminmenu'] = 'include/NBFrameAdminMenu.inc.php';
             }
-            if (isset($modversion['tables'])){
-                foreach($modversion['tables'] as $key=>$tableName) {
-                    $modversion['tables'][$key] = $environment->prefix($tableName);
+            // Table Settings
+            if ($fname = NBFrame::findFile('tabledef.inc.php',$environment, '/include', false, $environment->mOrigDirName)) {
+                include $fname;
+                $modversion['tables'] = array();
+                foreach($tableDef[$environment->mOrigDirName] as $key =>$value) {
+                    $modversion['tables'][] = $environment->mDirName.'_'.$key;
                 }
             }
-            
-            if (isset($modversion['templates'])){
-                foreach($modversion['templates'] as $key=>$template) {
-                    $template_tmp = NBFrame::setModuleTemplate($template['file']);
-                    unset($template['file']);
-                    $modversion['templates'][$key] = array_merge($template_tmp, $template);
-                }
+            // Template Settings
+            $tempaltePath = NBFrame::findFile('templates',$environment, '');
+            $templateFiles = glob($tempaltePath.'/*.html');
+            $i = 1;
+            unset($modversion['templates']);
+            foreach ($templateFiles as $templateFile) {
+                $modversion['templates'][$i] = array('file'=>$environment->prefix(basename($templateFile)), 'desc'=>'');
+                $i++;
             }
-            
             if (isset($modversion['blocks'])){
                 foreach($modversion['blocks'] as $key=>$block) {
                     if (isset($block['template'])) {
-                        $block_tmp = NBFrame::setBlockTemplate($block['template']);
-                        unset($block['template']);
-                        $modversion['blocks'][$key] = array_merge($block_tmp, $block);
+                        $modversion['blocks'][$key]['template'] = $environment->prefix($block['template']);
                     }
                     if (isset($block['show_func'])) {
                         $modversion['blocks'][$key]['show_func'] = $environment->prefix($block['show_func']);
@@ -314,7 +331,7 @@ if (!class_exists('NBFrame')) {
                 }
             }
             
-            NBFrame::prepareInstaller($modversion);
+            NBFrame::_prepareCustomInstaller($modversion);
 
             $installHelper =& NBFrame::getInstallHelper();
             if ($installHelper->isPreModuleUpdate() && !$installHelper->isPreModuleUpdateDone() ) {
@@ -325,7 +342,24 @@ if (!class_exists('NBFrame')) {
             }
         }
 
-        function prepareInstaller(&$modversion) {
+        function langConstPrefix($prefix='',$target=NBFRAME_TARGET_MAIN) {
+            $environment =& NBFrame::getEnvironments($target);
+            if ($environment) {
+                $dirname = $environment->mDirName;
+            } else if (!empty($GLOBALS['xoopsModule']) && $GLOBALS['xoopsModule']->getVar('dirname')=='altsys' && !empty($_GET['dirname'])) {
+                $dirname = htmlspecialchars($_GET['dirname'], ENT_QUOTES);
+            }
+            if (empty($dirname)) {
+                return '';
+            }
+            if (!empty($prefix)) {
+                return '_'.$prefix.'_'.strtoupper($dirname).'_';
+            } else {
+                return '_'.strtoupper($dirname).'_';
+            }
+        }
+
+        function _prepareCustomInstaller(&$modversion) {
             $installHelper =& NBFrame::getInstallHelper();
             if (isset($modversion['NBFrameOnInstall']) && !empty($modversion['NBFrameOnInstall']['file']) && !empty($modversion['NBFrameOnInstall']['func'])) {
                 $installHelper->mOnInstallOption = $modversion['NBFrameOnInstall'];
@@ -346,7 +380,7 @@ if (!class_exists('NBFrame')) {
             $modversion['onUpdate'] = 'include/NBFrameInstall.inc.php';
             $modversion['onUninstall'] = 'include/NBFrameInstall.inc.php';
         }
-
+/*
         function getBlockShowFunction($className) {
             $installHelper =& NBFrame::getInstallHelper();
             $dirName = $installHelper->mDirName;
@@ -361,7 +395,7 @@ if (!class_exists('NBFrame')) {
 
         function setModuleTemplate($basename) {
             $installHelper =& NBFrame::getInstallHelper();
-            $template =& $installHelper->setModuleTemplateforDuplicate($basename);
+            $template = $installHelper->setModuleTemplateforDuplicate($basename);
             return $template;
         }
         
@@ -369,7 +403,7 @@ if (!class_exists('NBFrame')) {
             $installHelper =& NBFrame::getInstallHelper();
             return $installHelper->setBlockTemplateforDuplicate($basename);
         }
-        
+*/
         // Utilitiy Functions for Blocks
 
         function prepareBlockFunction(&$environment) {
@@ -446,6 +480,10 @@ if (!class_exists('NBFrame')) {
                     $adminmenu[] = array('title' => $languageManager->__l('Template Admin'),
                                          'link'  => '?action=NBFrame.admin.AltSys&page=mytplsadmin' );
                 }
+                if ($environment->getAttribute('UseLanguageAdmin')) {
+                    $adminmenu[] = array('title' => $languageManager->__l('Language Admin'),
+                                         'link'  => '?action=NBFrame.admin.AltSys&page=mylangadmin' );
+                }
             } else {
                 if ($environment->getAttribute('UseBlockAdmin')) {
                     $adminmenu[] = array('title' => $languageManager->__l('Block Admin'),
@@ -467,7 +505,9 @@ if (!class_exists('NBFrame')) {
             if (!empty($offset)) {
                 $offset = preg_replace('/^\//','',trim($offset));
                 $offset = preg_replace('/\/$/','',$offset);
-                $offset.='/';
+                if ($offset != '') {
+                    $offset.='/';
+                }
             }
             $fileName = '';
             if (!empty($customPrefix) && file_exists(XOOPS_ROOT_PATH.'/modules/'.$dirName.'/'.$offset.$customPrefix.$name)){

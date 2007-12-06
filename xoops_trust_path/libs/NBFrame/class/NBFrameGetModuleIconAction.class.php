@@ -72,7 +72,7 @@ if (!class_exists('NBFrameGetModuleIconAction')) {
             } else if ((imagesx($image) == 127)&&(imagesy($image) == 24)) {//XOOPS 2.1 Style
                 $origdirname = ucfirst($origdirname);
                 $color_b = imagecolorallocate( $image , 200 , 200 , 200 ) ;
-                $color_f1= imagecolorallocate( $image , 0 , 80 , 0 );
+                $color_f1= imagecolorallocate( $image , 0 , 90 , 0 );
                 $color_f= imagecolorallocate( $image , 60 , 160 , 60 );
                 
                 if ($useTTF) {

@@ -69,7 +69,6 @@ if (!class_exists('NBFrameObjectList')) {
                 $head['name'] = $key;
                 if (isset($value['ext']['sort'])&&($value['ext']['sort']===true)) {
                     $param= 'sort='.$key;
-                    $head['link'] = xoops_getenv('PHP_SELF').'?sort='.$key;
                     if (($sort==$key)&&(strtolower($order)=='asc')) {
                         $param .= '&amp;order=desc';
                         $head['linktitle'] = 'Descending Sort';
@@ -86,7 +85,7 @@ if (!class_exists('NBFrameObjectList')) {
                     if (!empty($this->mAction)) {
                         $head['link'] = $this->mAction->addUrlParam($param);
                     } else {
-                        $head['link'] = xoops_getenv('PHP_SELF').'?'.$param;
+                        $head['link'] = XOOPS_URL.xoops_getenv('PHP_SELF').'?'.$param;
                     }
                 } else {
                     $head['link'] ='';
@@ -119,7 +118,7 @@ if (!class_exists('NBFrameObjectList')) {
             if (!empty($this->mAction)) {
                 $item['link'] = $this->mAction->addUrlParam('op=edit&amp;'.$objectKey.'='.$key);
             } else {
-                $item['link'] = xoops_getenv('PHP_SELF').'?op=edit&amp;'.$objectKey.'='.$key;
+                $item['link'] = XOOPS_URL.xoops_getenv('PHP_SELF').'?op=edit&amp;'.$objectKey.'='.$key;
             }
             $item['linktitle'] = 'Edit this record';
             $item['value'] = $element['ext']['caption'];
@@ -135,7 +134,7 @@ if (!class_exists('NBFrameObjectList')) {
             if (!empty($this->mAction)) {
                 $item['link'] = $this->mAction->addUrlParam('op=delete&amp;'.$objectKey.'='.$key);
             } else {
-                $item['link'] = xoops_getenv('PHP_SELF').'?op=delete&amp;'.$objectKey.'='.$key;
+                $item['link'] = XOOPS_URL.xoops_getenv('PHP_SELF').'?op=delete&amp;'.$objectKey.'='.$key;
             }
             $item['linktitle'] = 'Delete this record';
             $item['value'] = $element['ext']['caption'];

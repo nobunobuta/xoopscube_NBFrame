@@ -152,6 +152,10 @@ if(!class_exists('NBFrameObject')) {
             $this->mNameField = $fieldname;
         }
 
+        function getNameField() {
+            return $this->mNameField;
+        }
+
         function getName($format = 's') {
             if ($this->mNameField) {
                 return $this->getVar($this->mNameField, $format);
@@ -171,7 +175,7 @@ if(!class_exists('NBFrameObject')) {
         function setVar($key, $value, $not_gpc = false) {
             if (!empty($key) && isset($this->vars[$key])) {
                 if (($this->vars[$key]['data_type'] == XOBJ_DTYPE_CUSTOM)) {
-                    //個別の変数Getがあれば実行;
+                    //個別の変数Setがあれば実行;
                     $setMethod = 'setVar_'.$key;
                     if(method_exists($this, $setMethod)) {
                         $this->$setMethod($value, $not_gpc);

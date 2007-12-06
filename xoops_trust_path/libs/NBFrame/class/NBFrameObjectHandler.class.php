@@ -15,6 +15,8 @@ if (!class_exists('NBFrameObjectHandler')) {
         var $mEnvironment = null;
         var $mUseModuleTablePrefix = true;
         var $mLanguage;
+        var $mObjectCache = null;
+
         /**
          * Enter description here...
          *
@@ -94,19 +96,25 @@ if (!class_exists('NBFrameObjectHandler')) {
          */
         function &create($isNew = true) {
             if (class_exists($this->mEntityClassName)) {
-                $record = new $this->mEntityClassName;
+                $record =& new $this->mEntityClassName;
             } else {
                 $record =& new NBFrameObject;
             }
             if (!$record->varsDefined()) {
-                NBFrame::using('TebleParser');
-                $parser = new NBFrameTebleParser($this->db);
-                $parser->setInitVars($this->mTableName, $record);
-                $record->setAttribute('dohtml', 0);
-                $record->setAttribute('doxcode', 1);
-                $record->setAttribute('dosmiley', 1);
-                $record->setAttribute('doimage', 1);
-                $record->setAttribute('dobr', 1);
+                if (empty($this->mObjectCache)) {
+                    NBFrame::using('TebleParser');
+                    $parser = new NBFrameTebleParser($this->db);
+                    $parser->setInitVars($this->mTableName, $record);
+                    $record->setAttribute('dohtml', 0);
+                    $record->setAttribute('doxcode', 1);
+                    $record->setAttribute('dosmiley', 1);
+                    $record->setAttribute('doimage', 1);
+                    $record->setAttribute('dobr', 1);
+                    $this->mObjectCache=serialize($record);
+                } else {
+                    unset($record);
+                    $record = unserialize($this->mObjectCache);
+                }
             }
             $record->mClassName = $this->mEntityClassName;
             $record->prepare();

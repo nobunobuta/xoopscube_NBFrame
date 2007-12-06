@@ -33,5 +33,6 @@
    $GLOBALS['NBFrameLanguage']['Left block'] = '左ブロック';
 
    $GLOBALS['NBFrameLanguage']['Template Admin'] = 'テンプレート管理';
+   $GLOBALS['NBFrameLanguage']['Language Admin'] = '言語定数管理';
 
 ?>

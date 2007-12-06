@@ -33,7 +33,7 @@ if (!class_exists('NBFrameAction')) {
             } else {
                 $this->mOrigDirName = $this->mDirName;
             }
-            $this->mUrl = xoops_getenv('PHP_SELF');
+            $this->mUrl = XOOPS_URL.xoops_getenv('PHP_SELF');
             $this->mLanguage =& NBFrame::getLanguageManager();
             NBFrame::using('ModuleRender');
             $this->mRender =& new NBFrameModuleRender($this);
