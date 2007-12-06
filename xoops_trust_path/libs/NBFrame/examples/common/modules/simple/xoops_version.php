@@ -26,16 +26,13 @@ $modversion['dirname'] = 'simple';   // It'll be rewritten with real dirname;
 // Menu
 $modversion['hasMain'] = 1;
 
-// DB Table
-$modversion['sqlfile']['mysql'] = 'sql/mysql.sql';
+// Do not specify a DB Table setting. because NBFrame uses include/tabledef.inc.php
+//$modversion['sqlfile']['mysql'] = 'sql/mysql.sql';
+//$modversion['tables'][0] = 'table';
 
-// Tables created by sql file (without prefix!)
-$modversion['tables'][0] = 'table';  // It'll be rewritten with dirname prefix lile "dirname_table"
-
-// Templates
-
-$modversion['templates'][1]['file'] = 'main.html';   // It'll be rewritten
-$modversion['templates'][1]['description'] = '';
+// Do not specify a Module Template setting. because NBFrame scan /template directory
+//$modversion['templates'][1]['file'] = 'main.html';
+//$modversion['templates'][1]['description'] = '';
 
 $modversion['hasAdmin'] = 1;
 $modversion['adminindex'] = 'admin/index.php';   // It'll be rewritten
@@ -50,7 +47,7 @@ $modversion['hasconfig'] = 1;
 //    'default'       => '' ,
 //);
 
-$modversion['blocks'][1]['file'] = 'NBFrameBlockLoader.php';
+$modversion['blocks'][1]['file'] = 'NBFrameBlockLoader.php'; //You should specify this filename;
 $modversion['blocks'][1]['name'] = 'Simple Block';
 $modversion['blocks'][1]['description'] = '';
 $modversion['blocks'][1]['show_func'] = 'b_simpleblock_show'; // It'll be rewritten with dirname prefix.

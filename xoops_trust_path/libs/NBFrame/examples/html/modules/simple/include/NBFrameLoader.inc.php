@@ -1,6 +1,7 @@
 <?php
 $xoopsOption['nocommon'] = true;
-require_once dirname(dirname(dirname(dirname(__FILE__)))).'/mainfile.php';
+$_moduleBaseDir = dirname(dirname(__FILE__));
+require_once dirname(dirname($_moduleBaseDir)).'/mainfile.php';
 
 if (!defined('NBFRAME_BASE_DIR')) {
     if (defined('XOOPS_TRUST_PATH') && file_exists(XOOPS_TRUST_PATH.'/libs/NBFrame/include/NBFrameCommon.inc.php')) {
@@ -15,7 +16,7 @@ if (defined('NBFRAME_BASE_DIR')) {
     require_once NBFRAME_BASE_DIR.'/include/NBFrameCommon.inc.php';
     require_once NBFRAME_BASE_DIR.'/class/NBFrame.class.php';
 }
-NBFrame::prePrepare(dirname(dirname(__FILE__)));
-require dirname(dirname(__FILE__)).'/module_settings.php';
+NBFrame::prePrepare($_moduleBaseDir);
+require $_moduleBaseDir.'/module_settings.php';
 require_once NBFRAME_BASE_DIR.'/include/NBFrameLoadCommon.inc.php';
 ?>

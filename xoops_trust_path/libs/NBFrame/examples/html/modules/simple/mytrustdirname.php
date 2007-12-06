@@ -1,4 +1,5 @@
 <?php
 include dirname(__FILE__).'/include/NBFrameLoader.inc.php';
-var_dump($GLOBALS);
+$environment =NBFrame::getEnvironments(NBFRAME_TARGET_TEMP);
+$mytrustdirname = $environment->mOrigDirName ;
 ?>
