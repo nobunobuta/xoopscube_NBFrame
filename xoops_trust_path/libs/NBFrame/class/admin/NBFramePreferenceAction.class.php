@@ -2,7 +2,7 @@
 require_once XOOPS_ROOT_PATH.'/modules/legacy/class/ActionFrame.class.php';
 require_once XOOPS_ROOT_PATH.'/modules/legacy/admin/actions/PreferenceEditAction.class.php';
 
-class NBFram_PreferenceEditAction  extends Legacy_PreferenceEditAction {
+class NBFrame_PreferenceEditAction  extends Legacy_PreferenceEditAction {
     function prepare(&$controller, &$xoopsUser) {
         $root =& XCube_Root::getSingleton();
         $root->mLanguageManager->loadPageTypeMessageCatalog('comment');
@@ -41,7 +41,7 @@ if (!class_exists('NBFramePreferenceAction')) {
         function viewDefaultOp() {
             $root =& XCube_Root::getSingleton();
             $controller =& $root->mController;
-            $action = new NBFram_PreferenceEditAction();
+            $action = new NBFrame_PreferenceEditAction();
             if ($action->prepare($controller, $controller->mRoot->mContext->mXoopsUser) === false) {
                 die();  //< TODO
             }
