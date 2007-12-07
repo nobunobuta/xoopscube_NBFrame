@@ -78,13 +78,13 @@ if (!class_exists('NBFrameInstallHelper')) {
                     $name = $row['Field'];
                     $defMatch = true;
                     if (isset($value['fields'][$name])) {
-                        if (preg_match('/\s*(\w+)\s*(\(\s*(\d+)\s*\))?(\s+(.*))?/', $value['fields'][$name][0], $match)) {
+                        if (preg_match('/\s*(\w+)\s*(\(\s*([\d,]+)\s*\))?(\s+(.*))?/', $value['fields'][$name][0], $match)) {
                             $defType = strtolower($match[1]);
                             if (!empty($match[2])) $defType .='('.$match[3].')';
                             if (!empty($match[5])) $defType .=' '.strtolower($match[5]);
                         }
                         if ($defType != $row['Type']) {
-                            $this->addMsg('   Field('.$name.') type is changed.');
+                            $this->addMsg('   Field('.$name.') type is changed. ('.$row['Type'].' => '.$defType);
                             $defMatch = false;
                         }
                         $nulldef = strtoupper(trim($value['fields'][$name][1]));
