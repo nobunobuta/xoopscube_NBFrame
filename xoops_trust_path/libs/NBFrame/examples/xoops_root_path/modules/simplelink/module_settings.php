@@ -1,10 +1,11 @@
 <?php
 if (class_exists('NBFrame')) {
     $environment->setAttribute('ModueleMainAction','SimpleLinkDefault');
-    $environment->setAttribute('AdminMainAction',  'admin.SimpleLinkMain');
+    $environment->setAttribute('AdminMainAction',  'admin.SimpleLinkLinkAdmin');
 
     $environment->setAttribute('AllowedAction', array('SimpleLinkDefault',
-                                                      'admin.SimpleLinkMain',
+                                                      'admin.SimpleLinkLinkAdmin',
+                                                      'admin.SimpleLinkCategoryAdmin',
                                                      ));
 
     $environment->setAttribute('UseAltSys', true);
