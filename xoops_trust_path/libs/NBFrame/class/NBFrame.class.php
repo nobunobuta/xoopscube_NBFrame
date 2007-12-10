@@ -408,10 +408,12 @@ if (!class_exists('NBFrame')) {
 
         function prepareBlockFunction(&$environment) {
             $blockClasses = $environment->getAttribute('BlockHandler');
-            foreach($blockClasses as $blockClass) {
-                NBFrame::using('blocks.'.$blockClass, $environment);
-                NBFrame::prepareBlockEditFunction($environment, $blockClass);
-                NBFrame::prepareBlockShowFunction($environment, $blockClass);
+            if (!empty($blockClasses)) {
+                foreach($blockClasses as $blockClass) {
+                    NBFrame::using('blocks.'.$blockClass, $environment);
+                    NBFrame::prepareBlockEditFunction($environment, $blockClass);
+                    NBFrame::prepareBlockShowFunction($environment, $blockClass);
+                }
             }
         }
 

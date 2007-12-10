@@ -46,185 +46,190 @@ if (!class_exists('NBFrameInstallHelper')) {
         }
 
         function createTables() {
-            $this->addMsg('NBFrame Automatic Table Creater start...');
             $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
             if ($fname = NBFrame::findFile('tabledef.inc.php',$environment, '/include')) @include $fname;
             if (($fname0 = NBFrame::findFile('tabledef.inc.php',$environment, '/include', false, $this->mDirName.'_'))&&($fname!=$fname0)) @include $fname0;
-            foreach($tableDef[$this->mOrigName] as $key =>$value) {
-                $tableName = $GLOBALS['xoopsDB']->prefix($this->mDirName.'_'.$key);
-                $this->addMsg(' Table '.$tableName);
-                $this->_createTable($tableName, $value);
+            if (!empty($tableDef)) {
+                $this->addMsg('NBFrame Automatic Table Creater start...');
+                foreach($tableDef[$this->mOrigName] as $key =>$value) {
+                    $tableName = $GLOBALS['xoopsDB']->prefix($this->mDirName.'_'.$key);
+                    $this->addMsg(' Table '.$tableName);
+                    $this->_createTable($tableName, $value);
+                }
+                $this->addMsg('NBFrame Automatic Table Creater ends...');
             }
-            $this->addMsg('NBFrame Automatic Table Creater ends...');
         }
 
         function alterTables() {
-            $this->addMsg('NBFrame Automatic Table Updater start...');
             $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
             if ($fname = NBFrame::findFile('tabledef.inc.php',$environment, '/include', false, $this->mDirName.'_')) @include $fname;
-            if (($fname0 = NBFrame::findFile('tabledef.inc.php',$environment, '/include', false, $this->mDirName.'_'))&&($fname!=$fname0)) @include $fname0;                foreach($tableDef[$this->mOrigName] as $key =>$value) {
-                $tableName = $GLOBALS['xoopsDB']->prefix($this->mDirName.'_'.$key);
-                $this->addMsg(' Table '.$tableName);
-                $this->addMsg('   Create table '.$tableName.' if it does not exist.');
-                $this->_createTable($tableName, $value, true);
+            if (($fname0 = NBFrame::findFile('tabledef.inc.php',$environment, '/include', false, $this->mDirName.'_'))&&($fname!=$fname0)) @include $fname0;          
+            if (!empty($tableDef)) {
+                $this->addMsg('NBFrame Automatic Table Updater start...');
+                foreach($tableDef[$this->mOrigName] as $key =>$value) {
+                    $tableName = $GLOBALS['xoopsDB']->prefix($this->mDirName.'_'.$key);
+                    $this->addMsg(' Table '.$tableName);
+                    $this->addMsg('   Create table '.$tableName.' if it does not exist.');
+                    $this->_createTable($tableName, $value, true);
 
-                $alterParts  = array();
-                //Get existing table definition
-                $sql = 'SHOW COLUMNS FROM '.$tableName;
-                $resultColumuns = $GLOBALS['xoopsDB']->query($sql);
+                    $alterParts  = array();
+                    //Get existing table definition
+                    $sql = 'SHOW COLUMNS FROM '.$tableName;
+                    $resultColumuns = $GLOBALS['xoopsDB']->query($sql);
 
-                $tableFields = array();
-                while($row =$GLOBALS['xoopsDB']->fetchArray($resultColumuns)) {
-                    $name = $row['Field'];
-                    $defMatch = true;
-                    if (isset($value['fields'][$name])) {
-                        if (preg_match('/\s*(\w+)\s*(\(\s*([\d,]+)\s*\))?(\s+(.*))?/', $value['fields'][$name][0], $match)) {
-                            $defType = strtolower($match[1]);
-                            if (!empty($match[2])) $defType .='('.$match[3].')';
-                            if (!empty($match[5])) $defType .=' '.strtolower($match[5]);
-                        }
-                        if ($defType != $row['Type']) {
-                            $this->addMsg('   Field('.$name.') type is changed. ('.$row['Type'].' => '.$defType);
-                            $defMatch = false;
-                        }
-                        $nulldef = strtoupper(trim($value['fields'][$name][1]));
-                        if (!((($nulldef=='NOT NULL')&&($row['Null']=='NO'))||(($nulldef=='NULL')&&($row['Null']=='YES')))) {
-                            $this->addMsg('   Field('.$name.') null definition is changed.');
-                            $defMatch = false;
-                        }
-                        if (strtolower($value['fields'][$name][3])!=$row['Extra']) {
-                            $this->addMsg('   Field('.$name.') default definition is changed.');
-                            $defMatch = false;
-                        }
-                        if (!$defMatch) {
-                            $this->addMsg('   Field('.$name.') default definition is changed.');
-                            $alterParts[] = 'CHANGE COLUMN `'.$row['Field'].'` '.$this->_createFieldPart($name, $value['fields'][$name]);
-                        }
-                    } else {
-                        $this->addMsg('   Field('.$name.') will be dropped.');
-                        $alterParts[] = 'DROP COLUMN `'.$row['Field'].'`';
-                    }
-                    $tableFields[$row['Field']] = $row;
-                    unset($row);
-                }
-                $prevField = '';
-                foreach($value['fields'] as $name=>$defArray) {
-                    if (!isset($tableFields[$name])) {
-                        $alterPart = 'ADD COLUMN `'.$this->_createFieldPart($name, $defArray).'`';
-                        if ($prevField == '') {
-                            $alterPart .= ' FIRST';
-                        } else {
-                            $alterPart .= ' AFTER '.$prevField;
-                        }
-                        $this->addMsg('   Field('.$name.') will be added.');
-                        $alterParts[] = $alterPart;
-                    }
-                    $prevField = $name;
-                }
-
-                $sql = 'SHOW INDEX FROM `'.$tableName.'`';
-                $resultKeys = $GLOBALS['xoopsDB']->query($sql);
-
-                $tablePrimaryKeys = array();
-                $tableKeys = array();
-                $tabkeUniqueKeys = array();
-                
-                while($row = $GLOBALS['xoopsDB']->fetchArray($resultKeys)) {
-                    if($row['Key_name'] == 'PRIMARY') {
-                       $tablePrimaryKeys[$row['Seq_in_index']-1] = $row['Column_name'];
-                    } else if ($row['Non_unique'] == 1) {
-                       $tableKeys[$row['Key_name']][$row['Seq_in_index']-1] = $row['Column_name'];
-                    } else {
-                       $tabkeUniqueKeys[$row['Key_name']][$row['Seq_in_index']-1] = $row['Column_name'];
-                    }
-                    unset($row);
-                }
-                if (!empty($value['primary'])) {
-                    if (count($tablePrimaryKeys)) {
-                        $value['primary'] = preg_replace('/\s/', '', $value['primary']);
-                        $primaryArray = explode(',', $value['primary']);
-                        $unMatch = true;
-                        if (count($primaryArray) == count($tablePrimaryKeys)) {
-                            $unMatch = false;
-                            for ($i=0; $i<count($primaryArray); $i++) {
-                                if ($primaryArray[$i] != $tablePrimaryKeys[$i]) $unMatch = true;
+                    $tableFields = array();
+                    while($row =$GLOBALS['xoopsDB']->fetchArray($resultColumuns)) {
+                        $name = $row['Field'];
+                        $defMatch = true;
+                        if (isset($value['fields'][$name])) {
+                            if (preg_match('/\s*(\w+)\s*(\(\s*([\d,]+)\s*\))?(\s+(.*))?/', $value['fields'][$name][0], $match)) {
+                                $defType = strtolower($match[1]);
+                                if (!empty($match[2])) $defType .='('.$match[3].')';
+                                if (!empty($match[5])) $defType .=' '.strtolower($match[5]);
                             }
+                            if ($defType != $row['Type']) {
+                                $this->addMsg('   Field('.$name.') type is changed. ('.$row['Type'].' => '.$defType);
+                                $defMatch = false;
+                            }
+                            $nulldef = strtoupper(trim($value['fields'][$name][1]));
+                            if (!((($nulldef=='NOT NULL')&&($row['Null']=='NO'))||(($nulldef=='NULL')&&($row['Null']=='YES')))) {
+                                $this->addMsg('   Field('.$name.') null definition is changed.');
+                                $defMatch = false;
+                            }
+                            if (strtolower($value['fields'][$name][3])!=$row['Extra']) {
+                                $this->addMsg('   Field('.$name.') default definition is changed.');
+                                $defMatch = false;
+                            }
+                            if (!$defMatch) {
+                                $this->addMsg('   Field('.$name.') default definition is changed.');
+                                $alterParts[] = 'CHANGE COLUMN `'.$row['Field'].'` '.$this->_createFieldPart($name, $value['fields'][$name]);
+                            }
+                        } else {
+                            $this->addMsg('   Field('.$name.') will be dropped.');
+                            $alterParts[] = 'DROP COLUMN `'.$row['Field'].'`';
                         }
-                        if ($unMatch) {
-                            $alterParts[] = 'DROP PRIMARY KEY';
+                        $tableFields[$row['Field']] = $row;
+                        unset($row);
+                    }
+                    $prevField = '';
+                    foreach($value['fields'] as $name=>$defArray) {
+                        if (!isset($tableFields[$name])) {
+                            $alterPart = 'ADD COLUMN '.$this->_createFieldPart($name, $defArray);
+                            if ($prevField == '') {
+                                $alterPart .= ' FIRST';
+                            } else {
+                                $alterPart .= ' AFTER '.$prevField;
+                            }
+                            $this->addMsg('   Field('.$name.') will be added.');
+                            $alterParts[] = $alterPart;
+                        }
+                        $prevField = $name;
+                    }
+
+                    $sql = 'SHOW INDEX FROM `'.$tableName.'`';
+                    $resultKeys = $GLOBALS['xoopsDB']->query($sql);
+
+                    $tablePrimaryKeys = array();
+                    $tableKeys = array();
+                    $tabkeUniqueKeys = array();
+                    
+                    while($row = $GLOBALS['xoopsDB']->fetchArray($resultKeys)) {
+                        if($row['Key_name'] == 'PRIMARY') {
+                           $tablePrimaryKeys[$row['Seq_in_index']-1] = $row['Column_name'];
+                        } else if ($row['Non_unique'] == 1) {
+                           $tableKeys[$row['Key_name']][$row['Seq_in_index']-1] = $row['Column_name'];
+                        } else {
+                           $tabkeUniqueKeys[$row['Key_name']][$row['Seq_in_index']-1] = $row['Column_name'];
+                        }
+                        unset($row);
+                    }
+                    if (!empty($value['primary'])) {
+                        if (count($tablePrimaryKeys)) {
+                            $value['primary'] = preg_replace('/\s/', '', $value['primary']);
+                            $primaryArray = explode(',', $value['primary']);
+                            $unMatch = true;
+                            if (count($primaryArray) == count($tablePrimaryKeys)) {
+                                $unMatch = false;
+                                for ($i=0; $i<count($primaryArray); $i++) {
+                                    if ($primaryArray[$i] != $tablePrimaryKeys[$i]) $unMatch = true;
+                                }
+                            }
+                            if ($unMatch) {
+                                $alterParts[] = 'DROP PRIMARY KEY';
+                                $alterParts[] = 'ADD PRIMARY KEY ('.$value['primary'].')';
+                            }
+                        } else {
                             $alterParts[] = 'ADD PRIMARY KEY ('.$value['primary'].')';
                         }
-                    } else {
-                        $alterParts[] = 'ADD PRIMARY KEY ('.$value['primary'].')';
+                    } else if (!empty($tablePrimaryKeys)) {
+                        $alterParts[] = 'DROP PRIMARY KEY';
                     }
-                } else if (!empty($tablePrimaryKeys)) {
-                    $alterParts[] = 'DROP PRIMARY KEY';
-                }
-                if (!empty($value['keys'])) {
-                    foreach ($value['keys'] as $name =>$def) {
-                        if (isset($tableKeys[$name])) {
-                            $def = preg_replace('/\s/', '', $def);
-                            $defArray = explode(',', $def);
-                            $unMatch = true;
-                            if (count($defArray) == count($tableKeys[$name])) {
-                                $unMatch = false;
-                                for ($i=0; $i<count($defArray); $i++) {
-                                    if ($defArray[$i] != $tableKeys[$name][$i]) $unMatch = true;
+                    if (!empty($value['keys'])) {
+                        foreach ($value['keys'] as $name =>$def) {
+                            if (isset($tableKeys[$name])) {
+                                $def = preg_replace('/\s/', '', $def);
+                                $defArray = explode(',', $def);
+                                $unMatch = true;
+                                if (count($defArray) == count($tableKeys[$name])) {
+                                    $unMatch = false;
+                                    for ($i=0; $i<count($defArray); $i++) {
+                                        if ($defArray[$i] != $tableKeys[$name][$i]) $unMatch = true;
+                                    }
                                 }
-                            }
-                            if ($unMatch) {
-                                $alterParts[] = 'DROP INDEX '.$name;
+                                if ($unMatch) {
+                                    $alterParts[] = 'DROP INDEX '.$name;
+                                    $alterParts[] = 'ADD INDEX '.$name.' ('.$def.')';
+                                }
+                            } else {
                                 $alterParts[] = 'ADD INDEX '.$name.' ('.$def.')';
                             }
-                        } else {
-                            $alterParts[] = 'ADD INDEX '.$name.' ('.$def.')';
                         }
                     }
-                }
-                foreach ($tableKeys as $name=>$def) {
-                    if (!isset($value['keys']) || !isset($value['keys'][$name])) {
-                        $alterParts[] = 'DROP INDEX '.$name;
+                    foreach ($tableKeys as $name=>$def) {
+                        if (!isset($value['keys']) || !isset($value['keys'][$name])) {
+                            $alterParts[] = 'DROP INDEX '.$name;
+                        }
                     }
-                }
-                if (!empty($value['unique'])) {
-                    foreach ($value['unique'] as $name =>$def) {
-                        if (isset($tabkeUniqueKeys[$name])) {
-                            $def = preg_replace('/\s/', '', $def);
-                            $defArray = explode(',', $def);
-                            $unMatch = true;
-                            if (count($defArray) == count($tabkeUniqueKeys[$name])) {
-                                $unMatch = false;
-                                for ($i=0; $i<count($defArray); $i++) {
-                                    if ($defArray[$i] != $tabkeUniqueKeys[$name][$i]) $unMatch = true;
+                    if (!empty($value['unique'])) {
+                        foreach ($value['unique'] as $name =>$def) {
+                            if (isset($tabkeUniqueKeys[$name])) {
+                                $def = preg_replace('/\s/', '', $def);
+                                $defArray = explode(',', $def);
+                                $unMatch = true;
+                                if (count($defArray) == count($tabkeUniqueKeys[$name])) {
+                                    $unMatch = false;
+                                    for ($i=0; $i<count($defArray); $i++) {
+                                        if ($defArray[$i] != $tabkeUniqueKeys[$name][$i]) $unMatch = true;
+                                    }
                                 }
-                            }
-                            if ($unMatch) {
-                                $alterParts[] = 'DROP UNIQUE';
+                                if ($unMatch) {
+                                    $alterParts[] = 'DROP UNIQUE';
+                                    $alterParts[] = 'ADD UNIQUE ('.$def.')';
+                                }
+                            } else {
                                 $alterParts[] = 'ADD UNIQUE ('.$def.')';
                             }
-                        } else {
-                            $alterParts[] = 'ADD UNIQUE ('.$def.')';
                         }
                     }
-                }
-                foreach ($tabkeUniqueKeys as $name=>$def) {
-                    if (empty($value['unique']) || !isset($value['unique'][$name])) {
-                        $alterParts[] = 'DROP UNIQUE '.$name;
+                    foreach ($tabkeUniqueKeys as $name=>$def) {
+                        if (empty($value['unique']) || !isset($value['unique'][$name])) {
+                            $alterParts[] = 'DROP UNIQUE '.$name;
+                        }
+                    }
+                    if (count($alterParts)) {
+                        $alterSQL = 'ALTER TABLE `'. $tableName.'` ';
+                        $comma = '';
+                        foreach($alterParts as $alterPart) {
+                            $alterSQL .= $comma.$alterPart;
+                            $comma = ",\n";
+                        }
+    //                  $this->addMsg($alterSQL);
+                        $this->addMsg('   Alter table '.$tableName.'.');
+                        $GLOBALS['xoopsDB']->query($alterSQL);
                     }
                 }
-                if (count($alterParts)) {
-                    $alterSQL = 'ALTER TABLE `'. $tableName.'` ';
-                    $comma = '';
-                    foreach($alterParts as $alterPart) {
-                        $alterSQL .= $comma.$alterPart;
-                        $comma = ",\n";
-                    }
-//                  $this->addMsg($alterSQL);
-                    $this->addMsg('   Alter table '.$tableName.'.');
-                    $GLOBALS['xoopsDB']->query($alterSQL);
-                }
+                $this->addMsg('NBFrame Automatic Table Updater ends...');
             }
-            $this->addMsg('NBFrame Automatic Table Updater ends...');
         }
 
         function _createTable($tableName, $tableDef, $createIfNotExists=false)
@@ -306,37 +311,38 @@ if (!class_exists('NBFrameInstallHelper')) {
                 $tplFileHandler->insert($tplFileObject);
                 $this->addMsg('  Define Module Template('.$templateName.')');
             }
-            
-            foreach($moduleInfo['blocks'] as $key=>$blockDef) {
-                if (isset($blockDef['template'])) {
-                    $basename = preg_replace('/^'.$this->mDirName.'_/','', $blockDef['template']);
-                    $templateFile = NBFrame::findFile($basename, $environment, '/templates/blocks', false, $this->mDirName.'_');
-                    if ($templateFile) {
-                        $templateName = $this->mDirName.'_'.$basename;
-                        $fileContent = file($templateFile);
-                        $fileContent = implode('', $fileContent);
-                        $criteria =& new CriteriaCompo(new Criteria('tpl_module', $this->mDirName));
-                        $criteria->add(new Criteria('tpl_file', $templateName));
-                        $criteria->add(new Criteria('tpl_type', 'block'));
-                        if ($tplFileObjects = $tplFileHandler->getObjects($criteria)) {
-                            foreach($tplFileObjects as $tplFileObject) {
+            if (!empty($moduleInfo['blocks'])) {
+                foreach($moduleInfo['blocks'] as $key=>$blockDef) {
+                    if (isset($blockDef['template'])) {
+                        $basename = preg_replace('/^'.$this->mDirName.'_/','', $blockDef['template']);
+                        $templateFile = NBFrame::findFile($basename, $environment, '/templates/blocks', false, $this->mDirName.'_');
+                        if ($templateFile) {
+                            $templateName = $this->mDirName.'_'.$basename;
+                            $fileContent = file($templateFile);
+                            $fileContent = implode('', $fileContent);
+                            $criteria =& new CriteriaCompo(new Criteria('tpl_module', $this->mDirName));
+                            $criteria->add(new Criteria('tpl_file', $templateName));
+                            $criteria->add(new Criteria('tpl_type', 'block'));
+                            if ($tplFileObjects = $tplFileHandler->getObjects($criteria)) {
+                                foreach($tplFileObjects as $tplFileObject) {
+                                    $tplFileObject->setVar('tpl_lastmodified', filemtime($templateFile));
+                                    $tplFileObject->setVar('tpl_source', $fileContent);
+                                    $tplFileHandler->insert($tplFileObject);
+                                }
+                            } else {
+                                $tplFileObject =& $tplFileHandler->create();
+                                $tplFileObject->setVar('tpl_refid', $key);
+                                $tplFileObject->setVar('tpl_module', $this->mDirName);
+                                $tplFileObject->setVar('tpl_tplset', 'default');
+                                $tplFileObject->setVar('tpl_file', $templateName);
+                                $tplFileObject->setVar('tpl_desc', '');
                                 $tplFileObject->setVar('tpl_lastmodified', filemtime($templateFile));
+                                $tplFileObject->setVar('tpl_type', 'block');
                                 $tplFileObject->setVar('tpl_source', $fileContent);
                                 $tplFileHandler->insert($tplFileObject);
                             }
-                        } else {
-                            $tplFileObject =& $tplFileHandler->create();
-                            $tplFileObject->setVar('tpl_refid', $key);
-                            $tplFileObject->setVar('tpl_module', $this->mDirName);
-                            $tplFileObject->setVar('tpl_tplset', 'default');
-                            $tplFileObject->setVar('tpl_file', $templateName);
-                            $tplFileObject->setVar('tpl_desc', '');
-                            $tplFileObject->setVar('tpl_lastmodified', filemtime($templateFile));
-                            $tplFileObject->setVar('tpl_type', 'block');
-                            $tplFileObject->setVar('tpl_source', $fileContent);
-                            $tplFileHandler->insert($tplFileObject);
+                            $this->addMsg('  Define Block Template('.$templateName.')');
                         }
-                        $this->addMsg('  Define Block Template('.$templateName.')');
                     }
                 }
             }
