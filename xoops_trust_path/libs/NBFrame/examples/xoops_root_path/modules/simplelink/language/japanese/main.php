@@ -14,7 +14,7 @@ define($constpref.'LANG_CATEGORY_ID','#');
 define($constpref.'LANG_CATEGORY_NAME','カテゴリー名');
 define($constpref.'LANG_CATEGORY_DESC','カテゴリーの説明');
 define($constpref.'LANG_CATEGORY_URL', 'カテゴリーのURL');
-define($constpref.'LANG_CATEGORY_PARENT_ID', 'カテゴリーのカテゴリー');
+define($constpref.'LANG_CATEGORY_PARENT_ID', '親カテゴリー');
 define($constpref.'LANG_CATEGORY_WEIGHT','カテゴリー表示順');
 
 define($constpref.'LANG_LINK_LIST','サイトの一覧');
