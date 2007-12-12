@@ -268,11 +268,15 @@ if (!class_exists('NBFrameInstallHelper')) {
                 }
             }
             $createSQL .= ') TYPE=MyISAM';
-//          $this->addMsg($createSQL);
             if (!$createIfNotExists) {
                 $this->addMsg('   Create table '.$tableName.'.');
             }
             $GLOBALS['xoopsDB']->query($createSQL);
+            $error = $GLOBALS['xoopsDB']->error();
+            if (!empty($error)) {
+                $this->addMsg($createSQL);
+                $this->addMsg($GLOBALS['xoopsDB']->error());
+            }
         }
 
         function _createFieldPart($name, $defArray) {
