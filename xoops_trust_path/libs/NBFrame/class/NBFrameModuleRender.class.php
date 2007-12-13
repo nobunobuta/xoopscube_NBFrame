@@ -8,7 +8,19 @@ if (!class_exists('NBFrameModuleRender')) {
             if (!empty($this->mTemplate)) {
                 $GLOBALS['xoopsOption']['template_main'] = $this->mTemplate;
             }
-            include XOOPS_ROOT_PATH.'/header.php';
+            if (!$this->mAction->mDialogMode) {
+                include XOOPS_ROOT_PATH.'/header.php';
+            } else {
+                if (class_exists('XCube_Root')) {
+                    $root=&XCube_Root::getSingleton();
+                    $root->mController->setDialogMode(true);
+                    include XOOPS_ROOT_PATH.'/header.php';
+                } else {
+                    xoops_header(false);
+                    require_once XOOPS_ROOT_PATH.'/class/template.php';
+                    $GLOBALS['xoopsTpl'] = new XoopsTpl();
+                }
+            }
             $this->mXoopsTpl =& $GLOBALS['xoopsTpl'];
             $this->_addSmartyPugin();
             return $this->mXoopsTpl;
@@ -16,7 +28,16 @@ if (!class_exists('NBFrameModuleRender')) {
         
         function end() {
             global $xoopsConfig, $xoopsOption, $xoopsModule, $xoopsTpl, $xoopsUser, $xoopsUserIsAdmin, $xoopsLogger;;
-            include XOOPS_ROOT_PATH.'/footer.php';
+            
+            if (!$this->mAction->mDialogMode) {
+                include XOOPS_ROOT_PATH.'/footer.php';
+            } else {
+                if (class_exists('XCube_Root')) {
+                    include XOOPS_ROOT_PATH.'/footer.php';
+                } else {
+                    xoops_footer();
+                }
+            }
         }
     }
 }

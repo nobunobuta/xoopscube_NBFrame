@@ -24,6 +24,7 @@ if (!class_exists('NBFrameAction')) {
         var $mExecutePermission = '';
         var $mLanguage;
         var $mLoadCommon = true;
+        var $mDialogMode = false;
 
         function NBFrameAction(&$environment) {
             $this->mEnvironment = $environment;

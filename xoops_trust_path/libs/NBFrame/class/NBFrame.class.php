@@ -120,6 +120,9 @@ if (!class_exists('NBFrame')) {
             }
             $allowedAction[] = 'NBFrame.GetModuleIcon';
             $allowedAction[] = 'NBFrame.GetImage';
+
+            $dialogAction = $environment->getAttribute('DialogAction');
+            if (empty($dialogAction)) $dialogAction = array();
             
             if ($allowedAction && !empty($_REQUEST['action'])) {
                 $requestAction = basename($_REQUEST['action']);
@@ -140,6 +143,9 @@ if (!class_exists('NBFrame')) {
 
             if ($action =& NBFrame::getInstance($className, $environment, 'Action')) {
                 $action->mActionName = $requestAction;
+                if (in_array($className, $dialogAction)) {
+                    $action->mDialogMode = true;
+                }
                 $action->prepare();
                 $action->execute();
             }
