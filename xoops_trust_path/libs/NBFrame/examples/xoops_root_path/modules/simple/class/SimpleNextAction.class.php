@@ -10,7 +10,7 @@ class SimpleNextAction extends NBFrameAction {
     }
 
     function executeDefaultOp() {
-        $this->mContent = 'Hello World';
+        $this->mContent = 'Good bye World';
         return NBFRAME_ACTION_VIEW_DEFAULT;
     }
 

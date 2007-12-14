@@ -1,7 +1,7 @@
 <?php
 if (class_exists('NBFrame')) {
     $environment->setAttribute('ModueleMainAction','SimpleDefault');
-    $environment->setAttribute('AdminMainAction',  'admin.SimpleTable0dmin');
+    $environment->setAttribute('AdminMainAction',  'admin.SimpleTableAdmin');
 
     $environment->setAttribute('AllowedAction', array('SimpleDefault',
                                                       'SimpleNext',
