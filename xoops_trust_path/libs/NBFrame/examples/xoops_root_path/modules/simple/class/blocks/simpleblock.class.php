@@ -5,7 +5,7 @@ if (!class_exists('simpleblock')) {
         }
         
         function show($dirname, $option){
-            $block['content'] = 'aaaaa';
+            $block['content'] = 'Hello World';
             return $block;
         }
     }

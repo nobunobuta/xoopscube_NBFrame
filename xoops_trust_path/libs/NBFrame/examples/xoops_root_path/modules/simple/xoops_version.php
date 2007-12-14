@@ -27,12 +27,8 @@ $modversion['dirname'] = 'simple';   // It'll be rewritten with real dirname;
 $modversion['hasMain'] = 1;
 
 // Do not specify a DB Table setting. because NBFrame uses include/tabledef.inc.php
-//$modversion['sqlfile']['mysql'] = 'sql/mysql.sql';
-//$modversion['tables'][0] = 'table';
 
 // Do not specify a Module Template setting. because NBFrame scan /template directory
-//$modversion['templates'][1]['file'] = 'main.html';
-//$modversion['templates'][1]['description'] = '';
 
 $modversion['hasAdmin'] = 1;
 $modversion['adminindex'] = 'admin/index.php';   // It'll be rewritten

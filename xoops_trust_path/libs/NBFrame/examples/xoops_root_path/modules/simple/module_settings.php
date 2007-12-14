@@ -1,12 +1,12 @@
 <?php
 if (class_exists('NBFrame')) {
     $environment->setAttribute('ModueleMainAction','SimpleDefault');
-    $environment->setAttribute('AdminMainAction',  'admin.SimpleTable0Admin');
+    $environment->setAttribute('AdminMainAction',  'admin.SimpleTable0dmin');
 
     $environment->setAttribute('AllowedAction', array('SimpleDefault',
-                                                          'admin.SimpleTable0Admin',
-                                                          'admin.SimpleTable1Admin',
-                                                       ));
+                                                      'SimpleNext',
+                                                      'admin.SimpleTableAdmin',
+                                                     ));
 
     $environment->setAttribute('BlockHandler', array('simpleblock'));
 
