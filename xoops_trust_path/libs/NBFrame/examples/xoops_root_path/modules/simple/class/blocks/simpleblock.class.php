@@ -1,6 +1,6 @@
 <?php
-if (!class_exists('simpleblock')) {
-    class simpleblock {
+if (!class_exists('SimpleBlock')) {
+    class SimpleBlock {
         function edit($dirname, $option) {
         }
         
