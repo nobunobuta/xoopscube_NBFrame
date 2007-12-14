@@ -77,7 +77,8 @@ if (!class_exists('NBFrameObjectAction')) {
 
         var $mAttributes;
         
-        var $mHalfAuto = false;
+        var $mHalfAutoForm = false;
+        var $mHalfAutoList = false;
         
         function prepare($classprefix, $name, $caption) {
             parent::prepare();
@@ -106,7 +107,7 @@ if (!class_exists('NBFrameObjectAction')) {
                 NBFrame::using('TebleParser');
                 $parser = new NBFrameTebleParser($this->mObjectHandler->db);
                 $parser->setFormElements($this->mObjectHandler->mTableName, $this->mObjectForm);
-            } else if ($this->mHalfAuto) {
+            } else if ($this->mHalfAutoForm) {
                 NBFrame::using('TebleParser');
                 $parser = new NBFrameTebleParser($this->mObjectHandler->db);
                 $parser->setFormElements($this->mObjectHandler->mTableName, $this->mObjectForm);
@@ -121,7 +122,7 @@ if (!class_exists('NBFrameObjectAction')) {
                 NBFrame::using('TebleParser');
                 $parser = new NBFrameTebleParser($this->mObjectHandler->db);
                 $parser->setListElements($this->mObjectHandler->mTableName, $this->mObjectList);
-            } else if ($this->mHalfAuto) {
+            } else if ($this->mHalfAutoList) {
                 NBFrame::using('TebleParser');
                 $parser = new NBFrameTebleParser($this->mObjectHandler->db);
                 $parser->setListElements($this->mObjectHandler->mTableName, $this->mObjectList);
@@ -253,10 +254,10 @@ if (!class_exists('NBFrameObjectAction')) {
         }
 
         function executeListOp() {
-            $perpage = 30;
-            $start = isset($_GET['start']) ? intval($_GET['start']) : 0;
-            $order = (isset($_GET['order'])&& $_GET['order']=='desc') ? 'desc' : 'asc';
-            $sort = isset($_GET['sort']) ? htmlspecialchars($_GET['sort'],ENT_QUOTES) : $this->mObjectKeyField;
+            $start = isset($_GET['list_start']) ? intval($_GET['list_start']) : 0;
+            $order = (isset($_GET['list_order'])&& $_GET['list_order']=='desc') ? 'desc' : 'asc';
+            $sort = isset($_GET['list_sort']) ? htmlspecialchars($_GET['list_sort'],ENT_QUOTES) : $this->mObjectKeyField;
+            $perpage = (!empty($_GET['list_perpage'])) ? intval($_GET['list_perpage']) : $this->mListPerPage;
             if ($this->mListFilterCriteria) {
                 $criteria =& $this->mListFilterCriteria;
             } else {
@@ -270,6 +271,7 @@ if (!class_exists('NBFrameObjectAction')) {
             $this->mListStart = $start;
             $this->mListSort = $sort;
             $this->mListOrder = $order;
+            $this->mListPerPage = $perpage;
             
             $this->mObjectArr =& $this->getListObjects($criteria);
             $this->mObjectAllCount = $this->mObjectHandler->getCount($criteria);
@@ -350,11 +352,11 @@ if (!class_exists('NBFrameObjectAction')) {
 
         function _getPageNav() {
             require_once XOOPS_ROOT_PATH.'/class/pagenav.php';
-            $extra = 'sort='.$this->mListSort.'&amp;order='.$this->mListOrder;
+            $extra = 'list_sort='.$this->mListSort.'&amp;list_order='.$this->mListOrder.'&amp;list_perpage='.$this->mListPerPage;
             if (!empty($this->mActionName)) {
-                $extra .= '&action='.$this->mActionName;
+                $extra .= '&amp;action='.$this->mActionName;
             }
-            $this->mPageNav =& new XoopsPageNav($this->mObjectAllCount, $this->mListPerPage, $this->mListStart, 'start', $extra);
+            $this->mPageNav =& new XoopsPageNav($this->mObjectAllCount, $this->mListPerPage, $this->mListStart, 'list_start', $extra);
         }
 
         function preViewViewOp() {

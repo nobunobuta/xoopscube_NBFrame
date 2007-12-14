@@ -11,7 +11,7 @@ if (!class_exists('NBFrameAdminRender')) {
         function &start() {
             global $xoopsConfig, $xoopsModule;
             NBFrame::using('AdminTpl');
-            $this->mXoopsTpl =& new NBFrameAdminTpl($this->mDirName, $this->mLanguage);
+            $this->mXoopsTpl =& new NBFrameAdminTpl($this);
             $this->_addSmartyPugin();
             xoops_cp_header();
             $this->renderMyMenu();

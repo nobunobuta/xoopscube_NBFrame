@@ -68,17 +68,17 @@ if (!class_exists('NBFrameObjectList')) {
                 $head = array();
                 $head['name'] = $key;
                 if (isset($value['ext']['sort'])&&($value['ext']['sort']===true)) {
-                    $param= 'sort='.$key;
+                    $param= 'list_sort='.$key;
                     if (($sort==$key)&&(strtolower($order)=='asc')) {
-                        $param .= '&amp;order=desc';
+                        $param .= '&amp;list_order=desc';
                         $head['linktitle'] = 'Descending Sort';
                         $head['style']='style="color:#00FF00"';
                     } else if (($sort==$key)&&(strtolower($order)=='desc')) {
-                        $param .= '&amp;order=asc';
+                        $param .= '&amp;list_order=asc';
                         $head['linktitle'] = 'Ascending Sort';
                         $head['style']='style="color:#FFFF00"';
                     } else {
-                        $param .= '&amp;order=asc';
+                        $param .= '&amp;list_order=asc';
                         $head['linktitle'] = 'Ascending Sort';
                         $head['style']='style="color:#DDFFDD"';
                     }
