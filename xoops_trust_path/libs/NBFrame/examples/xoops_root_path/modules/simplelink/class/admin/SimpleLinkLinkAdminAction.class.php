@@ -4,7 +4,7 @@ if (!class_exists('SimpleLinkLinkAdminAction')) {
 
     class SimpleLinkLinkAdminAction extends NBFrameAdminMaintAction {
         function prepare() {
-            $this->mHalfAuto = true;
+            $this->mHalfAutoForm = true;
             parent::prepare('SimpleLinkLink', $this->__l('Link Admin'));
         }
     }

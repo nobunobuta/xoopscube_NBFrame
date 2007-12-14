@@ -11,14 +11,17 @@ class SimpleLinkDefaultAction extends NBFrameAction {
     }
 
     function executeDefaultOp() {
+        $this->mList = array();
+
+        $moduleHandler =& xoops_gethandler('module');
+        $this->mModuleObject =& $moduleHandler->getByDirname($this->mDirName);
+
         $linkHandler =& NBFrame::getHandler('SimpleLinkLink', $this->mEnvironment);
         $categoryHandler =& NBFrame::getHandler('SimpleLinkCategory', $this->mEnvironment);
+
         $criteria =& new CriteriaElement();
         $criteria->setSort('category_weight');
         $categoryObjects =& $categoryHandler->getNestedObjects($criteria, '');
-        $this->mList = array();
-    	$moduleHandler =& xoops_gethandler('module');
-    	$this->mModuleObject =& $moduleHandler->getByDirname($this->mDirName);
 
         foreach($categoryObjects as $categoryObject) {
             $criteria =& new Criteria('link_category_id', $categoryObject->getVar('category_id'));
@@ -29,7 +32,7 @@ class SimpleLinkDefaultAction extends NBFrameAction {
         }
         return NBFRAME_ACTION_VIEW_DEFAULT;
     }
-    
+
     function viewDefaultOp() {
         $this->mXoopsTpl->assign('mydirname', $this->mDirName);
         $this->mXoopsTpl->assign('simplelink_list', $this->mList);
