@@ -2,7 +2,7 @@
 if (!class_exists('NBFrame')) exit();
 if (!class_exists('NBFrameHTTPOutput')) {
     class NBFrameHTTPOutput {
-        function putFile($fileName, $contentType, $static=true) {
+        function putFile($fileName, $contentType, $static=true, $do_exit=true) {
             error_reporting(E_ERROR);
             if (file_exists($fileName)) {
                 header('Content-Type: '.$contentType);
@@ -22,7 +22,7 @@ if (!class_exists('NBFrameHTTPOutput')) {
                 }
                 header('Content-Length: '.strlen($content));
                 echo $content;
-                exit();
+                if ($do_exit) exit();
             }
         }
         
