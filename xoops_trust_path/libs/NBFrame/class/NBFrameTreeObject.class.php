@@ -25,6 +25,16 @@ if(!class_exists('NBFrameTreeObject')) {
         function getParentKey($format = 's') {
             return $this->getVar($this->mParentField, $format);;
         }
+        
+        function &getParentObject() {
+            $parentObject =& $this->mHandler->getParent($this->getKey());
+            return $parentObject;
+        }
+
+        function getParentPath() {
+            $pathArray = $this->mHandler->getParentPath($this->getKey());
+            return $pathArray;
+        }
     }
 }
 ?>

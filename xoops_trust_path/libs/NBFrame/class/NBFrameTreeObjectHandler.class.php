@@ -38,7 +38,7 @@ if(!class_exists('NBFrameTreeObjectHandler')) {
             }
         }
 
-        function getChildrenCriteria($keyName, $currentKey)
+        function &getChildrenCriteria($keyName, $currentKey)
         {
             $criteria =& new CriteriaCompo(new Criteria($keyName, $currentKey));
             
@@ -49,7 +49,7 @@ if(!class_exists('NBFrameTreeObjectHandler')) {
             }
             if (count($resultObjects) > 0) {
                 foreach($resultObjects as $object) {
-                    $criteria->add(new Criteria($keyName[0], $object->getKey()), 'OR');
+                    $criteria->add(new Criteria($keyName, $object->getKey()), 'OR');
                 }
             }
             return $criteria;
@@ -77,6 +77,32 @@ if(!class_exists('NBFrameTreeObjectHandler')) {
             $criteria->setSort($record->getNameField());
             $optionArray += $this->getSelectOptionArray($criteria);
             return $optionArray;
+        }
+        
+        function &getParent($currentKey) {
+            $parentObject = false;
+            if ($currentObject =& $this->get($currentKey)) {
+                if($parentKey = $currentObject->getParentKey()) {
+                    $parentObject =& $this->get($parentKey);
+                }
+            }
+            return $parentObject;
+        }
+        
+        function getParentPath($currentKey)
+        {
+            $pathArray = array();
+            while(1) {
+                if ($parentObject =& $this->getParent($currentKey)) {
+                    $parentKey = $parentObject->getKey();
+                    $parentName = $parentObject->getName();
+                    array_unshift($pathArray, array('key'=>$parentKey, 'name'=>$parentName));
+                    $currentKey = $parentKey;
+                } else {
+                    break;
+                }
+            }
+            return $pathArray;
         }
     }
 }
