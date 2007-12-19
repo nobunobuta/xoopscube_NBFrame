@@ -298,9 +298,9 @@ if (!class_exists('NBFrameObjectAction')) {
             if (is_object($this->mObjectForm)) {
                 $this->mObjectForm->bindAction($this, 1);
 
-                if ($this->mHalfAutoForm || (get_class($this->mObjectForm)==strtolower('NBFrameObjectForm'))) {
+                if ($this->mHalfAutoForm || preg_match('/^NBFrameObjectForm$/i', get_class($this->mObjectForm))) {
                     NBFrame::using('TebleParser');
-                    $parser = new NBFrameTebleParser($this->mObjectHandler->db);
+                    $parser =& new NBFrameTebleParser($this->mObjectHandler->db);
                     $parser->setFormElements($this->mObjectHandler->mTableName, $this->mObjectForm);
                 }
 
@@ -327,9 +327,9 @@ if (!class_exists('NBFrameObjectAction')) {
                 $this->setObjectList('dummyList');
             }
             if (is_object($this->mObjectList)) {
-                if ($this->mHalfAutoList || (get_class($this->mObjectList)==strtolower('NBFrameObjectList'))) {
+                if ($this->mHalfAutoList || preg_match('/^NBFrameObjectList$/i', get_class($this->mObjectList))) {
                     NBFrame::using('TebleParser');
-                    $parser = new NBFrameTebleParser($this->mObjectHandler->db);
+                    $parser =& new NBFrameTebleParser($this->mObjectHandler->db);
                     $parser->setListElements($this->mObjectHandler->mTableName, $this->mObjectList);
                 }
 
