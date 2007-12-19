@@ -104,13 +104,6 @@ if (!class_exists('NBFrameObjectAction')) {
             if (!$this->mObjectForm) {
                 NBFrame::using('ObjectForm');
                 $this->mObjectForm =& New NBFrameObjectForm($this->mEnvironment);
-                NBFrame::using('TebleParser');
-                $parser = new NBFrameTebleParser($this->mObjectHandler->db);
-                $parser->setFormElements($this->mObjectHandler->mTableName, $this->mObjectForm);
-            } else if ($this->mHalfAutoForm) {
-                NBFrame::using('TebleParser');
-                $parser = new NBFrameTebleParser($this->mObjectHandler->db);
-                $parser->setFormElements($this->mObjectHandler->mTableName, $this->mObjectForm);
             }
         }
 
@@ -119,16 +112,7 @@ if (!class_exists('NBFrameObjectAction')) {
             if (!$this->mObjectList) {
                 NBFrame::using('ObjectList');
                 $this->mObjectList =& New NBFrameObjectList($this->mEnvironment);
-                NBFrame::using('TebleParser');
-                $parser = new NBFrameTebleParser($this->mObjectHandler->db);
-                $parser->setListElements($this->mObjectHandler->mTableName, $this->mObjectList);
-            } else if ($this->mHalfAutoList) {
-                NBFrame::using('TebleParser');
-                $parser = new NBFrameTebleParser($this->mObjectHandler->db);
-                $parser->setListElements($this->mObjectHandler->mTableName, $this->mObjectList);
             }
-            $this->mObjectList->bindAction($this);
-            $this->mObjectList->prepare();
         }
 
         function setFormTemplate($formTemplate) {
@@ -196,6 +180,9 @@ if (!class_exists('NBFrameObjectAction')) {
             }
             if (is_object($object)) {
                 $this->mObject =& $object;
+                if (is_object($this->mObjectForm)) {
+                    $this->mObjectForm->preInsert();
+                }
                 $object->setFormVars($_POST,'');
                 if (!$object->checkGroupPerm('write')) {
                     $this->mErrorMsg = $this->__e('Permission Error');
@@ -299,16 +286,24 @@ if (!class_exists('NBFrameObjectAction')) {
             return NBFRAME_ACTION_ERROR;
         }
 
-
         function preViewFormOp() {
             $this->mCurrentTemplate = $this->mFormTemplate;
         }
+
         function viewFormOp() {
             if (empty($this->mObjectForm)) {
                 $this->setObjectForm('dummyForm');
             }
+
             if (is_object($this->mObjectForm)) {
                 $this->mObjectForm->bindAction($this, 1);
+
+                if ($this->mHalfAutoForm || (get_class($this->mObjectForm)==strtolower('NBFrameObjectForm'))) {
+                    NBFrame::using('TebleParser');
+                    $parser = new NBFrameTebleParser($this->mObjectHandler->db);
+                    $parser->setFormElements($this->mObjectHandler->mTableName, $this->mObjectForm);
+                }
+
                 $this->mObjectForm->prepare();
 
                 $xoopsForm =& $this->mObjectForm->buildEditForm($this->mObject);
@@ -332,6 +327,15 @@ if (!class_exists('NBFrameObjectAction')) {
                 $this->setObjectList('dummyList');
             }
             if (is_object($this->mObjectList)) {
+                if ($this->mHalfAutoList || (get_class($this->mObjectList)==strtolower('NBFrameObjectList'))) {
+                    NBFrame::using('TebleParser');
+                    $parser = new NBFrameTebleParser($this->mObjectHandler->db);
+                    $parser->setListElements($this->mObjectHandler->mTableName, $this->mObjectList);
+                }
+
+                $this->mObjectList->bindAction($this);
+                $this->mObjectList->prepare();
+
                 $this->mObjectList->buildList($this->mObjectArr, $this->mListSort, $this->mListOrder);
                 $this->_getPageNav();
                 if ($this->mRender->mTemplate) {

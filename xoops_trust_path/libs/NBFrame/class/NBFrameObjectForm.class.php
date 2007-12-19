@@ -21,7 +21,7 @@ if (!class_exists('NBFrameObjectForm')) {
         
         function prepare() {
         }
-        
+
         function bindAction(&$action, $token=0) {
             $this->mAction =& $action;
             $this->mName = $action->mName;
@@ -70,6 +70,13 @@ if (!class_exists('NBFrameObjectForm')) {
             $formEdit->addElement(new XoopsFormButton('', 'submit', 'OK', 'submit'));
 
             return $formEdit;
+        }
+
+        function preInsert() {
+        }
+
+        function initPostParam($name, $value) {
+            if (!isset($_POST[$name])) $_POST[$name]=$value;
         }
 
         function render(&$object) {
