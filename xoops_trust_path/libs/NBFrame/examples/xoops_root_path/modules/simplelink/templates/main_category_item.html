@@ -1,7 +1,7 @@
-<dl style="margin-left:20px">
+<dl style="margin-top:15px;margin-left:20px">
 <{foreach item=link from=$category->getExtraVar('link_objects')}>
-<dt style="font-size:medium"><a href="<{$link->getVar('link_url')}>"><{$link->getVar('link_name')}></a></dt>
-<dd style="font-size:small"><{$link->getVar('link_desc')}></dd>
+<dt style="font-size:medium;margin-top:8px"><a href="<{$link->getVar('link_url')}>"><{$link->getVar('link_name')}></a></dt>
+<dd style="font-size:small;margin-top:3px"><{$link->getVar('link_desc')}></dd>
 <{/foreach}>
 </dl>
 <ul style="margin-top:10px;margin-left:20px">
