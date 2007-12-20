@@ -142,6 +142,7 @@ if (!class_exists('NBFrame')) {
             }
             if (($environment->getAttribute('AutoUpdateMode')===true) && !NBFrame::isNoCommonAction($className, $environment)) {
                 $info = $GLOBALS['xoopsModule']->getInfo();
+
                 $installHelper =& NBFrame::getInstallHelper();
                 $installHelper->postUpdateProcessforDuplicate(true);
             }
@@ -332,15 +333,32 @@ if (!class_exists('NBFrame')) {
                     if (isset($block['template'])) {
                         $modversion['blocks'][$key]['template'] = $environment->prefix($block['template']);
                     }
-                    if (isset($block['show_func'])) {
-                        $modversion['blocks'][$key]['show_func'] = $environment->prefix($block['show_func']);
-                    }
-                    if (isset($block['edit_func'])) {
-                        $modversion['blocks'][$key]['edit_func'] = $environment->prefix($block['edit_func']);
+                    if (isset($block['NBclass'])) {
+                        $modversion['blocks'][$key]['NBclass'] = $environment->prefix($block['NBclass']);
+                        if (isset($block['show_func'])) {
+                            $modversion['blocks'][$key]['NBShowMethod'] = $modversion['blocks'][$key]['show_func'];
+                            $modversion['blocks'][$key]['show_func'] = 'b_'.$modversion['blocks'][$key]['NBclass'].'_'.$block['show_func'];
+                        }
+                        if (isset($block['edit_func'])) {
+                            $modversion['blocks'][$key]['NBShowMethod'] = $modversion['blocks'][$key]['edit_func'];
+                            $modversion['blocks'][$key]['edit_func'] = 'b_'.$modversion['blocks'][$key]['NBclass'].'_'.$block['show_func'];
+                        }
+                    } else {
+                        if (isset($block['show_func'])) {
+                            $modversion['blocks'][$key]['show_func'] = $environment->prefix($block['show_func']);
+                        }
+                        if (isset($block['edit_func'])) {
+                            $modversion['blocks'][$key]['edit_func'] = $environment->prefix($block['edit_func']);
+                        }
                     }
                 }
             }
-            
+            if (!empty($modversion['hasSearch'])){
+                if (isset($modversion['search']['func'])) {
+                    $modversion['search']['func'] =  $environment->prefix($modversion['search']['func']);
+                }
+            }
+
             NBFrame::_prepareCustomInstaller($modversion);
 
             $installHelper =& NBFrame::getInstallHelper();
@@ -395,7 +413,7 @@ if (!class_exists('NBFrame')) {
 
         function prepareBlockFunction(&$environment) {
             $blockClasses = $environment->getAttribute('BlockHandler');
-            if (!empty($blockClasses)) {
+            if (!empty($blockClasses) && is_array($blockClasses)) {
                 foreach($blockClasses as $blockClass) {
                     NBFrame::using('blocks.'.$blockClass, $environment);
                     NBFrame::prepareBlockEditFunction($environment, $blockClass);
@@ -423,7 +441,22 @@ if (!class_exists('NBFrame')) {
             $str .= 'return '.$className.'::show($environment, $option); }}';
             eval($str);
         }
-        
+
+        // Utilitiy Functions for Search
+        function prepareSearchFunction(&$environment) {
+            $searchClass = $environment->getAttribute('SearchHandler');
+            if (!empty($searchClass)) {
+                NBFrame::using($searchClass, $environment);
+                $dirName = $environment->mDirName;
+                $envStr = serialize($environment);
+                $str = 'if (!function_exists("'.$dirName.'_'.$searchClass.'")) {';
+                $str .= 'function '.$dirName.'_'.$searchClass.'($queryarray, $andor, $limit, $offset, $userid) {'."\n";
+                $str .= '  $environment = unserialize(\''.$envStr.'\');'."\n";
+                $str .= 'return '.$searchClass.'::search($environment, $queryarray, $andor, $limit, $offset, $userid); }}';
+                eval($str);
+            }
+        }
+
         // Utilitiy Functions
 
         function getRequest($name, $reqTypes, $valType = '', $defaultValue = NBFRAME_NO_DEFAULT_PARAM, $mustExist = false){
