@@ -18,4 +18,9 @@ $modversion['hasAdmin'] = 1;
 $modversion['adminindex'] = 'admin/index.php';   // It'll be rewritten
 $modversion['adminmenu'] = 'include/admin_menu.inc.php'; // It'll be rewritten
 $modversion['hasconfig'] = 1;
+
+// Search
+$modversion['hasSearch'] = 1;
+$modversion['search']['file'] = 'include/NBFrameSearchLoader.php';  //You should specify this filename;
+$modversion['search']['func'] = 'SimpleLinkSeach'; // You should specify this search class name
 ?>
