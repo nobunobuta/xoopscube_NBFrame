@@ -5,5 +5,6 @@ if (class_exists('NBFrame')) {
     $environment->setOrigDirName('simplelink');
 //**************************************************
     if ($fname = NBFrame::findFile('module_settings.php', $environment, '/')) @include $fname;
+    if ($fname = NBFrame::findFile('custom_settings.php', $environment, '/')) @include $fname;
 }
 ?>
