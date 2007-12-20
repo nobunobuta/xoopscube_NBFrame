@@ -20,7 +20,7 @@ if(!class_exists('NBFrameTplFileHandler')) {
                     $tplSourceObject->setVar('tpl_id', $id);
                 }
                 $tplSourceObject->setVar('tpl_source', $record->getVar('tpl_source','n'));
-                $result = $tplSourceHandler->insert($tplSourceObject);
+                $result = $tplSourceHandler->insert($tplSourceObject, $force);
             }
             return $result;
         }

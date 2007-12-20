@@ -140,7 +140,11 @@ if (!class_exists('NBFrame')) {
                 isset($_GET['page'])) {
                 $className = 'NBFrame.admin.AltSys';
             }
-
+            if (($environment->getAttribute('AutoUpdateMode')===true) && !NBFrame::isNoCommonAction($className, $environment)) {
+                $info = $GLOBALS['xoopsModule']->getInfo();
+                $installHelper =& NBFrame::getInstallHelper();
+                $installHelper->postUpdateProcessforDuplicate(true);
+            }
             if ($action =& NBFrame::getInstance($className, $environment, 'Action')) {
                 $action->mActionName = $requestAction;
                 if (in_array($className, $dialogAction)) {
@@ -386,30 +390,7 @@ if (!class_exists('NBFrame')) {
             $modversion['onUpdate'] = 'include/NBFrameInstall.inc.php';
             $modversion['onUninstall'] = 'include/NBFrameInstall.inc.php';
         }
-/*
-        function getBlockShowFunction($className) {
-            $installHelper =& NBFrame::getInstallHelper();
-            $dirName = $installHelper->mDirName;
-            return 'b_'.$dirName.'_'.$className.'_show';
-        }
 
-        function getBlockEditFunction($className) {
-            $installHelper =& NBFrame::getInstallHelper();
-            $dirName = $installHelper->mDirName;
-            return 'b_'.$dirName.'_'.$className.'_edit';
-        }
-
-        function setModuleTemplate($basename) {
-            $installHelper =& NBFrame::getInstallHelper();
-            $template = $installHelper->setModuleTemplateforDuplicate($basename);
-            return $template;
-        }
-        
-        function setBlockTemplate($basename, $isBlock=false) {
-            $installHelper =& NBFrame::getInstallHelper();
-            return $installHelper->setBlockTemplateforDuplicate($basename);
-        }
-*/
         // Utilitiy Functions for Blocks
 
         function prepareBlockFunction(&$environment) {
@@ -474,6 +455,12 @@ if (!class_exists('NBFrame')) {
                 }
             }
             return false;
+        }
+
+        function isNoCommonAction($className, $environment) {
+            $noCommonActions = $environment->getAttribute('NoCommonAction');
+            if (!is_array($noCommonActions)) return false;
+            return in_array($className, $noCommonActions);
         }
 
         function getAdminMenu($environment) {

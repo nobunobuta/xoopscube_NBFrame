@@ -29,23 +29,23 @@ if (!class_exists('NBFrameInstallHelper')) {
 
         // Method for Duplicated Modules
         
-        function postInstallProcessforDuplicate() {
-            $this->createTables();
-            $this->installTemplates();
+        function postInstallProcessforDuplicate($force=false) {
+            $this->createTables($force);
+            $this->installTemplates($force);
             return true;
         }
         
-        function preUpdateProcessforDuplicate() {
+        function preUpdateProcessforDuplicate($force=false) {
             return true;
         }
         
-        function postUpdateProcessforDuplicate() {
-            $this->installTemplates();
-            $this->alterTables();
+        function postUpdateProcessforDuplicate($force=false) {
+            $this->installTemplates($force);
+            $this->alterTables($force);
             return true;
         }
 
-        function createTables() {
+        function createTables($force=false) {
             $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
             if ($fname = NBFrame::findFile('tabledef.inc.php',$environment, '/include')) @include $fname;
             if (($fname0 = NBFrame::findFile('tabledef.inc.php',$environment, '/include', false, $this->mDirName.'_'))&&($fname!=$fname0)) @include $fname0;
@@ -54,13 +54,13 @@ if (!class_exists('NBFrameInstallHelper')) {
                 foreach($tableDef[$this->mOrigName] as $key =>$value) {
                     $tableName = $GLOBALS['xoopsDB']->prefix($this->mDirName.'_'.$key);
                     $this->addMsg(' Table '.$tableName);
-                    $this->_createTable($tableName, $value);
+                    $this->_createTable($tableName, $value, false, $force);
                 }
                 $this->addMsg('NBFrame Automatic Table Creater ends...');
             }
         }
 
-        function alterTables() {
+        function alterTables($force=false) {
             $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
             if ($fname = NBFrame::findFile('tabledef.inc.php',$environment, '/include', false, $this->mDirName.'_')) @include $fname;
             if (($fname0 = NBFrame::findFile('tabledef.inc.php',$environment, '/include', false, $this->mDirName.'_'))&&($fname!=$fname0)) @include $fname0;          
@@ -70,12 +70,12 @@ if (!class_exists('NBFrameInstallHelper')) {
                     $tableName = $GLOBALS['xoopsDB']->prefix($this->mDirName.'_'.$key);
                     $this->addMsg(' Table '.$tableName);
                     $this->addMsg('   Create table '.$tableName.' if it does not exist.');
-                    $this->_createTable($tableName, $value, true);
+                    $this->_createTable($tableName, $value, true, $force);
 
                     $alterParts  = array();
                     //Get existing table definition
                     $sql = 'SHOW COLUMNS FROM '.$tableName;
-                    $resultColumuns = $GLOBALS['xoopsDB']->query($sql);
+                    $resultColumuns = $GLOBALS['xoopsDB']->queryF($sql);
 
                     $tableFields = array();
                     while($row =$GLOBALS['xoopsDB']->fetchArray($resultColumuns)) {
@@ -127,7 +127,7 @@ if (!class_exists('NBFrameInstallHelper')) {
                     }
 
                     $sql = 'SHOW INDEX FROM `'.$tableName.'`';
-                    $resultKeys = $GLOBALS['xoopsDB']->query($sql);
+                    $resultKeys = $GLOBALS['xoopsDB']->queryF($sql);
 
                     $tablePrimaryKeys = array();
                     $tableKeys = array();
@@ -223,16 +223,24 @@ if (!class_exists('NBFrameInstallHelper')) {
                             $alterSQL .= $comma.$alterPart;
                             $comma = ",\n";
                         }
-    //                  $this->addMsg($alterSQL);
                         $this->addMsg('   Alter table '.$tableName.'.');
-                        $GLOBALS['xoopsDB']->query($alterSQL);
+                        if ($force) {
+                            $GLOBALS['xoopsDB']->queryF($alterSQL);
+                        } else {
+                            $GLOBALS['xoopsDB']->query($alterSQL);
+                        }
+                        $error = $GLOBALS['xoopsDB']->error();
+                        if (!empty($error)) {
+                            $this->addMsg($alterSQL);
+                            $this->addMsg($GLOBALS['xoopsDB']->error());
+                        }
                     }
                 }
                 $this->addMsg('NBFrame Automatic Table Updater ends...');
             }
         }
 
-        function _createTable($tableName, $tableDef, $createIfNotExists=false)
+        function _createTable($tableName, $tableDef, $createIfNotExists=false, $force=false)
         {
             if ($createIfNotExists) {
                 $ifStr = 'IF NOT EXISTS ';
@@ -271,7 +279,11 @@ if (!class_exists('NBFrameInstallHelper')) {
             if (!$createIfNotExists) {
                 $this->addMsg('   Create table '.$tableName.'.');
             }
-            $GLOBALS['xoopsDB']->query($createSQL);
+            if ($force) {
+                $GLOBALS['xoopsDB']->query($createSQL);
+            } else {
+                $GLOBALS['xoopsDB']->queryF($createSQL);
+            }
             $error = $GLOBALS['xoopsDB']->error();
             if (!empty($error)) {
                 $this->addMsg($createSQL);
@@ -290,7 +302,9 @@ if (!class_exists('NBFrameInstallHelper')) {
             return $createSQL;
         }
 
-        function installTemplates() {
+        function installTemplates($force=false) {
+            require_once XOOPS_ROOT_PATH.'/class/template.php' ;
+            $tpl = new XoopsTpl();
             $this->addMsg('NBFrame Duplicatable Template Definition starts...');
             $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
             $tempaltePath = NBFrame::findFile('templates',$environment, '');
@@ -303,16 +317,37 @@ if (!class_exists('NBFrameInstallHelper')) {
                 $templateName = $this->mDirName.'_'.$templateFileBaseName;
                 $fileContent = file($templateFile);
                 $fileContent = implode('', $fileContent);
-                $tplFileObject =& $tplFileHandler->create();
-                $tplFileObject->setVar('tpl_refid', $moduleInfo['mid']);
-                $tplFileObject->setVar('tpl_module', $this->mDirName);
-                $tplFileObject->setVar('tpl_tplset', 'default');
-                $tplFileObject->setVar('tpl_file', $templateName);
-                $tplFileObject->setVar('tpl_desc', '');
-                $tplFileObject->setVar('tpl_lastmodified', filemtime($templateFile));
-                $tplFileObject->setVar('tpl_type', 'module');
-                $tplFileObject->setVar('tpl_source', $fileContent);
-                $tplFileHandler->insert($tplFileObject);
+
+                $criteria =& new CriteriaCompo(new Criteria('tpl_module', $this->mDirName));
+                $criteria->add(new Criteria('tpl_file', $templateName));
+                $criteria->add(new Criteria('tpl_tplset', 'default'));
+                $criteria->add(new Criteria('tpl_type', 'module'));
+                if ($tplFileObjects = $tplFileHandler->getObjects($criteria)) {
+                    foreach($tplFileObjects as $tplFileObject) {
+                        if ($tplFileObject->getVar('tpl_lastmodified') <> filemtime($templateFile)) {
+                            $tplFileObject->setVar('tpl_lastmodified', filemtime($templateFile));
+                            $tplFileObject->setVar('tpl_source', $fileContent);
+                            $tplFileHandler->insert($tplFileObject, $force);
+
+                            $tpl->clear_cache('db:'.$templateName);
+                            $tpl->clear_compiled_tpl('db:'.$templateName);
+                        }
+                    }
+                } else {
+                    $tplFileObject =& $tplFileHandler->create();
+                    $tplFileObject->setVar('tpl_refid', $moduleInfo['mid']);
+                    $tplFileObject->setVar('tpl_module', $this->mDirName);
+                    $tplFileObject->setVar('tpl_tplset', 'default');
+                    $tplFileObject->setVar('tpl_file', $templateName);
+                    $tplFileObject->setVar('tpl_desc', '');
+                    $tplFileObject->setVar('tpl_lastmodified', filemtime($templateFile));
+                    $tplFileObject->setVar('tpl_type', 'module');
+                    $tplFileObject->setVar('tpl_source', $fileContent);
+                    $tplFileHandler->insert($tplFileObject, $force);
+
+                    $tpl->clear_cache('db:'.$templateName);
+                    $tpl->clear_compiled_tpl('db:'.$templateName);
+                }
                 $this->addMsg('  Define Module Template('.$templateName.')');
             }
             if (!empty($moduleInfo['blocks'])) {
@@ -327,11 +362,17 @@ if (!class_exists('NBFrameInstallHelper')) {
                             $criteria =& new CriteriaCompo(new Criteria('tpl_module', $this->mDirName));
                             $criteria->add(new Criteria('tpl_file', $templateName));
                             $criteria->add(new Criteria('tpl_type', 'block'));
+                            $criteria->add(new Criteria('tpl_tplset', 'default'));
                             if ($tplFileObjects = $tplFileHandler->getObjects($criteria)) {
                                 foreach($tplFileObjects as $tplFileObject) {
-                                    $tplFileObject->setVar('tpl_lastmodified', filemtime($templateFile));
-                                    $tplFileObject->setVar('tpl_source', $fileContent);
-                                    $tplFileHandler->insert($tplFileObject);
+                                    if ($tplFileObject->getVar('tpl_lastmodified') <> filemtime($templateFile)) {
+                                        $tplFileObject->setVar('tpl_lastmodified', filemtime($templateFile));
+                                        $tplFileObject->setVar('tpl_source', $fileContent);
+                                        $tplFileHandler->insert($tplFileObject, $force);
+
+                                        $tpl->clear_cache('db:'.$templateName);
+                                        $tpl->clear_compiled_tpl('db:'.$templateName);
+                                    }
                                 }
                             } else {
                                 $tplFileObject =& $tplFileHandler->create();
@@ -343,7 +384,10 @@ if (!class_exists('NBFrameInstallHelper')) {
                                 $tplFileObject->setVar('tpl_lastmodified', filemtime($templateFile));
                                 $tplFileObject->setVar('tpl_type', 'block');
                                 $tplFileObject->setVar('tpl_source', $fileContent);
-                                $tplFileHandler->insert($tplFileObject);
+                                $tplFileHandler->insert($tplFileObject, $force);
+
+                                $tpl->clear_cache('db:'.$templateName);
+                                $tpl->clear_compiled_tpl('db:'.$templateName);
                             }
                             $this->addMsg('  Define Block Template('.$templateName.')');
                         }
