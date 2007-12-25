@@ -330,26 +330,44 @@ if (!class_exists('NBFrame')) {
             }
             if (isset($modversion['blocks'])){
                 foreach($modversion['blocks'] as $key=>$block) {
+                    $modversion['blocks'][$key]['file'] = 'NBFrameBlockLoader.php';
                     if (isset($block['template'])) {
                         $modversion['blocks'][$key]['template'] = $environment->prefix($block['template']);
                     }
-                    if (isset($block['NBclass'])) {
-                        $modversion['blocks'][$key]['NBclass'] = $environment->prefix($block['NBclass']);
+                    if (isset($block['class'])) {
+                        $modversion['blocks'][$key]['NBclass'] = $block['class'];
+                        unset($modversion['blocks'][$key]['class']);
                         if (isset($block['show_func'])) {
                             $modversion['blocks'][$key]['NBShowMethod'] = $modversion['blocks'][$key]['show_func'];
-                            $modversion['blocks'][$key]['show_func'] = 'b_'.$modversion['blocks'][$key]['NBclass'].'_'.$block['show_func'];
+                            $modversion['blocks'][$key]['show_func'] = $environment->prefix('b_'.$modversion['blocks'][$key]['NBclass'].'_'.$block['show_func']);
                         }
                         if (isset($block['edit_func'])) {
-                            $modversion['blocks'][$key]['NBShowMethod'] = $modversion['blocks'][$key]['edit_func'];
-                            $modversion['blocks'][$key]['edit_func'] = 'b_'.$modversion['blocks'][$key]['NBclass'].'_'.$block['show_func'];
+                            $modversion['blocks'][$key]['NBEditMethod'] = $modversion['blocks'][$key]['edit_func'];
+                            $modversion['blocks'][$key]['edit_func'] = $environment->prefix('b_'.$modversion['blocks'][$key]['NBclass'].'_'.$block['edit_func']);
                         }
                     } else {
                         if (isset($block['show_func'])) {
+                            if (preg_match('/^b_(.*)_show$/', $block['show_func'], $matches)) {
+                                $modversion['blocks'][$key]['NBclass'] = $matches[1];
+                                $modversion['blocks'][$key]['NBShowMethod'] = 'show';
+                            }
                             $modversion['blocks'][$key]['show_func'] = $environment->prefix($block['show_func']);
                         }
                         if (isset($block['edit_func'])) {
+                            if (preg_match('/^b_(.*)_edit$/', $block['edit_func'], $matches)) {
+                                $modversion['blocks'][$key]['NBclass'] = $matches[1];
+                                $modversion['blocks'][$key]['NBEditMethod'] = 'edit';
+                            }
                             $modversion['blocks'][$key]['edit_func'] = $environment->prefix($block['edit_func']);
                         }
+                    }
+                    if (isset($block['show_func'])) {
+                        $GLOBALS['_NBBlockFuncInfo'][$environment->mDirName][$modversion['blocks'][$key]['show_func']]['class'] = $modversion['blocks'][$key]['NBclass'];
+                        $GLOBALS['_NBBlockFuncInfo'][$environment->mDirName][$modversion['blocks'][$key]['show_func']]['method'] = $modversion['blocks'][$key]['NBShowMethod'];
+                    }
+                    if (isset($modversion['blocks'][$key]['edit_func'])) {
+                        $GLOBALS['_NBBlockFuncInfo'][$environment->mDirName][$modversion['blocks'][$key]['edit_func']]['class'] = $modversion['blocks'][$key]['NBclass'];
+                        $GLOBALS['_NBBlockFuncInfo'][$environment->mDirName][$modversion['blocks'][$key]['edit_func']]['method'] = $modversion['blocks'][$key]['NBEditMethod'];
                     }
                 }
             }
@@ -412,6 +430,19 @@ if (!class_exists('NBFrame')) {
         // Utilitiy Functions for Blocks
 
         function prepareBlockFunction(&$environment) {
+            if (isset($GLOBALS['_NBBlockFuncInfo'][$environment->mDirName])) {
+                $blockFuncInfoArr = $GLOBALS['_NBBlockFuncInfo'][$environment->mDirName];
+                foreach ($blockFuncInfoArr as $funcName =>$blockFuncInfo) {
+                    NBFrame::using('blocks.'.$blockFuncInfo['class'], $environment);
+                    $envStr = serialize($environment);
+                    $str = 'if (!function_exists("'.$funcName.'")) {'."\n";
+                    $str .= 'function '.$funcName.'($option) {'."\n";
+                    $str .= '  $environment = unserialize(\''.$envStr.'\');'."\n";
+                    $str .= 'return '.$blockFuncInfo['class'].'::'.$blockFuncInfo['method'].'($environment, $option); }}';
+                    eval($str);
+                }
+            }
+/*
             $blockClasses = $environment->getAttribute('BlockHandler');
             if (!empty($blockClasses) && is_array($blockClasses)) {
                 foreach($blockClasses as $blockClass) {
@@ -420,8 +451,9 @@ if (!class_exists('NBFrame')) {
                     NBFrame::prepareBlockShowFunction($environment, $blockClass);
                 }
             }
+*/
         }
-
+/*
         function prepareBlockEditFunction($environment, $className) {
             $dirName = $environment->mDirName;
             $envStr = serialize($environment);
@@ -441,7 +473,7 @@ if (!class_exists('NBFrame')) {
             $str .= 'return '.$className.'::show($environment, $option); }}';
             eval($str);
         }
-
+*/
         // Utilitiy Functions for Search
         function prepareSearchFunction(&$environment) {
             $searchClass = $environment->getAttribute('SearchHandler');
