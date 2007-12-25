@@ -21,6 +21,6 @@ $modversion['hasconfig'] = 1;
 
 // Search
 $modversion['hasSearch'] = 1;
-$modversion['search']['file'] = 'include/NBFrameSearchLoader.php';  //You should specify this filename;
-$modversion['search']['func'] = 'SimpleLinkSeach'; // You should specify this search class name
+$modversion['search']['class'] = 'SimpleLinkSeach';
+$modversion['search']['func'] = 'search';
 ?>
