@@ -43,11 +43,11 @@ $modversion['hasconfig'] = 1;
 //    'default'       => '' ,
 //);
 
-$modversion['blocks'][1]['file'] = 'NBFrameBlockLoader.php'; //You should specify this filename;
 $modversion['blocks'][1]['name'] = 'Simple Block';
 $modversion['blocks'][1]['description'] = '';
-$modversion['blocks'][1]['show_func'] = 'b_SimpleBlock_show'; // It'll be rewritten with dirname prefix.
-$modversion['blocks'][1]['edit_func'] = 'b_SimpleBlock_edit'; // It'll be rewritten with dirname prefix.
+$modversion['blocks'][1]['class'] = 'SimpleBlock';  // This class param is not same as XCube Enhancement 
+$modversion['blocks'][1]['show_func'] = 'show';  // You should specify method name of Block class';
+$modversion['blocks'][1]['edit_func'] = 'edit';  // You should specify method name of Block class';
 $modversion['blocks'][1]['options'] = '1';
 $modversion['blocks'][1]['template'] = 'block_simple.html'; // It'll be rewritten
 $modversion['blocks'][1]['can_clone'] = true ;

@@ -8,8 +8,6 @@ if (class_exists('NBFrame')) {
                                                       'admin.SimpleTableAdmin',
                                                      ));
 
-    $environment->setAttribute('BlockHandler', array('simpleblock'));
-
     $environment->setAttribute('UseAltSys', true);
     $environment->setAttribute('UseBlockAdmin', true);
     $environment->setAttribute('UseTemplateAdmin', true);
