@@ -372,9 +372,25 @@ if (!class_exists('NBFrame')) {
                 }
             }
             if (!empty($modversion['hasSearch'])){
-                if (isset($modversion['search']['func'])) {
-                    $modversion['search']['func'] =  $environment->prefix($modversion['search']['func']);
+                if (isset($modversion['search']['class'])) {
+                    if (isset($modversion['search']['func'])) {
+                        $class = $modversion['search']['class'];
+                        $method = 'search';
+                        if (isset($modversion['search']['func'])) {
+                            $method = $modversion['search']['func'];
+                        }
+                    }
+                } else {
+                    if (isset($modversion['search']['func'])) {
+                        $class = $modversion['search']['func'];
+                        $method = 'show';
+                    }
                 }
+                $modversion['search']['func'] = $environment->prefix($class.'_'.$method);
+                $modversion['search']['file'] = 'include/NBFrameSearchLoader.php';
+
+                $GLOBALS['_NBSearchFuncInfo'][$environment->mDirName]['class'] = $class;
+                $GLOBALS['_NBSearchFuncInfo'][$environment->mDirName]['method'] = $method;
             }
 
             NBFrame::_prepareCustomInstaller($modversion);
@@ -442,49 +458,21 @@ if (!class_exists('NBFrame')) {
                     eval($str);
                 }
             }
-/*
-            $blockClasses = $environment->getAttribute('BlockHandler');
-            if (!empty($blockClasses) && is_array($blockClasses)) {
-                foreach($blockClasses as $blockClass) {
-                    NBFrame::using('blocks.'.$blockClass, $environment);
-                    NBFrame::prepareBlockEditFunction($environment, $blockClass);
-                    NBFrame::prepareBlockShowFunction($environment, $blockClass);
-                }
-            }
-*/
-        }
-/*
-        function prepareBlockEditFunction($environment, $className) {
-            $dirName = $environment->mDirName;
-            $envStr = serialize($environment);
-            $str = 'if (!function_exists("'.$dirName.'_b_'.$className.'_edit")) {';
-            $str .= 'function '.$dirName.'_b_'.$className.'_edit($option) {'."\n";
-            $str .= '  $environment = unserialize(\''.$envStr.'\');'."\n";
-            $str .= 'return '.$className.'::edit($environment, $option); }}';
-            eval($str);
         }
 
-        function prepareBlockShowFunction($environment, $className) {
-            $dirName = $environment->mDirName;
-            $envStr = serialize($environment);
-            $str = 'if (!function_exists("'.$dirName.'_b_'.$className.'_show")) {';
-            $str .= 'function '.$dirName.'_b_'.$className.'_show($option) {'."\n";
-            $str .= '  $environment = unserialize(\''.$envStr.'\');'."\n";
-            $str .= 'return '.$className.'::show($environment, $option); }}';
-            eval($str);
-        }
-*/
         // Utilitiy Functions for Search
         function prepareSearchFunction(&$environment) {
-            $searchClass = $environment->getAttribute('SearchHandler');
-            if (!empty($searchClass)) {
-                NBFrame::using($searchClass, $environment);
-                $dirName = $environment->mDirName;
+            if (isset($GLOBALS['_NBSearchFuncInfo'][$environment->mDirName])) {
+                $class = $GLOBALS['_NBSearchFuncInfo'][$environment->mDirName]['class'];
+                $method = $GLOBALS['_NBSearchFuncInfo'][$environment->mDirName]['method'];
+                $funcName = $environment->prefix($class.'_'.$method);
+                NBFrame::using($class, $environment);
+
                 $envStr = serialize($environment);
-                $str = 'if (!function_exists("'.$dirName.'_'.$searchClass.'")) {';
-                $str .= 'function '.$dirName.'_'.$searchClass.'($queryarray, $andor, $limit, $offset, $userid) {'."\n";
+                $str = 'if (!function_exists("'.$funcName.'")) {'."\n";
+                $str .= 'function '.$funcName.'($queryarray, $andor, $limit, $offset, $userid) {'."\n";
                 $str .= '  $environment = unserialize(\''.$envStr.'\');'."\n";
-                $str .= 'return '.$searchClass.'::search($environment, $queryarray, $andor, $limit, $offset, $userid); }}';
+                $str .= 'return '.$class.'::'.$method.'($environment, $queryarray, $andor, $limit, $offset, $userid); }}';
                 eval($str);
             }
         }
