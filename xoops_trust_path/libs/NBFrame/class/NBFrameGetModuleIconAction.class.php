@@ -61,7 +61,7 @@ if (!class_exists('NBFrameGetModuleIconAction')) {
             $gdInfo = gd_info();
             if ($gdInfo['FreeType Support']) {
                 $useTTF = true;
-                $fonrFileName = NBFRAME_BASE_DIR.'/include/FreeSansBold.ttf';
+                $fontFileName = NBFRAME_BASE_DIR.'/include/FreeSansBold.ttf';
             } else {
                 $useTTF = false;
             }
@@ -76,8 +76,8 @@ if (!class_exists('NBFrameGetModuleIconAction')) {
                 $color_f= imagecolorallocate( $image , 60 , 160 , 60 );
                 
                 if ($useTTF) {
-                    imagettftext ( $image,9, 0, 42, 11,$color_f1,$fonrFileName, $origdirname );
-                    imagettftext ( $image,8, 0, 42, 20,$color_f1,$fonrFileName,  " - [".$dirname."]"  );
+                    imagettftext ( $image,9, 0, 42, 11,$color_f1,$fontFileName, $origdirname );
+                    imagettftext ( $image,8, 0, 42, 20,$color_f1,$fontFileName,  " - [".$dirname."]"  );
                 } else {
                     imagestring( $image , 2 , 42 , 2 , $origdirname , $color_b ) ;
                     imagestring( $image , 2 , 52 , 13 , "[".$dirname."]" , $color_b ) ;

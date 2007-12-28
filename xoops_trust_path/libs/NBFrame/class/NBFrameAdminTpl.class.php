@@ -13,6 +13,7 @@ if (!class_exists('NBFrameAdminTpl')) {
             $this->mDirName = $render->mDirName;
             $this->mLanguage =& $render->mLanguage;
             $this->mEnvironment =& $render->mAction->mEnvironment;
+            $this->compile_check = true;
             $this->error_reporting = error_reporting();
         }
 
