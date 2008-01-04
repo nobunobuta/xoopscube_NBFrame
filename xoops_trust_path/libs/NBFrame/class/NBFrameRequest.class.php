@@ -103,7 +103,14 @@ if (!class_exists('NBFrameRequest')) {
                             // do nothing
                             break;
                         case 'var':
-                            if (preg_match('/^[a-zA-Z0-9_.]+$/', trim($paraValue), $matches)) {
+                            if (preg_match('/^[a-zA-Z0-9_]+$/', trim($paraValue), $matches)) {
+                                $paraValue = $matches[0];
+                            } else {
+                                $paraValue = '';
+                            }
+                            break;
+                        case 'file':
+                            if (preg_match('/^[a-zA-Z0-9_.\-]+$/', trim($paraValue), $matches)) {
                                 $paraValue = $matches[0];
                             } else {
                                 $paraValue = '';
