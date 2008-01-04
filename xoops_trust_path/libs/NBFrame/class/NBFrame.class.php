@@ -311,6 +311,10 @@ if (!class_exists('NBFrame')) {
                 $modversion['adminindex'] = 'index.php?action='.$environment->getAttribute('AdminMainAction');
                 $modversion['adminmenu'] = 'include/NBFrameAdminMenu.inc.php';
             }
+            // SubMenu Settings
+            if ($fname = NBFrame::findFile('sub_menu.inc.php',$environment, '/include', false, $environment->mOrigDirName)) {
+                include $fname;
+            }
             // Table Settings
             if ($fname = NBFrame::findFile('tabledef.inc.php',$environment, '/include', false, $environment->mOrigDirName)) {
                 include $fname;
