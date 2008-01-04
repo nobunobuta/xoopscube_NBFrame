@@ -7,7 +7,9 @@ class SimpleLinkDefaultAction extends NBFrameAction {
 
     function prepare() {
         parent::prepare();
+
         $this->setDefaultTemplate($this->prefix('main.html'));
+
         $this->mRequest->defParam('cat', 'GET', 'int');
     }
 
@@ -21,9 +23,9 @@ class SimpleLinkDefaultAction extends NBFrameAction {
         $categoryHandler =& NBFrame::getHandler('SimpleLinkCategory', $this->mEnvironment);
 
         $category = $this->mRequest->getParam('cat');
+
         if (!empty($category)) {
-            $criteria =& $categoryHander->getChildrenCriteria('link_category_id', $category);
-            $this->mCategoryObject =& $categoryHander->get($category);
+            $criteria =& $categoryHandler->getChildrenCriteria('category_id', $category);
         } else {
             $criteria =& new CriteriaElement();
         }
