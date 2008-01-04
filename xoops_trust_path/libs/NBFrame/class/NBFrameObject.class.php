@@ -204,7 +204,13 @@ if(!class_exists('NBFrameObject')) {
                 $this->setDirty();
             }
         }
-
+
+        function SetRequestVars(&$request) {
+            $params = $request->getParam();
+            foreach($params as $key =>$value) {
+                $this->setVar($key, $value);
+            }
+        }
 	    /**
         * returns a specific variable for the object in a proper format
         *

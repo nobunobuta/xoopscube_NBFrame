@@ -25,6 +25,7 @@ if (!class_exists('NBFrameAction')) {
         var $mLanguage;
         var $mLoadCommon = true;
         var $mDialogMode = false;
+        var $mRequest;
 
         function NBFrameAction(&$environment) {
             $this->mEnvironment = $environment;
@@ -38,6 +39,8 @@ if (!class_exists('NBFrameAction')) {
             $this->mLanguage =& NBFrame::getLanguageManager();
             NBFrame::using('ModuleRender');
             $this->mRender =& new NBFrameModuleRender($this);
+            NBFrame::using('Request');
+            $this->mRequest =& new NBFrameRequest;
         }
 
         function prepare() {
@@ -72,7 +75,7 @@ if (!class_exists('NBFrameAction')) {
                 return NBFRAME_ACTION_ERROR;
             }
 
-            $this->mOp = (!isset($_REQUEST['op'])) ? $this->mDefaultOp : $_REQUEST['op'];
+            $this->mOp = $this->mRequest->getParam('op');
             $executeMethod = 'execute'.ucfirst($this->mOp).'Op';
             if (in_array($this->mOp, $this->mAllowedOp)) {
                 if (method_exists($this, $executeMethod)) {
@@ -95,6 +98,8 @@ if (!class_exists('NBFrameAction')) {
         }
 
         function execute() {
+            $this->mRequest->defParam('op', '', 'var', $this->mDefaultOp);
+            $this->mRequest->parseRequest();
             $result = $this->_actionDispatch();
             switch ($result) {
                 case NBFRAME_ACTION_VIEW_DEFAULT:

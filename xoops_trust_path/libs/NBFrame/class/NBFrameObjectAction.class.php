@@ -128,18 +128,23 @@ if (!class_exists('NBFrameObjectAction')) {
         }
 
         function executeNewOp() {
+            if (is_object($this->mObjectForm)) {
+                $this->mObjectForm->bindAction($this, 1);
+                $this->mObjectForm->setupRequests('');
+            }
             $object =& $this->mObjectHandler->create();
-            $object->setFormVars($_POST,'');
+            $object->SetRequestVars($this->mRequest);
+
             return $this->_showForm($object, $this->__l('New'));
         }
 
         function executeEditOp() {
-            if (isset($_GET[$this->mObjectKeyField])) {                $object =& $this->mObjectHandler->get(intval($_GET[$this->mObjectKeyField]));
-                return $this->_showForm($object, $this->__l('Edit'));
-            } else {
-                $this->mErrorMsg = $this->__e('Invalid Request');
+            if (!($key = $this->_requestKeyValue('GET'))) {
+                $this->mErrorMsg =  $this->__e('Invalid Request');
                 return NBFRAME_ACTION_ERROR;
             }
+            $object =& $this->mObjectHandler->get(intval($_GET[$this->mObjectKeyField]));
+            return $this->_showForm($object, $this->__l('Edit'));
         }
 
         function _showForm(&$object, $caption, $errmsg='') {
@@ -165,7 +170,11 @@ if (!class_exists('NBFrameObjectAction')) {
         }
 
         function executeSaveOp() {
-            $object =& $this->mObjectHandler->get(intval($_POST[$this->mObjectKeyField]));
+            if (!($key = $this->_requestKeyValue())) {
+                $this->mErrorMsg =  $this->__e('Invalid Request');
+                return NBFRAME_ACTION_ERROR;
+            }
+            $object =& $this->mObjectHandler->get($key);
             return $this->_insert($object,  $this->__l('Edit'));
         }
         
@@ -181,9 +190,17 @@ if (!class_exists('NBFrameObjectAction')) {
             if (is_object($object)) {
                 $this->mObject =& $object;
                 if (is_object($this->mObjectForm)) {
-                    $this->mObjectForm->preInsert();
+                    $this->mObjectForm->bindAction($this, 1);
+                    $this->mObjectForm->setupRequests('POST');
                 }
-                $object->setFormVars($_POST,'');
+                if ($this->mRequest->hasError()) {
+                    $this->_showForm($object, $caption, $this->mRequest->getErrors());
+                    $this->mExtraShowMethod = 'FormOp';
+                    return NBFRAME_ACTION_VIEW_EXTRA;
+                }
+                
+                $object->SetRequestVars($this->mRequest);
+                
                 if (!$object->checkGroupPerm('write')) {
                     $this->mErrorMsg = $this->__e('Permission Error');
                     return NBFRAME_ACTION_ERROR;
@@ -202,15 +219,17 @@ if (!class_exists('NBFrameObjectAction')) {
         }
         
         function executeDeleteOp() {
-            if (isset($_GET[$this->mObjectKeyField])) {
-                $key = intval($_GET[$this->mObjectKeyField]);                $object =& $this->mObjectHandler->get($key);
-                if (!$object->checkGroupPerm('write')) {
-                    $this->mErrorMsg = $this->__e('Permission Error');
-                    return NBFRAME_ACTION_ERROR;
-                }
-                if (is_object($object)) {
-                    return NBFRAME_ACTION_VIEW_DEFAULT;
-                }
+            if (!($key = $this->_requestKeyValue('GET'))) {
+                $this->mErrorMsg =  $this->__e('Invalid Request');
+                return NBFRAME_ACTION_ERROR;
+            }
+            $object =& $this->mObjectHandler->get($key);
+            if (!$object->checkGroupPerm('write')) {
+                $this->mErrorMsg = $this->__e('Permission Error');
+                return NBFRAME_ACTION_ERROR;
+            }
+            if (is_object($object)) {
+                return NBFRAME_ACTION_VIEW_DEFAULT;
             }
             $this->mErrorMsg = $this->__e('No Record is found');
             return NBFRAME_ACTION_ERROR;
@@ -221,10 +240,11 @@ if (!class_exists('NBFrameObjectAction')) {
                 $this->mErrorMsg = $this->__e('Token Error');
                 return NBFRAME_ACTION_ERROR;
             }
-            if (isset($_POST[$this->mObjectKeyField])) {                $key = intval($_POST[$this->mObjectKeyField]);                $object =& $this->mObjectHandler->get($key);
-            } else {
-                $object = false;
+            if (!($key = $this->_requestKeyValue())) {
+                $this->mErrorMsg =  $this->__e('Invalid Request');
+                return NBFRAME_ACTION_ERROR;
             }
+            $object =& $this->mObjectHandler->get($key);
             if (is_object($object)) {                if (!$object->checkGroupPerm('write')) {
                     $this->mErrorMsg = $this->__e('Permission Error');
                     return NBFRAME_ACTION_ERROR;
@@ -297,13 +317,6 @@ if (!class_exists('NBFrameObjectAction')) {
 
             if (is_object($this->mObjectForm)) {
                 $this->mObjectForm->bindAction($this, 1);
-
-                if ($this->mHalfAutoForm || preg_match('/^NBFrameObjectForm$/i', get_class($this->mObjectForm))) {
-                    NBFrame::using('TebleParser');
-                    $parser =& new NBFrameTebleParser($this->mObjectHandler->db);
-                    $parser->setFormElements($this->mObjectHandler->mTableName, $this->mObjectForm);
-                }
-
                 $this->mObjectForm->prepare();
 
                 $xoopsForm =& $this->mObjectForm->buildEditForm($this->mObject);
@@ -327,12 +340,6 @@ if (!class_exists('NBFrameObjectAction')) {
                 $this->setObjectList('dummyList');
             }
             if (is_object($this->mObjectList)) {
-                if ($this->mHalfAutoList || preg_match('/^NBFrameObjectList$/i', get_class($this->mObjectList))) {
-                    NBFrame::using('TebleParser');
-                    $parser =& new NBFrameTebleParser($this->mObjectHandler->db);
-                    $parser->setListElements($this->mObjectHandler->mTableName, $this->mObjectList);
-                }
-
                 $this->mObjectList->bindAction($this);
                 $this->mObjectList->prepare();
 
@@ -384,6 +391,15 @@ if (!class_exists('NBFrameObjectAction')) {
                 ob_end_clean();
                 $this->mXoopsTpl->assign('title',$this->mCaption.' &raquo; '.$this->__l('Delete'));
             }
+        }
+        
+        function _requestKeyValue($method='POST') {
+            $this->mRequest->defParam($this->mObjectKeyField, $method, 'raw', NBFRAME_NO_DEFAULT_PARAM, true);
+            $this->mRequest->parseRequest();
+            if ($this->mRequest->hasError()) {
+                return null;
+            }
+            return $this->mRequest->getParam($this->mObjectKeyField);
         }
 
     }

@@ -11,6 +11,7 @@ if (!class_exists('NBFrameObjectForm')) {
         var $mToken = 0;
         var $mDirName = '';
         var $mLanguage;
+        var $mReqType = 'POST';
 
         function NBFrameObjectForm($environment) {
             include_once XOOPS_ROOT_PATH.'/class/xoopsformloader.php';
@@ -29,6 +30,11 @@ if (!class_exists('NBFrameObjectForm')) {
             $this->mDirName = $action->mDirName;
             $this->mCaption = $action->mCaption;
             $this->mToken = $token;
+            if ($action->mHalfAutoForm || preg_match('/^NBFrameObjectForm$/i', get_class($this))) {
+                NBFrame::using('TebleParser');
+                $parser =& new NBFrameTebleParser($action->mObjectHandler->db);
+                $parser->setFormElements($action->mObjectHandler->mTableName, $this);
+            }
          }
         
         function addElement($name, &$formElement) {
@@ -75,8 +81,20 @@ if (!class_exists('NBFrameObjectForm')) {
         function preInsert() {
         }
 
-        function initPostParam($name, $value) {
-            if (!isset($_POST[$name])) $_POST[$name]=$value;
+        function setupRequests($reqTypes='POST') {
+            $this->preInsert();
+            $this->mReqType = $reqTypes;
+            foreach(array_keys($this->mElements) as $name) {
+                if (!$this->mAction->mRequest->defined($name)) {
+                    $this->mAction->mRequest->defParam($name, $reqTypes, 'raw');
+                }
+            }
+            $this->mAction->mRequest->parseRequest();
+        }
+        
+
+        function defParam($name, $valType = '', $defaultValue = NBFRAME_NO_DEFAULT_PARAM, $mustExist = false) {
+            $this->mAction->mRequest->defParam($name, $this->mReqType, $valType, $defaultValue, $mustExist);
         }
 
         function render(&$object) {

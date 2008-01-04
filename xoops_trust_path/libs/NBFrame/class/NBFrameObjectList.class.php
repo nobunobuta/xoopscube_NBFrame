@@ -21,7 +21,11 @@ if (!class_exists('NBFrameObjectList')) {
         function bindAction(&$action) {
             $this->mAction =& $action;
             $this->mDirName = $action->mDirName;
-            
+            if ($action->mHalfAutoList || preg_match('/^NBFrameObjectList$/i', get_class($this))) {
+                NBFrame::using('TebleParser');
+                $parser =& new NBFrameTebleParser($action->mObjectHandler->db);
+                $parser->setListElements($action->mObjectHandler->mTableName, $this);
+            }
         }
 
         function addElement($name, $caption, $width, $ext='') {

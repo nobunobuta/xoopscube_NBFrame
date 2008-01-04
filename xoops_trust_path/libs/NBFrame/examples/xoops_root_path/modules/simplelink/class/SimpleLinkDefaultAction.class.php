@@ -8,6 +8,7 @@ class SimpleLinkDefaultAction extends NBFrameAction {
     function prepare() {
         parent::prepare();
         $this->setDefaultTemplate($this->prefix('main.html'));
+        $this->mRequest->defParam('cat', 'GET', 'int');
     }
 
     function executeDefaultOp() {
@@ -19,7 +20,13 @@ class SimpleLinkDefaultAction extends NBFrameAction {
         $linkHandler =& NBFrame::getHandler('SimpleLinkLink', $this->mEnvironment);
         $categoryHandler =& NBFrame::getHandler('SimpleLinkCategory', $this->mEnvironment);
 
-        $criteria =& new CriteriaElement();
+        $category = $this->mRequest->getParam('cat');
+        if (!empty($category)) {
+            $criteria =& $categoryHander->getChildrenCriteria('link_category_id', $category);
+            $this->mCategoryObject =& $categoryHander->get($category);
+        } else {
+            $criteria =& new CriteriaElement();
+        }
         $criteria->setSort('category_weight');
         $categoryObjects =& $categoryHandler->getNestedObjects($criteria, '');
 

@@ -23,7 +23,9 @@ if (!class_exists('NBFrameRequest')) {
             $this->mParams[$name]['defaultValue'] = $defaultValue;
             $this->mParams[$name]['mustExist'] = $mustExist;
         }
-        
+        function defined($name) {
+            return (isset($this->mParams[$name]));
+        }
         function parseRequest() {
             $this->mErrorMsgs = array();
             foreach($this->mParams as $name => $param) {
@@ -85,21 +87,27 @@ if (!class_exists('NBFrameRequest')) {
             if (!$paraFound) {
                 if ($param['defaultValue'] !== NBFRAME_NO_DEFAULT_PARAM) {
                     $paraValue = $param['defaultValue'];
-                } elseif ($type == 'string-yn') {
+                } elseif ($param['valType'] == 'string-yn') {
                     $paraValue = 'N';
-                } elseif ($type == 'check-01') {
+                } elseif ($param['valType'] == 'check-01') {
                     $paraValue = '0';
+                } elseif ($param['valType'] == 'array-int') {
+                    $paraValue == array();
                 }
             }
 
             if (isset($paraValue)) {
                 if (!empty($param['valType'])) {
                     switch( $param['valType']) {
-                        case 'html':
+                        case 'raw':
                             // do nothing
                             break;
-                        case 'string':
-                            $paraValue = trim(strip_tags($paraValue));
+                        case 'var':
+                            if (preg_match('/^[a-zA-Z0-9_.]+$/', trim($paraValue), $matches)) {
+                                $paraValue = $matches[0];
+                            } else {
+                                $paraValue = '';
+                            }
                             break;
                         case 'string-yn':
                             $paraValue = ($paraValue == 'Y') ? 'Y' : 'N';
@@ -124,15 +132,27 @@ if (!class_exists('NBFrameRequest')) {
             return (count($this->mErrorMsgs)!=0);
         }
         
+        function getErrors($html=true) {
+            $error_str = "";
+            $delim = $html ? "<br />\n" : "\n";
+            foreach ($this->mErrorMsgs as $err) {
+                $error_str .= $err->get() . $delim;
+            }
+        }
+        
         function testParam($name) {
             return (array_key_exists($name, $this->mRequests) && !empty($this->mRequests[$name]));
         }
 
-        function getParam($name) {
-            if (isset($this->mRequests[$name])) {
-                return $this->mRequests[$name];
+        function getParam($name = '') {
+            if (!empty($name)) {
+                if (isset($this->mRequests[$name])) {
+                    return $this->mRequests[$name];
+                } else {
+                    return null;
+                }
             } else {
-                return null;
+                return $this->mRequests;
             }
         }
         
