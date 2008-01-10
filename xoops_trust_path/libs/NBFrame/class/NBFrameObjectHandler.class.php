@@ -306,7 +306,9 @@ if (!class_exists('NBFrameObjectHandler')) {
                     $setList .= $setDelim ."`_NBsys_update_time`=NOW()";
                     $setList .= $setDelim ."`_NBsys_update_count`=`_NBsys_update_count`+1";
                     $setDelim = ", ";
-                    $whereList .= $whereDelim . "`_NBsys_update_count` = ". intval($record->cleanVars['_NBsys_update_count_old']);
+                    if (isset($record->cleanVars['_NBsys_update_count_old'])) {
+                        $whereList .= $whereDelim . "`_NBsys_update_count` = ". intval($record->cleanVars['_NBsys_update_count_old']);
+                    }
                 }
                 if (!$setList) {
                     $record->resetChenged();
@@ -319,7 +321,7 @@ if (!class_exists('NBFrameObjectHandler')) {
             }
             if ($this->db->getAffectedRows() == 0) {
                 if (!$record->isNew()) {
-                    $this->setError($this->__e('This record may be updated by somebody'));
+                    $this->setError($this->__e('This record may have been updated by somebody'));
                 }
                 return false;
             }
