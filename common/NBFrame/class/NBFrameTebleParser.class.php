@@ -79,7 +79,7 @@
                             $object->addElement($key, new XoopsFormText($object->__l($key), $key, 35, $maxlenth));
                             break;
                         case XOBJ_DTYPE_TXTAREA:
-                            $object->addElement($key, new XoopsFormDhtmlTextArea($object->__l($key), $key, '', 8, 40));
+                                $object->addElement($key, new XoopsFormDhtmlTextArea($object->__l($key), $key, '', 8, 60));
                             break;
                         default:
                             $maxlenth=$this->fetchSizeFromField($field['Type']);
@@ -141,7 +141,7 @@
                     unset($row);
                 }
                 // Field
-                $sql = 'SHOW FULL FIELDS FROM '.$table;
+                $sql = 'SHOW COLUMNS FROM '.$table;
                 $result2 = $this->db_->queryF($sql);
 
                 while($row = $this->db_->fetchArray($result2)) {

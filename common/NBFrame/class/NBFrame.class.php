@@ -214,7 +214,7 @@ if (!class_exists('NBFrame')) {
                 } else if (class_exists($handlerClassName)) {
                     $mHandlerArr[$key] =& new $handlerClassName($GLOBALS['xoopsDB']);
                     $ret =& $mHandlerArr[$key];
-                } else if (preg_match('/^realname\.(\w+)/',$className, $match)) {
+                } else if (preg_match('/^realname\.(\w+)/i',$className, $match)) {
                     $handlerClassName = 'NBFrameRealTable'.$handlerClassName;
                     $entityClassName = 'NBFrameRealTable'.$classBaseName;
                     $mHandlerArr[$key] =& new NBFrameObjectHandler($GLOBALS['xoopsDB']);
@@ -228,8 +228,10 @@ if (!class_exists('NBFrame')) {
                 if ($ret && !empty($environment) && $ret->mUseModuleTablePrefix) {
                     $ret->setTableBaseName($dirName.'_'.$ret->getTableBaseName());
                 }
-                $ret->mEnvironment =& $environment;
-                $ret->mLanguage =& NBFrame::getLanguageManager($environment->mTarget);
+                if ($ret && !empty($environment)) {
+                    $ret->mEnvironment =& $environment;
+                    $ret->mLanguage =& NBFrame::getLanguageManager($environment->mTarget);
+                }
             } else {
                 $ret =& $mHandlerArr[$key];
             }
@@ -467,7 +469,9 @@ if (!class_exists('NBFrame')) {
             if (!empty($offset)) {
                 $offset = preg_replace('/^\//','',trim($offset));
                 $offset = preg_replace('/\/$/','',$offset);
-                $offset.='/';
+                if ($offset != '') {
+                    $offset.='/';
+                }
             }
             $fileName = '';
             if (!empty($customPrefix) && file_exists(XOOPS_ROOT_PATH.'/modules/'.$dirName.'/'.$offset.$customPrefix.$name)){

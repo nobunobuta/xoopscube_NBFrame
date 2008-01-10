@@ -2,7 +2,6 @@
 if (!class_exists('NBFrame')) exit();
 if (!class_exists('NBFrameAdminMaintAction')) {
     NBFrame::using('ObjectAction');
-    NBFrame::using('ObjectUtil');
 
     class NBFrameAdminMaintAction extends NBFrameObjectAction{
         function NBFrameAdminMaintAction(&$environment) {

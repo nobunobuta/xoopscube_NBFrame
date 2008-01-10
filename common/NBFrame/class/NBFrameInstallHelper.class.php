@@ -377,10 +377,12 @@ if (!class_exists('NBFrameInstallHelper')) {
 
         // Methods for Installer Messages.
         function addPreMsg($msg) {
+            $msg = str_replace(' ','&nbsp;',$msg);
             $this->mPreProcessMsg[] = $msg;
         }
 
         function addMsg($msg) {
+            $msg = str_replace(' ','&nbsp;',$msg);
             if(defined('XOOPS_CUBE_LEGACY')) {
                 $this->mPostProcessMsg[] = $msg;
             } else {

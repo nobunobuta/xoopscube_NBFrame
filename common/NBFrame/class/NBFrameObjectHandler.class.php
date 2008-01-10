@@ -94,7 +94,7 @@ if (!class_exists('NBFrameObjectHandler')) {
          */
         function &create($isNew = true) {
             if (class_exists($this->mEntityClassName)) {
-                $record = new $this->mEntityClassName;
+                $record =& new $this->mEntityClassName;
             } else {
                 $record =& new NBFrameObject;
             }
@@ -235,7 +235,7 @@ if (!class_exists('NBFrameObjectHandler')) {
                         if (!is_null($value)) {
                             $valueList .= $delim . $this->db->quoteString($value);
                         } else {
-                            $valueList .= $delim . $this->db->quoteString('');;
+                            $valueList .= $delim . $this->db->quoteString('');
                         }
                     }
                     $delim = ", ";

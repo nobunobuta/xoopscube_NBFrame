@@ -177,7 +177,7 @@ if (!class_exists('NBFrameObjectAction')) {
         function _insert(&$object, $caption) {
             if (class_exists('XoopsMultiTokenHandler') && !XoopsMultiTokenHandler::quickValidate($this->mName.'_'.$this->mOp)) {
                 if (is_object($object)) {
-                    $this->_showForm($object, $caption, $this->__e('Token Error'));
+                    return $this->_showForm($object, $caption, $this->__e('Token Error'));
                 } else {
                     $this->mErrorMsg = $this->__e('Token Error');
                     return NBFRAME_ACTION_ERROR;
@@ -193,9 +193,7 @@ if (!class_exists('NBFrameObjectAction')) {
                 if ($this->mObjectHandler->insert($object,false,true)) {
                     return NBFRAME_ACTION_SUCCESS;
                 } else {
-                    $this->_showForm($object, $caption, $this->mObjectHandler->getErrors());
-                    $this->mExtraShowMethod = 'FormOp';
-                    return NBFRAME_ACTION_VIEW_EXTRA;
+                    return $this->_showForm($object, $caption, $this->mObjectHandler->getErrors());
                 }
             } else {
                 $this->mErrorMsg = $this->__e('No Record is found');

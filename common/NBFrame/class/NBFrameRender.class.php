@@ -9,7 +9,7 @@ if (!class_exists('NBFrameRender')) {
         var $mDirName;
 
         function NBFrameRender(&$action) {
-            $this->mAction = $action;
+            $this->mAction =& $action;
             $this->mDirName = $action->mDirName;
             $this->mLanguage =& $action->mLanguage;
         }
