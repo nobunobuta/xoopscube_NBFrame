@@ -59,7 +59,7 @@ if(!class_exists('NBFrameObject')) {
                 $this->initSysVar('_NBsys_create_user', XOBJ_DTYPE_CUSTOM); 
                 $this->initSysVar('_NBsys_update_time', XOBJ_DTYPE_CUSTOM); 
                 $this->initSysVar('_NBsys_update_user', XOBJ_DTYPE_CUSTOM); 
-                $this->initSysVar('_NBsys_update_count', XOBJ_DTYPE_CUSTOM); 
+                $this->initSysVar('_NBsys_update_count', XOBJ_DTYPE_INT); 
                 $this->mUseSystemField = true;
             }
         }

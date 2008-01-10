@@ -16,6 +16,7 @@ if (!class_exists('NBFrameObjectHandler')) {
         var $mUseModuleTablePrefix = true;
         var $mLanguage;
         var $mObjectCache = null;
+        var $mLogQueryError = true;
 
         /**
          * Enter description here...
@@ -305,6 +306,7 @@ if (!class_exists('NBFrameObjectHandler')) {
                     $setList .= $setDelim ."`_NBsys_update_time`=NOW()";
                     $setList .= $setDelim ."`_NBsys_update_count`=`_NBsys_update_count`+1";
                     $setDelim = ", ";
+                    $whereList .= $whereDelim . "`_NBsys_update_count` = ". intval($record->cleanVars['_NBsys_update_count_old']);
                 }
                 if (!$setList) {
                     $record->resetChenged();
@@ -313,6 +315,12 @@ if (!class_exists('NBFrameObjectHandler')) {
                 $sql = sprintf("UPDATE %s SET %s WHERE %s", $this->mTableName, $setList, $whereList);
             }
             if (!$result =& $this->query($sql, $force)) {
+                return false;
+            }
+            if ($this->db->getAffectedRows() == 0) {
+                if (!$record->isNew()) {
+                    $this->setError($this->__e('This record may be updated by somebody'));
+                }
                 return false;
             }
             if ($record->isNew()) {
@@ -611,7 +619,9 @@ if (!class_exists('NBFrameObjectHandler')) {
             $this->_limit = $limit;
 
             if (!$result) {
-                $this->mErrors[] = $this->db->error();
+                if ($this->mLogQueryError) {
+                    $this->mErrors[] = $this->db->error();
+                }
                 $result = false;
             }
             return $result;

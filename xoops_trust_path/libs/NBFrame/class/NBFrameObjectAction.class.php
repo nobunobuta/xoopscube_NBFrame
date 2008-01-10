@@ -133,6 +133,9 @@ if (!class_exists('NBFrameObjectAction')) {
                 $this->mObjectForm->setupRequests('');
             }
             $object =& $this->mObjectHandler->create();
+            if ($this->mObjectForm->mHiddenSysField) {
+                $object->setAttribute($this->mObjectForm->mHiddenSysField, null, XOBJ_DTYPE_INT); 
+            }
             $object->SetRequestVars($this->mRequest);
 
             return $this->_showForm($object, $this->__l('New'));
@@ -181,7 +184,7 @@ if (!class_exists('NBFrameObjectAction')) {
         function _insert(&$object, $caption) {
             if (class_exists('XoopsMultiTokenHandler') && !XoopsMultiTokenHandler::quickValidate($this->mName.'_'.$this->mOp)) {
                 if (is_object($object)) {
-                    $this->_showForm($object, $caption, $this->__e('Token Error'));
+                    return $this->_showForm($object, $caption, $this->__e('Token Error'));
                 } else {
                     $this->mErrorMsg = $this->__e('Token Error');
                     return NBFRAME_ACTION_ERROR;
@@ -192,11 +195,12 @@ if (!class_exists('NBFrameObjectAction')) {
                 if (is_object($this->mObjectForm)) {
                     $this->mObjectForm->bindAction($this, 1);
                     $this->mObjectForm->setupRequests('POST');
+                    if ($this->mObjectForm->mHiddenSysField) {
+                        $object->setAttribute($this->mObjectForm->mHiddenSysField, null, XOBJ_DTYPE_INT); 
+                    }
                 }
                 if ($this->mRequest->hasError()) {
-                    $this->_showForm($object, $caption, $this->mRequest->getErrors());
-                    $this->mExtraShowMethod = 'FormOp';
-                    return NBFRAME_ACTION_VIEW_EXTRA;
+                    return $this->_showForm($object, $caption, $this->mRequest->getErrors());
                 }
                 
                 $object->SetRequestVars($this->mRequest);
@@ -208,9 +212,7 @@ if (!class_exists('NBFrameObjectAction')) {
                 if ($this->mObjectHandler->insert($object,false,true)) {
                     return NBFRAME_ACTION_SUCCESS;
                 } else {
-                    $this->_showForm($object, $caption, $this->mObjectHandler->getErrors());
-                    $this->mExtraShowMethod = 'FormOp';
-                    return NBFRAME_ACTION_VIEW_EXTRA;
+                    return $this->_showForm($object, $caption, $this->mObjectHandler->getErrors());
                 }
             } else {
                 $this->mErrorMsg = $this->__e('No Record is found');

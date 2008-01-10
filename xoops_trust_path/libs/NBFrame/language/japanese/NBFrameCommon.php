@@ -14,6 +14,7 @@
    $GLOBALS['NBFrameLanguage']['Invalid Request'] = '不正な要求です';
    $GLOBALS['NBFrameLanguage']['No Record is found'] = '処理対象のレコードが見つかりません';
    $GLOBALS['NBFrameLanguage']['Record Delete Error'] = '削除出来ませんでした';
+   $GLOBALS['NBFrameLanguage']['This record may be updated by somebody'] = '既に別の人が同じレコードを更新したようです。確認して下さい。';
 
    $GLOBALS['NBFrameLanguage']['Block Admin'] = 'ブロック管理';
    $GLOBALS['NBFrameLanguage']['Side'] = '表示サイド';

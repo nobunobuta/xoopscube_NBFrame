@@ -12,6 +12,7 @@ if (!class_exists('NBFrameObjectForm')) {
         var $mDirName = '';
         var $mLanguage;
         var $mReqType = 'POST';
+        var $mHiddenSysField = '';
 
         function NBFrameObjectForm($environment) {
             include_once XOOPS_ROOT_PATH.'/class/xoopsformloader.php';
@@ -48,8 +49,8 @@ if (!class_exists('NBFrameObjectForm')) {
         }
 
         function addHiddenSysFields() {
-            $this->addElement('_NBsys_update_time', new XoopsFormHidden('_NBsys_update_time_old', 0));
-            $this->addElement('_NBsys_update_count', new XoopsFormHidden('_NBsys_update_count_old', 0));
+            $this->mHiddenSysField = '_NBsys_update_count_old';
+            $this->addElement('_NBsys_update_count', new XoopsFormHidden($this->mHiddenSysField, 0));
         }
 
         function &buildEditForm(&$object) {
@@ -90,6 +91,7 @@ if (!class_exists('NBFrameObjectForm')) {
             $this->preInsert();
             $this->mReqType = $reqTypes;
             foreach(array_keys($this->mElements) as $name) {
+                if ($name == '_NBsys_update_count') $name = $this->mHiddenSysField;
                 if (!$this->mAction->mRequest->defined($name)) {
                     $this->mAction->mRequest->defParam($name, $reqTypes, 'raw');
                 }
