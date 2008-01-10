@@ -47,6 +47,11 @@ if (!class_exists('NBFrameObjectForm')) {
             }
         }
 
+        function addHiddenSysFields() {
+            $this->addElement('_NBsys_update_time', new XoopsFormHidden('_NBsys_update_time_old', 0));
+            $this->addElement('_NBsys_update_count', new XoopsFormHidden('_NBsys_update_count_old', 0));
+        }
+
         function &buildEditForm(&$object) {
             if (!file_exists(XOOPS_ROOT_PATH.'/class/xoopsform/formtoken.php')) {
                 $this->mToken=0;

@@ -196,7 +196,7 @@ if (!class_exists('NBFrameRequest')) {
             if( get_magic_quotes_gpc()) {
                 if(is_array($mixed)) {
                     foreach($mixed as $k => $v) {
-                        $mixed[$k] = $this->removeMagicQuotes($v);
+                        $mixed[$k] = $this->_removeMagicQuotes($v);
                     }
                 } else {
                     $mixed = stripslashes($mixed);

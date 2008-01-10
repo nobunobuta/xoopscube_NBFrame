@@ -255,8 +255,10 @@ if (!class_exists('NBFrame')) {
                 if ($ret && !empty($environment) && $ret->mUseModuleTablePrefix) {
                     $ret->setTableBaseName($dirName.'_'.$ret->getTableBaseName());
                 }
-                $ret->mEnvironment =& $environment;
-                $ret->mLanguage =& NBFrame::getLanguageManager($environment->mTarget);
+                if ($ret && !empty($environment)) {
+                    $ret->mEnvironment =& $environment;
+                    $ret->mLanguage =& NBFrame::getLanguageManager($environment->mTarget);
+                }
             } else {
                 $ret =& $mHandlerArr[$key];
             }

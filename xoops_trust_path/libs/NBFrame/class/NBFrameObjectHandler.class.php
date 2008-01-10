@@ -243,10 +243,22 @@ if (!class_exists('NBFrameObjectHandler')) {
                         if (!is_null($value)) {
                             $valueList .= $delim . $this->db->quoteString($value);
                         } else {
-                            $valueList .= $delim . $this->db->quoteString('');;
+                            $valueList .= $delim . $this->db->quoteString('');
                         }
                     }
                     $delim = ", ";
+                }
+                if ($record->mUseSystemField == true) {
+                    if (isset($GLOBALS['xoopsUser']) && is_object($GLOBALS['xoopsUser'])) {
+                        $uid = intval($GLOBALS['xoopsUser']->getVar('uid'));
+                    } else {
+                        $uid = 0;
+                    }
+                    $fieldList .= $delim ."`_NBsys_create_user`";
+                    $valueList .= $delim . $uid;
+                    $delim = ", ";
+                    $fieldList .= $delim ."`_NBsys_update_user`";
+                    $valueList .= $delim . $uid;
                 }
                 $fieldList .= ")";
                 $valueList .= ")";
@@ -282,6 +294,17 @@ if (!class_exists('NBFrameObjectHandler')) {
                         $setList .= $setDelim . "`$field` = ". $value . " ";
                         $setDelim = ", ";
                     }
+                }
+                if ($record->mUseSystemField == true) {
+                    if (isset($GLOBALS['xoopsUser']) && is_object($GLOBALS['xoopsUser'])) {
+                        $uid = intval($GLOBALS['xoopsUser']->getVar('uid'));
+                    } else {
+                        $uid = 0;
+                    }
+                    $setList .= $setDelim ."`_NBsys_update_user`=$uid";
+                    $setList .= $setDelim ."`_NBsys_update_time`=NOW()";
+                    $setList .= $setDelim ."`_NBsys_update_count`=`_NBsys_update_count`+1";
+                    $setDelim = ", ";
                 }
                 if (!$setList) {
                     $record->resetChenged();

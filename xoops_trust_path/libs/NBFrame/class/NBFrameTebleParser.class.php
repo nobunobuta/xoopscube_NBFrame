@@ -16,42 +16,46 @@
             
             foreach($this->mFields as $field) {
                 $key = $field['Field'];
-                $type = $this->convertXoopsObjectType($field['Type']);
-                $value = "";
-                
-                $autoinc = (preg_match('/auto_increment/',$field['Extra'])) ? true : false;
-                
-                $required = ($field['Null']=="YES" || $autoinc) ? false : true;
-                if ($type==XOBJ_DTYPE_TXTBOX && $field['Key']!="PRI") {
-                    if (!$name) {
-                        $name = $key;
-                    } else {
-                        if (!preg_match('/(name|title|subject)/i', $name) && preg_match('/(name|title|subject)/i', $key)) {
+                if (preg_match('/^_NBsys_/', $key)) {
+                    $object->initSysFields();
+                } else {
+                    $type = $this->convertXoopsObjectType($field['Type']);
+                    $value = "";
+                    
+                    $autoinc = (preg_match('/auto_increment/',$field['Extra'])) ? true : false;
+                    
+                    $required = ($field['Null']=="YES" || $autoinc) ? false : true;
+                    if ($type==XOBJ_DTYPE_TXTBOX && $field['Key']!="PRI") {
+                        if (!$name) {
                             $name = $key;
+                        } else {
+                            if (!preg_match('/(name|title|subject)/i', $name) && preg_match('/(name|title|subject)/i', $key)) {
+                                $name = $key;
+                            }
                         }
                     }
-                }
-                if (is_a($object, 'NBFrameTreeObject') && !$parent && $type==XOBJ_DTYPE_INT && $field['Key']!="PRI" && preg_match('/parent/i', $key)) {
-                    $parent = $key;
-                }
-                switch ($type) {
-                    case XOBJ_DTYPE_INT:
-                        $default = intval($field['Default']);
-                        $maxlenth=null;
-                        break;
-                    case XOBJ_DTYPE_FLOAT:
-                        $default = floatval($field['Default']);
-                        $maxlenth=null;
-                        break;
-                    default:
-                        $default = $field['Default'];
-                        $maxlenth=$this->fetchSizeFromField($field['Type']);
-                        break;
-                }
-                if ($object) {
-                    $object->initVar($key,$type,$value, $required, $maxlenth);
-                    if ($autoinc) {
-                        $object->setAutoIncrementField($key);
+                    if (is_a($object, 'NBFrameTreeObject') && !$parent && $type==XOBJ_DTYPE_INT && $field['Key']!="PRI" && preg_match('/parent/i', $key)) {
+                        $parent = $key;
+                    }
+                    switch ($type) {
+                        case XOBJ_DTYPE_INT:
+                            $default = intval($field['Default']);
+                            $maxlenth=null;
+                            break;
+                        case XOBJ_DTYPE_FLOAT:
+                            $default = floatval($field['Default']);
+                            $maxlenth=null;
+                            break;
+                        default:
+                            $default = $field['Default'];
+                            $maxlenth=$this->fetchSizeFromField($field['Type']);
+                            break;
+                    }
+                    if ($object) {
+                        $object->initVar($key,$type,$value, $required, $maxlenth);
+                        if ($autoinc) {
+                            $object->setAutoIncrementField($key);
+                        }
                     }
                 }
             }
@@ -71,28 +75,32 @@
             $name = false;
             foreach($this->mFields as $field) {
                 $key = $field['Field'];
-                $type = $this->convertXoopsObjectType($field['Type']);
-                $value = "";
-                $autoinc = (preg_match('/auto_increment/',$field['Extra'])) ? true : false;
-                if($autoinc) {
-                    $object->addElement($key, new XoopsFormHidden($key, 0));
+                if (preg_match('/^_NBsys_/', $key)) {
+                    $object->addHiddenSysFields();
                 } else {
-                    switch ($type) {
-                        case XOBJ_DTYPE_INT:
-                            $maxlenth=$this->fetchSizeFromField($field['Type']);
-                            $object->addElement($key, new XoopsFormText($object->__l($key), $key, 35, $maxlenth));
-                            break;
-                        case XOBJ_DTYPE_FLOAT:
-                            $maxlenth=20;
-                            $object->addElement($key, new XoopsFormText($object->__l($key), $key, 35, $maxlenth));
-                            break;
-                        case XOBJ_DTYPE_TXTAREA:
-                            $object->addElement($key, new XoopsFormDhtmlTextArea($object->__l($key), $key, '', 8, 60));
-                            break;
-                        default:
-                            $maxlenth=$this->fetchSizeFromField($field['Type']);
-                            $object->addElement($key, new XoopsFormText($object->__l($key), $key, 35, $maxlenth));
-                            break;
+                    $type = $this->convertXoopsObjectType($field['Type']);
+                    $value = "";
+                    $autoinc = (preg_match('/auto_increment/',$field['Extra'])) ? true : false;
+                    if($autoinc) {
+                        $object->addElement($key, new XoopsFormHidden($key, 0));
+                    } else {
+                        switch ($type) {
+                            case XOBJ_DTYPE_INT:
+                                $maxlenth=$this->fetchSizeFromField($field['Type']);
+                                $object->addElement($key, new XoopsFormText($object->__l($key), $key, 35, $maxlenth));
+                                break;
+                            case XOBJ_DTYPE_FLOAT:
+                                $maxlenth=20;
+                                $object->addElement($key, new XoopsFormText($object->__l($key), $key, 35, $maxlenth));
+                                break;
+                            case XOBJ_DTYPE_TXTAREA:
+                                $object->addElement($key, new XoopsFormDhtmlTextArea($object->__l($key), $key, '', 8, 60));
+                                break;
+                            default:
+                                $maxlenth=$this->fetchSizeFromField($field['Type']);
+                                $object->addElement($key, new XoopsFormText($object->__l($key), $key, 35, $maxlenth));
+                                break;
+                        }
                     }
                 }
             }
@@ -104,21 +112,23 @@
             $keys = array();
             foreach($this->mFields as $field) {
                 $key = $field['Field'];
-                $type = $this->convertXoopsObjectType($field['Type']);
-                $value = "";
-                $autoinc = (preg_match('/auto_increment/',$field['Extra'])) ? true : false;
-                if($autoinc) {
-                    $object->addElement($key, $object->__l($key), 20, array('sort'=>true));
-                } else if ($field['Key']=="PRI") {
-                    $object->addElement($key, $object->__l($key), 50, array('sort'=>true));
-                } else if ($type==XOBJ_DTYPE_TXTBOX && $field['Key']!="PRI") {
-                    if (!empty($field['Key'])) {
-                        $keys[] = $key;
-                    } else if (!$name) {
-                        $name = $key;
-                    } else {
-                        if (!preg_match('/(name|title|subject)/i', $name) && preg_match('/(name|title|subject)/i', $key)) {
+                if (!preg_match('/^_NBsys_/', $key)) {
+                    $type = $this->convertXoopsObjectType($field['Type']);
+                    $value = "";
+                    $autoinc = (preg_match('/auto_increment/',$field['Extra'])) ? true : false;
+                    if($autoinc) {
+                        $object->addElement($key, $object->__l($key), 20, array('sort'=>true));
+                    } else if ($field['Key']=="PRI") {
+                        $object->addElement($key, $object->__l($key), 50, array('sort'=>true));
+                    } else if ($type==XOBJ_DTYPE_TXTBOX && $field['Key']!="PRI") {
+                        if (!empty($field['Key'])) {
+                            $keys[] = $key;
+                        } else if (!$name) {
                             $name = $key;
+                        } else {
+                            if (!preg_match('/(name|title|subject)/i', $name) && preg_match('/(name|title|subject)/i', $key)) {
+                                $name = $key;
+                            }
                         }
                     }
                 }

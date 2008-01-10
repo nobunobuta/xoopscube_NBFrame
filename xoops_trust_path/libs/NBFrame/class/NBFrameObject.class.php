@@ -17,6 +17,7 @@ if(!class_exists('NBFrameObject')) {
     if (!defined('XOBJ_VCLASS_TFIELD')) define('XOBJ_VCLASS_TFIELD', 1);
     if (!defined('XOBJ_VCLASS_ATTRIB')) define('XOBJ_VCLASS_ATTRIB', 2);
     if (!defined('XOBJ_VCLASS_EXTRA')) define('XOBJ_VCLASS_EXTRA', 3);
+    if (!defined('XOBJ_VCLASS_SFIELD')) define('XOBJ_VCLASS_SFIELD', 4);
 
     if (!defined('XOBJ_DTYPE_STRING')) define('XOBJ_DTYPE_STRING', 1);
     if (!defined('XOBJ_DTYPE_TEXT')) define('XOBJ_DTYPE_TEXT', 2);
@@ -29,7 +30,8 @@ if(!class_exists('NBFrameObject')) {
         var $mAutoIncrement;
         var $mHandler;
         var $mClassName;
-        
+        var $mUseSystemField = false;
+
         function NBFrameObject() {
             //親クラスのコンストラクタ呼出
             $this->XoopsObject();
@@ -43,6 +45,23 @@ if(!class_exists('NBFrameObject')) {
         function initVar($key, $data_type, $value = null, $required = false, $maxlength = null, $options = '') {
             parent::initVar($key, $data_type, $value, $required, $maxlength, $options);
             $this->vars[$key]['var_class'] = XOBJ_VCLASS_TFIELD;
+        }
+
+        function initSysVar($key, $data_type, $value = null, $required = false, $maxlength = null, $options = '') {
+            parent::initVar($key, $data_type, $value, $required, $maxlength, $options);
+            $this->vars[$key]['var_class'] = XOBJ_VCLASS_SFIELD;
+        }
+
+        function initSysFields() {
+            if ($this->mUseSystemField == false) {
+                $this->initSysVar('_NBsys_del_flag', XOBJ_DTYPE_CUSTOM); 
+                $this->initSysVar('_NBsys_create_time', XOBJ_DTYPE_CUSTOM); 
+                $this->initSysVar('_NBsys_create_user', XOBJ_DTYPE_CUSTOM); 
+                $this->initSysVar('_NBsys_update_time', XOBJ_DTYPE_CUSTOM); 
+                $this->initSysVar('_NBsys_update_user', XOBJ_DTYPE_CUSTOM); 
+                $this->initSysVar('_NBsys_update_count', XOBJ_DTYPE_CUSTOM); 
+                $this->mUseSystemField = true;
+            }
         }
 
         function setAttribute($key, $value, $data_type=XOBJ_DTYPE_OTHER) {

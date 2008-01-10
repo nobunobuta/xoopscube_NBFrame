@@ -16,6 +16,16 @@ if (!class_exists('NBFrameInstallHelper')) {
         
         var $mModuleInfo = null;
 
+        var $mSysFieldsArray = array(
+            '_NBsys_del_flag'     =>  array('char(1)',      'NULL',     ' ',     ''),
+            '_NBsys_create_time'  =>  array('timestamp',    'NULL',     null,    ''),
+            '_NBsys_create_user'  =>  array('int(8)',       'NOT NULL', '0',     ''),
+            '_NBsys_update_time'  =>  array('timestamp',    'NULL',     null,    ''),
+            '_NBsys_update_user'  =>  array('int(8)',       'NOT NULL', '0',     ''),
+            '_NBsys_update_count' =>  array('int(8)',       'NOT NULL', '1',     ''),
+        );
+
+
         function NBFrameInstallHelper($dirname, $orig_name) {
             $this->mOrigName = $orig_name;
             $this->mDirName = $dirname;
@@ -67,6 +77,15 @@ if (!class_exists('NBFrameInstallHelper')) {
             if (!empty($tableDef)) {
                 $this->addMsg('NBFrame Automatic Table Updater start...');
                 foreach($tableDef[$this->mOrigName] as $key =>$value) {
+                    if (!empty($value['usesys'])) {
+                        if ($value['usesys'] == true) {
+                            foreach ($this->mSysFieldsArray as $sysName => $sysField) {
+                                if (!isset($value['fields'][$sysName])) {
+                                    $value['fields'][$sysName] = $sysField;
+                                }
+                            }
+                        }
+                    }
                     $tableName = $GLOBALS['xoopsDB']->prefix($this->mDirName.'_'.$key);
                     $this->addMsg(' Table '.$tableName);
                     $this->addMsg('   Create table '.$tableName.' if it does not exist.');
@@ -257,13 +276,20 @@ if (!class_exists('NBFrameInstallHelper')) {
             } else {
                 contiue;
             }
+            if (!empty($tableDef['usesys'])) {
+                if ($tableDef['usesys'] == true) {
+                    foreach ($this->mSysFieldsArray as $name=>$sysField) {
+                        $createSQL .= $comma. $this->_createFieldPart($name, $sysField);
+                    }
+                }
+            }
             if (!empty($tableDef['primary'])) {
                 $createSQL .= $comma. 'PRIMARY KEY ('.$tableDef['primary']. ')';
             }
             if (!empty($tableDef['keys'])) {
                 foreach ($tableDef['keys'] as $name =>$def) {
                     $createSQL .= $comma. 'KEY '.$name.' ('.$def. ')';
-                }
+                  }
             }
             if (!empty($tableDef['unique'])) {
                 foreach ($tableDef['unique'] as $name =>$def) {
