@@ -87,7 +87,7 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
         function executeCloneOp() {
             if (isset($_GET[$this->mObjectKeyField])) {                $old_object =& $this->mObjectHandler->get(intval($_GET[$this->mObjectKeyField]));
                 $object =& $this->mObjectHandler->create();
-                $object->setVars($old_object->getVarArray('n'), true);
+                $object->set($old_object->getVarArray('n'));
                 return $this->_showForm($object, $this->__l('Clone'));
             } else {
                 $this->mErrorMsg = $this->__e('Invalid Request');
@@ -97,16 +97,16 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
 
         function executeInsertOp() {
             $old_object =& $this->mObjectHandler->get(intval($_POST[$this->mObjectKeyField]));
-            $block_type = $old_object->getVar('block_type') ;
+            $block_type = $old_object->get('block_type') ;
             if( $block_type != 'C' && $block_type != 'M' && $block_type != 'D' ) {
                 $this->mErrorMsg = $this->__e('Invalid block');
                 return NBFRAME_ACTION_ERROR;
             }
             $object =& $this->mObjectHandler->create();
             $object->setVars($old_object->getVarArray('n'), true);
-            $object->setVar('bid', 0);
-            $object->setVar('block_type', $block_type == 'C' ? 'C' : 'D' );
-            $object->setVar('func_num', 255);
+            $object->set('bid', 0);
+            $object->set('block_type', $block_type == 'C' ? 'C' : 'D' );
+            $object->set('func_num', 255);
             return $this->_insert($object, $this->__l('Clone'));
         }
 
@@ -131,15 +131,15 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
             foreach( array_keys( $this->mObjects ) as $i ) {
                 $block = array();
 
-                $block['weight'] = $this->mObjects[$i]->getVar("weight") ;
-                $block['title'] = $this->mObjects[$i]->getVar("title") ;
-                $block['name'] = $this->mObjects[$i]->getVar("name") ;
-                $block['bcachetime'] = $this->mObjects[$i]->getVar("bcachetime") ;
-                $block['bid'] = $this->mObjects[$i]->getVar("bid") ;
-                $block['modules'] = $this->mObjects[$i]->getVar("modules") ;
+                $block['weight'] = $this->mObjects[$i]->getVar('weight') ;
+                $block['title'] = $this->mObjects[$i]->getVar('title') ;
+                $block['name'] = $this->mObjects[$i]->getVar('name') ;
+                $block['bcachetime'] = $this->mObjects[$i]->getVar('bcachetime') ;
+                $block['bid'] = $this->mObjects[$i]->getVar('bid') ;
+                $block['modules'] = $this->mObjects[$i]->getVar('modules') ;
 
                 // visible and side
-                if ( $this->mObjects[$i]->getVar("visible") != 1 ) {
+                if ( $this->mObjects[$i]->get('visible') != 1 ) {
                     foreach($side_array as $side) {
                         $block['ssel'][$side] = '';
                         $block['scol'][$side] = '#FFFFFF';
@@ -150,7 +150,7 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
                     $block['ssel'][-1] = '';
                     $block['scol'][-1] = '#FFFFFF';
                     foreach($side_array as $side) {
-                        if ($this->mObjects[$i]->getVar("side") == $side) {
+                        if ($this->mObjects[$i]->get('side') == $side) {
                             $block['ssel'][$side] = ' checked="checked"';
                             $block['scol'][$side] = '#00FF00';
                         } else {
@@ -161,8 +161,8 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
                 }
 
                 // delete link if it is cloned block
-                if( $this->mObjects[$i]->getVar("block_type") == 'D' ||
-                    $this->mObjects[$i]->getVar("block_type") == 'C' ) {
+                if( $this->mObjects[$i]->get('block_type') == 'D' ||
+                    $this->mObjects[$i]->get('block_type') == 'C' ) {
                     $block['can_delete']  = true;
                 } else {
                     $block['can_delete']  = false;
@@ -170,15 +170,15 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
 
                 // clone link if it is marked as cloneable block
                 // $modversion['blocks'][n]['can_clone']
-                if( $this->mObjects[$i]->getVar("block_type") == 'D' ||
-                    $this->mObjects[$i]->getVar("block_type") == 'C' ) {
+                if( $this->mObjects[$i]->get('block_type') == 'D' ||
+                    $this->mObjects[$i]->get('block_type') == 'C' ) {
                     $block['can_clone'] = true ;
                 } else {
                     $block['can_clone'] = false ;
                     foreach($blockConfigs as $blockConfig) {
-                        if( $this->mObjects[$i]->getVar("show_func") == $blockConfig['show_func'] &&
-                            $this->mObjects[$i]->getVar("func_file") == $blockConfig['file'] &&
-                            (empty($blockConfig['template']) || $this->mObjects[$i]->getVar("template") == $blockConfig['template'])) {
+                        if( $this->mObjects[$i]->get('show_func') == $blockConfig['show_func'] &&
+                            $this->mObjects[$i]->get('func_file') == $blockConfig['file'] &&
+                            (empty($blockConfig['template']) || $this->mObjects[$i]->get('template') == $blockConfig['template'])) {
                             if(!empty($blockConfig['can_clone'])) $block['can_clone'] = true ;
                         }
                     }

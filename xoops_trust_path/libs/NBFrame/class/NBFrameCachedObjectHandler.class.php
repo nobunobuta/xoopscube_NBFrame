@@ -50,7 +50,7 @@ if (!class_exists('NBFrameCachedObjectHandler')) {
             }
             foreach ($recordKeys as $key) {
                 if (array_key_exists($key, $keys)) {
-                    $cacheKey[$key] = $this->getVar($key);
+                    $cacheKey[$key] = $record->get($key);
                 } else {
                     unset($record);
                     return false;

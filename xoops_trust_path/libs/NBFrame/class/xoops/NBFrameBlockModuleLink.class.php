@@ -8,8 +8,8 @@ if(!class_exists('NBFrameBlockModuleLink')) {
             $this->deleteBlock($bid);
             foreach($modules as $mid) {
                 $object =& $this->create();
-                $object->setVar('block_id', $bid, true);
-                $object->setVar('module_id', $mid, true);
+                $object->set('block_id', $bid);
+                $object->set('module_id', $mid);
                 $result = parent::insert($object, $force);
                 unset($object);
                 if (!$result) break;

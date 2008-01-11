@@ -136,7 +136,7 @@ if(!class_exists('NBFrameObject')) {
             $recordKeys = $this->getKeyFields();
             $cacheKey = array();
             foreach ($recordKeys as $key) {
-                $cacheKey[$key] = $this->getVar($key);
+                $cacheKey[$key] = $this->get($key);
             }
             return serialize($cacheKey);
         }
@@ -214,20 +214,16 @@ if(!class_exists('NBFrameObject')) {
                     //個別の変数Setがあれば実行;
                     $setMethod = 'setVar_'.$key;
                     if(method_exists($this, $setMethod)) {
-                        $this->$setMethod($value, $not_gpc);
-                        $this->setDirty();
-                    } else {
-                        $this->vars[$key]['value'] = $value;
+                        $this->$setMethod($value);
                         $this->vars[$key]['not_gpc'] = $not_gpc;
-                        $this->vars[$key]['changed'] = true;
                         $this->setDirty();
+                        return;
                     }
-                } else {
-                    $this->vars[$key]['value'] = $value;
-                    $this->vars[$key]['not_gpc'] = $not_gpc;
-                    $this->vars[$key]['changed'] = true;
-                    $this->setDirty();
                 }
+                $this->vars[$key]['value'] = $value;
+                $this->vars[$key]['not_gpc'] = $not_gpc;
+                $this->vars[$key]['changed'] = true;
+                $this->setDirty();
             }
         }
         
@@ -244,7 +240,7 @@ if(!class_exists('NBFrameObject')) {
         function SetRequestVars(&$request) {
             $params = $request->getParam();
             foreach($params as $key =>$value) {
-                $this->setVar($key, $value);
+                $this->setVar($key, $value, true);
             }
         }
 	    /**

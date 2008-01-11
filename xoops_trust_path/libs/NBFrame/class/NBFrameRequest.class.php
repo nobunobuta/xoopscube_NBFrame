@@ -49,19 +49,19 @@ if (!class_exists('NBFrameRequest')) {
                 switch (strtoupper($req_type)) {
                     case 'POST':
                         if (isset($_POST[$name])) {
-                            $paraValue = $this->_removeMagicQuotes($_POST[$name]);
+                            $paraValue = $this->removeMagicQuotes($_POST[$name]);
                             $paraFound = true;
                         }
                         break;
                     case 'GET':
                         if (isset($_GET[$name])) {
-                            $paraValue = $this->_removeMagicQuotes($_GET[$name]);
+                            $paraValue = $this->removeMagicQuotes($_GET[$name]);
                             $paraFound = true;
                         }
                         break;
                     case 'COOKIE':
                         if (isset($_COOKIE[$name])) {
-                            $paraValue = $this->_removeMagicQuotes($_COOKIE[$name]);
+                            $paraValue = $this->removeMagicQuotes($_COOKIE[$name]);
                             $paraFound = true;
                         }
                         break;
@@ -192,11 +192,11 @@ if (!class_exists('NBFrameRequest')) {
             return $value;
         }
 
-        function _removeMagicQuotes($mixed) {
+        function removeMagicQuotes($mixed) {
             if( get_magic_quotes_gpc()) {
                 if(is_array($mixed)) {
                     foreach($mixed as $k => $v) {
-                        $mixed[$k] = $this->_removeMagicQuotes($v);
+                        $mixed[$k] = $this->removeMagicQuotes($v);
                     }
                 } else {
                     $mixed = stripslashes($mixed);

@@ -81,10 +81,10 @@ if(!class_exists('NBFrameGroupPermHandler')) {
             }
 
             $groupPermObject =& $this->create();
-            $groupPermObject->setVar('gperm_name', $gpermName);
-            $groupPermObject->setVar('gperm_groupid', $gpermGroupId);
-            $groupPermObject->setVar('gperm_itemid', $gpermItemId);
-            $groupPermObject->setVar('gperm_modid', $gpermModuleId);
+            $groupPermObject->set('gperm_name', $gpermName);
+            $groupPermObject->set('gperm_groupid', $gpermGroupId);
+            $groupPermObject->set('gperm_itemid', $gpermItemId);
+            $groupPermObject->set('gperm_modid', $gpermModuleId);
             return $this->insert($groupPermObject);
         }
     	
@@ -161,7 +161,7 @@ if(!class_exists('NBFrameGroupPermHandler')) {
             }
             $groupPermObjects =& $this->getObjects($criteria, true);
             foreach (array_keys($groupPermObjects) as $i) {
-                $ret[] = $groupPermObjects[$i]->getVar('gperm_itemid');
+                $ret[] = $groupPermObjects[$i]->get('gperm_itemid');
             }
             return array_unique($ret);
         }
@@ -183,7 +183,7 @@ if(!class_exists('NBFrameGroupPermHandler')) {
             $criteria->add(new Criteria('gperm_modid', intval($gpermModuleId)));
             $groupPermObjects =& $this->getObjects($criteria, true);
             foreach (array_keys($groupPermObjects) as $i) {
-                $ret[] = $groupPermObjects[$i]->getVar('gperm_groupid');
+                $ret[] = $groupPermObjects[$i]->get('gperm_groupid');
             }
             return $ret;
         }

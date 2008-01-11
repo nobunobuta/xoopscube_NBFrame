@@ -75,7 +75,7 @@ if (!class_exists('NBFrameObjectForm')) {
                 if (method_exists($formElement, 'setValue')) {
                     $formElement->setValue($object->getVar($key,'e'));
                 } else if (is_a($formElement, 'XoopsFormLabel')) {
-                    $formElement->_value = $object->getVar($key);
+                    $formElement->_value = $object->getVar($key,'s');
                 }
                 $formEdit->addElement($formElement,$object->vars[$key]['required']);
                 unset($formElement);

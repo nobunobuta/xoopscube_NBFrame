@@ -251,7 +251,7 @@ if (!class_exists('NBFrameObjectHandler')) {
                 }
                 if ($record->mUseSystemField == true) {
                     if (isset($GLOBALS['xoopsUser']) && is_object($GLOBALS['xoopsUser'])) {
-                        $uid = intval($GLOBALS['xoopsUser']->getVar('uid'));
+                        $uid = intval($GLOBALS['xoopsUser']->get('uid'));
                     } else {
                         $uid = 0;
                     }
@@ -302,7 +302,7 @@ if (!class_exists('NBFrameObjectHandler')) {
                 }
                 if ($record->mUseSystemField == true) {
                     if (isset($GLOBALS['xoopsUser']) && is_object($GLOBALS['xoopsUser'])) {
-                        $uid = intval($GLOBALS['xoopsUser']->getVar('uid'));
+                        $uid = intval($GLOBALS['xoopsUser']->get('uid'));
                     } else {
                         $uid = 0;
                     }
@@ -338,8 +338,8 @@ if (!class_exists('NBFrameObjectHandler')) {
             return true;
         }
 
-        function updateByField(&$record, $fieldName, $fieldValue, $not_gpc=false) {
-            $record->setVar($fieldName, $fieldValue, $not_gpc);
+        function updateByField(&$record, $fieldName, $fieldValue) {
+            $record->set($fieldName, $fieldValue);
             return $this->insert($record, true, true);
         }
 

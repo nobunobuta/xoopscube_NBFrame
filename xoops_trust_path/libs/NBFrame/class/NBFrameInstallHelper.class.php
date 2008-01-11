@@ -350,9 +350,9 @@ if (!class_exists('NBFrameInstallHelper')) {
                 $criteria->add(new Criteria('tpl_type', 'module'));
                 if ($tplFileObjects = $tplFileHandler->getObjects($criteria)) {
                     foreach($tplFileObjects as $tplFileObject) {
-                        if ($tplFileObject->getVar('tpl_lastmodified') <> filemtime($templateFile)) {
-                            $tplFileObject->setVar('tpl_lastmodified', filemtime($templateFile));
-                            $tplFileObject->setVar('tpl_source', $fileContent);
+                        if ($tplFileObject->get('tpl_lastmodified') <> filemtime($templateFile)) {
+                            $tplFileObject->set('tpl_lastmodified', filemtime($templateFile));
+                            $tplFileObject->set('tpl_source', $fileContent);
                             $tplFileHandler->insert($tplFileObject, $force);
 
                             $tpl->clear_cache('db:'.$templateName);
@@ -361,14 +361,14 @@ if (!class_exists('NBFrameInstallHelper')) {
                     }
                 } else {
                     $tplFileObject =& $tplFileHandler->create();
-                    $tplFileObject->setVar('tpl_refid', $moduleInfo['mid']);
-                    $tplFileObject->setVar('tpl_module', $this->mDirName);
-                    $tplFileObject->setVar('tpl_tplset', 'default');
-                    $tplFileObject->setVar('tpl_file', $templateName);
-                    $tplFileObject->setVar('tpl_desc', '');
-                    $tplFileObject->setVar('tpl_lastmodified', filemtime($templateFile));
-                    $tplFileObject->setVar('tpl_type', 'module');
-                    $tplFileObject->setVar('tpl_source', $fileContent);
+                    $tplFileObject->set('tpl_refid', $moduleInfo['mid']);
+                    $tplFileObject->set('tpl_module', $this->mDirName);
+                    $tplFileObject->set('tpl_tplset', 'default');
+                    $tplFileObject->set('tpl_file', $templateName);
+                    $tplFileObject->set('tpl_desc', '');
+                    $tplFileObject->set('tpl_lastmodified', filemtime($templateFile));
+                    $tplFileObject->set('tpl_type', 'module');
+                    $tplFileObject->set('tpl_source', $fileContent);
                     $tplFileHandler->insert($tplFileObject, $force);
 
                     $tpl->clear_cache('db:'.$templateName);
@@ -391,9 +391,9 @@ if (!class_exists('NBFrameInstallHelper')) {
                             $criteria->add(new Criteria('tpl_tplset', 'default'));
                             if ($tplFileObjects = $tplFileHandler->getObjects($criteria)) {
                                 foreach($tplFileObjects as $tplFileObject) {
-                                    if ($tplFileObject->getVar('tpl_lastmodified') <> filemtime($templateFile)) {
-                                        $tplFileObject->setVar('tpl_lastmodified', filemtime($templateFile));
-                                        $tplFileObject->setVar('tpl_source', $fileContent);
+                                    if ($tplFileObject->get('tpl_lastmodified') <> filemtime($templateFile)) {
+                                        $tplFileObject->set('tpl_lastmodified', filemtime($templateFile));
+                                        $tplFileObject->set('tpl_source', $fileContent);
                                         $tplFileHandler->insert($tplFileObject, $force);
 
                                         $tpl->clear_cache('db:'.$templateName);
@@ -402,14 +402,14 @@ if (!class_exists('NBFrameInstallHelper')) {
                                 }
                             } else {
                                 $tplFileObject =& $tplFileHandler->create();
-                                $tplFileObject->setVar('tpl_refid', $key);
-                                $tplFileObject->setVar('tpl_module', $this->mDirName);
-                                $tplFileObject->setVar('tpl_tplset', 'default');
-                                $tplFileObject->setVar('tpl_file', $templateName);
-                                $tplFileObject->setVar('tpl_desc', '');
-                                $tplFileObject->setVar('tpl_lastmodified', filemtime($templateFile));
-                                $tplFileObject->setVar('tpl_type', 'block');
-                                $tplFileObject->setVar('tpl_source', $fileContent);
+                                $tplFileObject->set('tpl_refid', $key);
+                                $tplFileObject->set('tpl_module', $this->mDirName);
+                                $tplFileObject->set('tpl_tplset', 'default');
+                                $tplFileObject->set('tpl_file', $templateName);
+                                $tplFileObject->set('tpl_desc', '');
+                                $tplFileObject->set('tpl_lastmodified', filemtime($templateFile));
+                                $tplFileObject->set('tpl_type', 'block');
+                                $tplFileObject->set('tpl_source', $fileContent);
                                 $tplFileHandler->insert($tplFileObject, $force);
 
                                 $tpl->clear_cache('db:'.$templateName);

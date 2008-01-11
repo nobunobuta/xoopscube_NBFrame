@@ -30,7 +30,7 @@ if(!class_exists('NBFrameTreeObjectHandler')) {
                 $object =& $objects[$i];
                 if ($parent == $object->getParentKey()) {
                     $key = $object->getKey();
-                    $object->setVar($object->getNameField(), $padString.$object->getName(), true);
+                    $object->set($object->getNameField(), $padString.$object->getName());
                     $object->setExtraVar('_object_level_', $level+1);
                     $resultObjects[] = $object;
                     $this->_getNestedObjects($padChar, $key, $level+1, $objects, $resultObjects);

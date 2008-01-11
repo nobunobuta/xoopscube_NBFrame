@@ -13,13 +13,13 @@ if(!class_exists('NBFrameTplFileHandler')) {
         
         function insert(&$record, $force=false, $updateOnlyChanged=false) {
             if ($result = parent::insert($record, $force, $updateOnlyChanged)) {
-                $id = $record->getVar('tpl_id');
+                $id = $record->get('tpl_id');
                 $tplSourceHandler =& NBFrame::getHandler('NBFrame.xoops.TplSource', $this->mEnvironment);
                 if (!$tplSourceObject =& $tplSourceHandler->get($id)) {
                     $tplSourceObject =& $tplSourceHandler->create();
-                    $tplSourceObject->setVar('tpl_id', $id);
+                    $tplSourceObject->set('tpl_id', $id);
                 }
-                $tplSourceObject->setVar('tpl_source', $record->getVar('tpl_source','n'));
+                $tplSourceObject->set('tpl_source', $record->get('tpl_source'));
                 $result = $tplSourceHandler->insert($tplSourceObject, $force);
             }
             return $result;
