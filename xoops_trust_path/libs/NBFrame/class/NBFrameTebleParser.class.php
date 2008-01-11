@@ -75,8 +75,10 @@
             $name = false;
             foreach($this->mFields as $field) {
                 $key = $field['Field'];
-                if (preg_match('/^_NBsys_/', $key)) {
-                    $object->addHiddenSysFields();
+                if ($key == '_NBsys_update_count') {
+                    $object->addVerifyFields('_NBsys_update_count');
+                } else if (preg_match('/^_NBsys_/', $key)) {
+                    continue;
                 } else {
                     $type = $this->convertXoopsObjectType($field['Type']);
                     $value = "";

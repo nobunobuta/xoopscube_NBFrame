@@ -31,6 +31,7 @@ if(!class_exists('NBFrameObject')) {
         var $mHandler;
         var $mClassName;
         var $mUseSystemField = false;
+        var $mVerifier = array();
 
         function NBFrameObject() {
             //親クラスのコンストラクタ呼出
@@ -52,6 +53,21 @@ if(!class_exists('NBFrameObject')) {
             $this->vars[$key]['var_class'] = XOBJ_VCLASS_SFIELD;
         }
 
+        function setVerify($verifyField, $verifyInput) {
+            if (isset($this->vars[$verifyField])) {
+                $this->mVerifier[$verifyField] = $verifyInput;
+            }
+        }
+
+        function enableVerify() {
+            foreach($this->mVerifier as $key=>$field) {
+                if (isset($this->vars[$key])) {
+                    $type = $this->vars[$key]['data_type'];
+                    $this->setAttribute($field, null, $type);
+                }
+            }
+        }
+
         function initSysFields() {
             if ($this->mUseSystemField == false) {
                 $this->initSysVar('_NBsys_del_flag', XOBJ_DTYPE_CUSTOM); 
@@ -60,6 +76,7 @@ if(!class_exists('NBFrameObject')) {
                 $this->initSysVar('_NBsys_update_time', XOBJ_DTYPE_CUSTOM); 
                 $this->initSysVar('_NBsys_update_user', XOBJ_DTYPE_CUSTOM); 
                 $this->initSysVar('_NBsys_update_count', XOBJ_DTYPE_INT); 
+                $this->setVerify('_NBsys_update_count','_NBsys_update_count_old');
                 $this->mUseSystemField = true;
             }
         }

@@ -260,6 +260,10 @@ if (!class_exists('NBFrameObjectHandler')) {
                     $delim = ", ";
                     $fieldList .= $delim ."`_NBsys_update_user`";
                     $valueList .= $delim . $uid;
+                    $fieldList .= $delim ."`_NBsys_create_time`";
+                    $valueList .= $delim . 'NOW()';
+                    $fieldList .= $delim ."`_NBsys_update_time`";
+                    $valueList .= $delim . 'NOW()';
                 }
                 $fieldList .= ")";
                 $valueList .= ")";
@@ -306,8 +310,8 @@ if (!class_exists('NBFrameObjectHandler')) {
                     $setList .= $setDelim ."`_NBsys_update_time`=NOW()";
                     $setList .= $setDelim ."`_NBsys_update_count`=`_NBsys_update_count`+1";
                     $setDelim = ", ";
-                    if (isset($record->cleanVars['_NBsys_update_count_old'])) {
-                        $whereList .= $whereDelim . "`_NBsys_update_count` = ". intval($record->cleanVars['_NBsys_update_count_old']);
+                    foreach ($record->mVerifier as $key=>$value) {
+                        $whereList .= $whereDelim . '`'.$key.'` = '. $record->cleanVars[$value];
                     }
                 }
                 if (!$setList) {

@@ -12,8 +12,9 @@ if (!class_exists('NBFrameObjectForm')) {
         var $mDirName = '';
         var $mLanguage;
         var $mReqType = 'POST';
-        var $mHiddenSysField = '';
-
+        var $mEnableVerify = true;
+        var $mVerifyFields = array();
+        
         function NBFrameObjectForm($environment) {
             include_once XOOPS_ROOT_PATH.'/class/xoopsformloader.php';
             $this->mElements = array();
@@ -48,9 +49,20 @@ if (!class_exists('NBFrameObjectForm')) {
             }
         }
 
-        function addHiddenSysFields() {
-            $this->mHiddenSysField = '_NBsys_update_count_old';
-            $this->addElement('_NBsys_update_count', new XoopsFormHidden($this->mHiddenSysField, 0));
+        function addVerifyFields($name, $fieldName='') {
+            if ($this->mEnableVerify) {
+                if (empty($fieldName)) $fieldName = $name.'_old';
+                $this->mVerifyFields[$name] = $fieldName;
+                $this->addElement($name, new XoopsFormHidden($fieldName, 0));
+            }
+        }
+
+        function canVerify() {
+            if ($this->mEnableVerify && (count($this->mVerifyFields) >0)) {
+                return true;
+            } else {
+                return false;
+            }
         }
 
         function &buildEditForm(&$object) {
@@ -90,15 +102,15 @@ if (!class_exists('NBFrameObjectForm')) {
         function setupRequests($reqTypes='POST') {
             $this->preInsert();
             $this->mReqType = $reqTypes;
+            $verifyFieldNames = array_keys($this->mVerifyFields);
             foreach(array_keys($this->mElements) as $name) {
-                if ($name == '_NBsys_update_count') $name = $this->mHiddenSysField;
+                if (in_array($name, $verifyFieldNames)) $name = $this->mVerifyFields[$name];
                 if (!$this->mAction->mRequest->defined($name)) {
                     $this->mAction->mRequest->defParam($name, $reqTypes, 'raw');
                 }
             }
             $this->mAction->mRequest->parseRequest();
         }
-        
 
         function defParam($name, $valType = '', $defaultValue = NBFRAME_NO_DEFAULT_PARAM, $mustExist = false) {
             $this->mAction->mRequest->defParam($name, $this->mReqType, $valType, $defaultValue, $mustExist);

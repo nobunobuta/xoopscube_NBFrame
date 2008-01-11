@@ -130,12 +130,14 @@ if (!class_exists('NBFrameObjectAction')) {
         function executeNewOp() {
             if (is_object($this->mObjectForm)) {
                 $this->mObjectForm->bindAction($this, 1);
+                $this->mObjectForm->prepare();
                 $this->mObjectForm->setupRequests('');
             }
             $object =& $this->mObjectHandler->create();
-            if ($this->mObjectForm->mHiddenSysField) {
-                $object->setAttribute($this->mObjectForm->mHiddenSysField, null, XOBJ_DTYPE_INT); 
+            if (is_object($this->mObjectForm) && $this->mObjectForm->canVerify()) {
+                $object->enableVerify();
             }
+
             $object->SetRequestVars($this->mRequest);
 
             return $this->_showForm($object, $this->__l('New'));
@@ -194,9 +196,10 @@ if (!class_exists('NBFrameObjectAction')) {
                 $this->mObject =& $object;
                 if (is_object($this->mObjectForm)) {
                     $this->mObjectForm->bindAction($this, 1);
+                    $this->mObjectForm->prepare();
                     $this->mObjectForm->setupRequests('POST');
-                    if ($this->mObjectForm->mHiddenSysField) {
-                        $object->setAttribute($this->mObjectForm->mHiddenSysField, null, XOBJ_DTYPE_INT); 
+                    if ($this->mObjectForm->canVerify()) {
+                        $object->enableVerify();
                     }
                 }
                 if ($this->mRequest->hasError()) {
