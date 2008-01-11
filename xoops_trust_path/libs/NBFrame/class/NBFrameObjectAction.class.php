@@ -397,7 +397,7 @@ if (!class_exists('NBFrameObjectAction')) {
                 $this->mXoopsTpl->assign('title',$this->mCaption.' &raquo; '.$this->__l('Delete'));
             }
         }
-        
+
         function _requestKeyValue($method='POST') {
             $this->mRequest->defParam($this->mObjectKeyField, $method, 'raw', NBFRAME_NO_DEFAULT_PARAM, true);
             $this->mRequest->parseRequest();

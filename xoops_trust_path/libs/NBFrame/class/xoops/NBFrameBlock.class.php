@@ -64,10 +64,12 @@ if(!class_exists('NBFrameBlock')) {
                     }
                     if (file_exists(XOOPS_ROOT_PATH.'/modules/'.$this->get('dirname').'/blocks/'.$this->get('func_file'))) {
                         include_once XOOPS_ROOT_PATH.'/modules/'.$this->get('dirname').'/blocks/'.$this->get('func_file');
-                        $options = explode('|', $this->get('options'));
-                        $value = $edit_func($options);
-                        if (!$value) {
-                            $value= false;
+                        if (function_exists($edit_func)) {
+                            $options = explode('|', $this->get('options'));
+                            $value = $edit_func($options);
+                            if (!$value) {
+                                $value= false;
+                            }
                         }
                     } else {
                         $value= false;

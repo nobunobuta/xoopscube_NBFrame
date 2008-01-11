@@ -73,6 +73,7 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
                 } else {
                     $rec['visible'] = 1;
                 }
+                if (!isset($rec['modules'])) $rec['modules']=array();
                 $object->setFormVars($rec,'');
                 $this->mObjectHandler->insert($object,false,true);
             }

@@ -26,6 +26,9 @@ if (!class_exists('NBFrameBlocksAdminForm')) {
             $this->addOptionArray('bcachetime', $this->mAction->mObjectHandler->getBlockCacheTimeListArray());
             $this->addOptionArray('modules',$this->mAction->mObjectHandler->getModuleListArray());
         }
+        function preInsert() {
+            $this->defParam('modules', 'array-int',  array());
+        }
     }
 }
 ?>
