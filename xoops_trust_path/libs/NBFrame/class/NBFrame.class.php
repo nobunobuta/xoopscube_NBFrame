@@ -316,7 +316,7 @@ if (!class_exists('NBFrame')) {
                 $modversion['image'] = '?action=NBFrame.GetModuleIcon';
             }
 
-            if ($modversion['hasAdmin']){
+            if (@$modversion['hasAdmin']){
                 $modversion['adminindex'] = 'index.php?action='.$environment->getAttribute('AdminMainAction');
                 $modversion['adminmenu'] = 'include/NBFrameAdminMenu.inc.php';
             }

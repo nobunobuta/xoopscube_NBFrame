@@ -312,7 +312,9 @@ if (!class_exists('NBFrameObjectAction')) {
         }
 
         function preViewFormOp() {
-            $this->mCurrentTemplate = $this->mFormTemplate;
+            if (empty($this->mCurrentTemplate)) {
+                $this->setTemplate($this->mFormTemplate);
+            }
         }
 
         function viewFormOp() {
@@ -337,7 +339,9 @@ if (!class_exists('NBFrameObjectAction')) {
         }
 
         function preViewListOp() {
-            $this->mCurrentTemplate = $this->mListTemplate;
+            if (empty($this->mCurrentTemplate)) {
+                $this->setTemplate($this->mListTemplate);
+            }
         }
         
         function viewListOp() {
@@ -376,14 +380,18 @@ if (!class_exists('NBFrameObjectAction')) {
         }
 
         function preViewViewOp() {
-            $this->mCurrentTemplate = $this->mViewTemplate;
+            if (empty($this->mCurrentTemplate)) {
+                $this->setTemplate($this->mViewTemplate);
+            }
         }
 
         function viewViewOp() {
         }
 
         function preViewDeleteOp() {
-            $this->mCurrentTemplate = $this->mFormTemplate;
+            if (empty($this->mCurrentTemplate)) {
+                $this->setTemplate($this->mFormTemplate);
+            }
         }
 
         function viewDeleteOp() {
@@ -400,7 +408,6 @@ if (!class_exists('NBFrameObjectAction')) {
 
         function _requestKeyValue($method='POST') {
             $this->mRequest->defParam($this->mObjectKeyField, $method, 'raw', NBFRAME_NO_DEFAULT_PARAM, true);
-            $this->mRequest->parseRequest();
             if ($this->mRequest->hasError()) {
                 return null;
             }

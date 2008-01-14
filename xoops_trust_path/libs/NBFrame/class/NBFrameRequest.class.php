@@ -1,14 +1,14 @@
 <?php
 if (!class_exists('NBFrame')) exit();
 if (!class_exists('NBFrameRequest')) {
-    if (!defined('NBFRAME_NO_DEFAULT_PARAM')) define('NBFRAME_NO_DEFAULT_PARAM', '__nodefault__');
+    if (!defined('NBFRAME_NO_DEFAULT_PARAM')) define('NBFRAME_NO_DEFAULT_PARAM', '__NBnodefault__');
     class NBFrameRequest {
         var $mRequests = array();
         var $mRawRequests = array();
         var $mErrorMsgs = array();
         var $mParams = array();
 
-        function defParam($name, $reqTypes, $valType = '', $defaultValue = NBFRAME_NO_DEFAULT_PARAM, $mustExist = false){
+        function defParam($name, $reqTypes, $valType = '', $defaultValue = NBFRAME_NO_DEFAULT_PARAM, $mustExist = false, $doParse=true){
             if (!is_array($reqTypes)) {
                 if ($reqTypes) {
                     $para_tmp = $reqTypes;
@@ -22,6 +22,9 @@ if (!class_exists('NBFrameRequest')) {
             $this->mParams[$name]['valType'] = $valType;
             $this->mParams[$name]['defaultValue'] = $defaultValue;
             $this->mParams[$name]['mustExist'] = $mustExist;
+            if ($doParse) {
+                $this->_parseRequest($name, $this->mParams[$name]);
+            }
         }
         function defined($name) {
             return (isset($this->mParams[$name]));
@@ -30,15 +33,6 @@ if (!class_exists('NBFrameRequest')) {
             $this->mErrorMsgs = array();
             foreach($this->mParams as $name => $param) {
                 $result = $this->_parseRequest($name, $param);
-                if (isset($result['RawRequest'])) {
-                    $this->mRawRequests[$name] = $result['RawRequest'];
-                }
-                if (isset($result['ErrorMsg'])) {
-                    $this->mErrorMsgs[] = $result['ErrorMsg'];
-                }
-                if (isset($result['Request'])) {
-                    $this->mRequests[$name] = $result['Request'];
-                }
             }
         }
         
@@ -131,6 +125,15 @@ if (!class_exists('NBFrameRequest')) {
                     }
                 }
                 $result['Request'] = $paraValue;
+            }
+            if (isset($result['RawRequest'])) {
+                $this->mRawRequests[$name] = $result['RawRequest'];
+            }
+            if (isset($result['ErrorMsg'])) {
+                $this->mErrorMsgs[] = $result['ErrorMsg'];
+            }
+            if (isset($result['Request'])) {
+                $this->mRequests[$name] = $result['Request'];
             }
             return $result;
         }

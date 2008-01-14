@@ -109,7 +109,6 @@ if (!class_exists('NBFrameObjectForm')) {
                     $this->mAction->mRequest->defParam($name, $reqTypes, 'raw');
                 }
             }
-            $this->mAction->mRequest->parseRequest();
         }
 
         function defParam($name, $valType = '', $defaultValue = NBFRAME_NO_DEFAULT_PARAM, $mustExist = false) {

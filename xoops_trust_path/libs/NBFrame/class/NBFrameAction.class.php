@@ -49,6 +49,10 @@ if (!class_exists('NBFrameAction')) {
             }
         }
 
+        function setTemplate($template) {
+            $this->mCurrentTemplate = $template;
+        }
+
         function setDefaultTemplate($defaultTemplate) {
             $this->mDefaultTemplate = $defaultTemplate;
         }
@@ -99,7 +103,6 @@ if (!class_exists('NBFrameAction')) {
 
         function execute() {
             $this->mRequest->defParam('op', '', 'var', $this->mDefaultOp);
-            $this->mRequest->parseRequest();
             $result = $this->_actionDispatch();
             switch ($result) {
                 case NBFRAME_ACTION_VIEW_DEFAULT:
@@ -147,14 +150,18 @@ if (!class_exists('NBFrameAction')) {
         }
 
         function preViewDefaultOp() {
-            $this->mCurrentTemplate = $this->mDefaultTemplate;
+            if (empty($this->mCurrentTemplate)) {
+                $this->setTemplate($this->mDefaultTemplate);
+            }
         }
 
         function viewDefaultOp() {
         }
 
         function preViewDefaultExtraOp() {
-            $this->mCurrentTemplate = $this->mExtraTemplate;
+            if (empty($this->mCurrentTemplate)) {
+                $this->setTemplate($this->mDefaultTemplate);
+            }
         }
 
         function executeActionSuccess() {
