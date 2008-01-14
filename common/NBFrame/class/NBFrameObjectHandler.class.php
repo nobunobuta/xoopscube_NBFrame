@@ -293,8 +293,8 @@ if (!class_exists('NBFrameObjectHandler')) {
             return true;
         }
 
-        function updateByField(&$record, $fieldName, $fieldValue, $not_gpc=false) {
-            $record->setVar($fieldName, $fieldValue, $not_gpc);
+        function updateByField(&$record, $fieldName, $fieldValue) {
+            $record->set($fieldName, $fieldValue);
             return $this->insert($record, true, true);
         }
 

@@ -18,7 +18,7 @@ if(!class_exists('NBFrameBlock')) {
         function &getVar_modules($value, $format) {
             if ($value === null) {
                 $blockModuleLinkHandler =& NBFrame::getHandler('NBFrame.xoops.BlockModuleLink', $this->mEnvironment);
-                $criteria =& new Criteria('block_id', $this->getVar('bid'));
+                $criteria =& new Criteria('block_id', $this->get('bid'));
                 $resultSet = $blockModuleLinkHandler->open($criteria);
                 $value = array();
                 while ($row = $blockModuleLinkHandler->db->fetchArray($resultSet)) {
@@ -48,8 +48,8 @@ if(!class_exists('NBFrameBlock')) {
 
         function &getVar_is_custom($value, $format) {
             if ($value === null) {
-                $value = ($this->getVar('block_type') == 'C' ||
-                          $this->getVar('block_type') == 'E') ? true : false;
+                $value = ($this->get('block_type') == 'C' ||
+                          $this->get('block_type') == 'E') ? true : false;
                 $this->vars['is_custom']['value'] = $value;
             }
             return $value;
@@ -57,17 +57,19 @@ if(!class_exists('NBFrameBlock')) {
 
         function &getVar_edit_form($value, $format) {
             if ($value === null) {
-                if (!$this->getVar('is_custom')) {
-                    $edit_func = $this->getVar('edit_func');
+                if (!$this->get('is_custom')) {
+                    $edit_func = $this->get('edit_func');
                     if (!$edit_func) {
                         $value= false;
                     }
-                    if (file_exists(XOOPS_ROOT_PATH.'/modules/'.$this->getVar('dirname').'/blocks/'.$this->getVar('func_file'))) {
-                        include_once XOOPS_ROOT_PATH.'/modules/'.$this->getVar('dirname').'/blocks/'.$this->getVar('func_file');
-                        $options = explode('|', $this->getVar('options'));
-                        $value = $edit_func($options);
-                        if (!$value) {
-                            $value= false;
+                    if (file_exists(XOOPS_ROOT_PATH.'/modules/'.$this->get('dirname').'/blocks/'.$this->get('func_file'))) {
+                        include_once XOOPS_ROOT_PATH.'/modules/'.$this->get('dirname').'/blocks/'.$this->get('func_file');
+                        if (function_exists($edit_func)) {
+                            $options = explode('|', $this->get('options'));
+                            $value = $edit_func($options);
+                            if (!$value) {
+                                $value= false;
+                            }
                         }
                     } else {
                         $value= false;
@@ -87,16 +89,16 @@ if(!class_exists('NBFrameBlock')) {
 
         function insert(&$object,$force=false,$updateOnlyChanged=false)  {
             if ($object->isNew()) {
-                $object->setVar('isactive', 1);
+                $object->set('isactive', 1);
             }
-            $modules = $object->getVar('modules');
+            $modules = $object->get('modules');
             
-            $object->setVar('last_modified', time());
+            $object->set('last_modified', time());
             $result = parent::insert($object, $force, $updateOnlyChanged);
             if ($result) {
                 if ($modules !== null) {
                     $blockModuleLinkHandler =& NBFrame::getHandler('NBFrame.xoops.BlockModuleLink', $this->mEnvironment);
-                    $blockModuleLinkHandler->insert($object->getVar('bid'), $modules, $force);
+                    $blockModuleLinkHandler->insert($object->get('bid'), $modules, $force);
                 }
             }
             return $result;
@@ -106,7 +108,7 @@ if(!class_exists('NBFrameBlock')) {
             $result = parent::delete(&$object, $force=false);
             if($result) {
                 $blockModuleLinkHandler =& NBFrame::getHandler('NBFrame.xoops.BlockModuleLink', $this->mEnvironment);
-                $result = $blockModuleLinkHandler->deleteBlock($object->getVar('bid'));
+                $result = $blockModuleLinkHandler->deleteBlock($object->get('bid'));
             }
             return $result;
         }

@@ -230,8 +230,11 @@ if (!class_exists('NBFrame')) {
                 }
                 if ($ret && !empty($environment)) {
                     $ret->mEnvironment =& $environment;
-                    $ret->mLanguage =& NBFrame::getLanguageManager($environment->mTarget);
+                    $target = $environment->mTarget;
+                } else {
+                    $target = 0;
                 }
+                $ret->mLanguage =& NBFrame::getLanguageManager($target);
             } else {
                 $ret =& $mHandlerArr[$key];
             }
