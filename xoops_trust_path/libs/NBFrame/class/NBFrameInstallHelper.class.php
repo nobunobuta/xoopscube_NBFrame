@@ -64,6 +64,15 @@ if (!class_exists('NBFrameInstallHelper')) {
                 foreach($tableDef[$this->mOrigName] as $key =>$value) {
                     $tableName = $GLOBALS['xoopsDB']->prefix($this->mDirName.'_'.$key);
                     $this->addMsg(' Table '.$tableName);
+                    if (!empty($value['usesys'])) {
+                        if ($value['usesys'] == true) {
+                            foreach ($this->mSysFieldsArray as $sysName => $sysField) {
+                                if (!isset($value['fields'][$sysName])) {
+                                    $value['fields'][$sysName] = $sysField;
+                                }
+                            }
+                        }
+                    }
                     $this->_createTable($tableName, $value, false, $force);
                 }
                 $this->addMsg('NBFrame Automatic Table Creater ends...');
@@ -276,6 +285,7 @@ if (!class_exists('NBFrameInstallHelper')) {
             } else {
                 contiue;
             }
+/*
             if (!empty($tableDef['usesys'])) {
                 if ($tableDef['usesys'] == true) {
                     foreach ($this->mSysFieldsArray as $name=>$sysField) {
@@ -283,6 +293,7 @@ if (!class_exists('NBFrameInstallHelper')) {
                     }
                 }
             }
+*/
             if (!empty($tableDef['primary'])) {
                 $createSQL .= $comma. 'PRIMARY KEY ('.$tableDef['primary']. ')';
             }
