@@ -83,24 +83,25 @@
                     $type = $this->convertXoopsObjectType($field['Type']);
                     $value = "";
                     $autoinc = (preg_match('/auto_increment/',$field['Extra'])) ? true : false;
+                    $caption = $object->__l(str_replace('_', ' ', $key));
                     if($autoinc) {
                         $object->addElement($key, new XoopsFormHidden($key, 0));
                     } else {
                         switch ($type) {
                             case XOBJ_DTYPE_INT:
                                 $maxlenth=$this->fetchSizeFromField($field['Type']);
-                                $object->addElement($key, new XoopsFormText($object->__l($key), $key, 35, $maxlenth));
+                                $object->addElement($key, new XoopsFormText($caption, $key, 35, $maxlenth));
                                 break;
                             case XOBJ_DTYPE_FLOAT:
                                 $maxlenth=20;
-                                $object->addElement($key, new XoopsFormText($object->__l($key), $key, 35, $maxlenth));
+                                $object->addElement($key, new XoopsFormText($caption, $key, 35, $maxlenth));
                                 break;
                             case XOBJ_DTYPE_TXTAREA:
-                                $object->addElement($key, new XoopsFormDhtmlTextArea($object->__l($key), $key, '', 8, 60));
+                                $object->addElement($key, new XoopsFormDhtmlTextArea($caption, $key, '', 8, 60));
                                 break;
                             default:
                                 $maxlenth=$this->fetchSizeFromField($field['Type']);
-                                $object->addElement($key, new XoopsFormText($object->__l($key), $key, 35, $maxlenth));
+                                $object->addElement($key, new XoopsFormText($caption, $key, 35, $maxlenth));
                                 break;
                         }
                     }

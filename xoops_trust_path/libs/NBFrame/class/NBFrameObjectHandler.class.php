@@ -525,6 +525,25 @@ if (!class_exists('NBFrameObjectHandler')) {
             return $count;
         }
 
+        function getLastModified($criteria = null) {
+            if (empty($criteria)) {
+                $criteria = new Criteria(1, intNBCriteriaVal(1));
+            }
+            $criteria->setSort('_NBsys_update_time');
+            $criteria->setOrder('DESC');
+            $_prevLimit = $criteria->getLimit();
+            $criteria->setLimit(1);
+            $objects =& $this->getObjects($criteria, false, '_NBsys_update_time');
+            if (count($objects) > 0) {
+                $lastModified = $objects[0]->getVar('_NBsys_update_time');
+            } else {
+                $lastModified = -1;
+            }
+            $criteria->setLimit($_prevLimit);
+
+            return $lastModified;
+        }
+
         /**
          * テーブルの条件検索による複数レコード一括更新(対象フィールドは一つのみ)
          *
