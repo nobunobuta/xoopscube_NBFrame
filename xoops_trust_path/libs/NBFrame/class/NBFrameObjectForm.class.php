@@ -69,8 +69,8 @@ if (!class_exists('NBFrameObjectForm')) {
             if (!file_exists(XOOPS_ROOT_PATH.'/class/xoopsform/formtoken.php')) {
                 $this->mToken=0;
             }
-
-            $formEdit =& new XoopsThemeForm($this->mCaption, $this->mName, $this->mFormAction);
+            NBFrame::using('XoopsForm');
+            $formEdit =& new NBFrameXoopsForm($this->mCaption, $this->mName, $this->mFormAction);
             foreach ($this->mElements as $key=>$formElement) {
                 if (method_exists($formElement, 'setValue')) {
                     $formElement->setValue($object->getVar($key,'e'));
