@@ -256,7 +256,7 @@ if (!class_exists('NBFrame')) {
                     $ret->setTableBaseName($dirName.'_'.$ret->getTableBaseName());
                 }
                 if ($ret && !empty($environment)) {
-                    $ret->mEnvironment =& $environment;
+                    $ret->mEnvironment = $environment;
                     $target = $environment->mTarget;
                 } else {
                     $target = 0;
@@ -582,6 +582,12 @@ if (!class_exists('NBFrame')) {
             }
             $fileNames[$offset][$name] = $fileName;
             return $fileName;
+        }
+        
+        function &null()
+        {
+            $result = null;
+            return $result;
         }
     }
 }

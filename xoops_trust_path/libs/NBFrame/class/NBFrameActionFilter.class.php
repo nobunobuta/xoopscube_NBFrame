@@ -7,7 +7,7 @@ if (!class_exists('NBFrameActionFilter')) {
         function NBFrameActionFilter(&$controller, &$environment)
         {
             parent::XCube_ActionFilter($controller);
-            $this->mEnvironment =& $environment;
+            $this->mEnvironment = $environment;
         }
 
     }
