@@ -7,13 +7,13 @@ if(!class_exists('NBFrameGroupPermHandler')) {
         /**
          * Check permission
          * 
-         * @param	string    $gpermName       Name of permission
-         * @param	int       $gpermItemId     ID of an item
-         * @param	int/array $gpermGroupId    A group ID or an array of group IDs
-         * @param	int       $gpermModuleId      ID of a module
-         * @param	bool      $bypassAdminCheck Do not XOOPS_GROUP_ADMIN check if true.
+         * @param   string    $gpermName       Name of permission
+         * @param   int       $gpermItemId     ID of an item
+         * @param   int/array $gpermGroupId    A group ID or an array of group IDs
+         * @param   int       $gpermModuleId      ID of a module
+         * @param   bool      $bypassAdminCheck Do not XOOPS_GROUP_ADMIN check if true.
          * 
-         * @return	bool    TRUE if permission is enabled
+         * @return  bool    TRUE if permission is enabled
          */
         function checkRight($gpermName, $gpermItemId, $gpermGroupId, $gpermModuleId, $bypassAdminCheck = false)
         {
@@ -30,16 +30,39 @@ if(!class_exists('NBFrameGroupPermHandler')) {
             return false;
         }
 
+        function checkRightByObjectKey($gpermName, &$gpermObject, $gpermGroupId=0)
+        {
+            if (is_object($gpermObject->mHandler)) {
+                $environment =& $gpermObject->mHandler->mEnvironment;
+            } else {
+                $environment = null;
+            }
+            if ($gpermGroupId == 0) {
+                if (is_object($GLOBALS['xoopsUser'])) {
+                    $gpermGroupId = $GLOBALS['xoopsUser']->getGroups();
+                } else {
+                    $gpermGroupId = XOOPS_GROUP_ANONYMOUS;
+                }
+            }
+            if (!empty($environment)) {
+                $moduleHandler =& NBFrame::getHandler('NBFrame.xoops.Module', NBFrame::null());
+                $moduleObject =& $moduleHandler->getByEnvironment($environment);
+            } else {
+                $moduleObject =& $GLOBALS['xoopsModule'];
+            }
+            $moduleID = $moduleObject->get('mid');
+            return $this->checkRight($gpermName, $gpermObject->getKey(), $gpermGroupId, $moduleID, true);
+        }
 
         /**
          * Set a permission
          * 
-         * @param	string  $gpermName       Name of permission
-         * @param	int     $gpermItemId     ID of an item
-         * @param	int     $gpermGroupIdArray   ID of a group or Array
-         * @param	int     $gpermModuleId      ID of a module
+         * @param   string  $gpermName       Name of permission
+         * @param   int     $gpermItemId     ID of an item
+         * @param   int     $gpermGroupIdArray   ID of a group or Array
+         * @param   int     $gpermModuleId      ID of a module
          *
-         * @return	bool    TRUE if success
+         * @return  bool    TRUE if success
          */
         function setRight($gpermName, $gpermItemId, $gpermGroupIdArray, $gpermModuleId)
         {
@@ -57,16 +80,32 @@ if(!class_exists('NBFrameGroupPermHandler')) {
             }
         }
 
+        function setRightByObjectKey($gpermName, &$gpermObject, $gpermGroupIds)
+        {
+            if (is_object($gpermObject->mHandler)) {
+                $environment =& $gpermObject->mHandler->mEnvironment;
+            } else {
+                $environment = null;
+            }
+            if (!empty($environment)) {
+                $moduleHandler =& NBFrame::getHandler('NBFrame.xoops.Module', NBFrame::null());
+                $moduleObject =& $moduleHandler->getByEnvironment($environment);
+            } else {
+                $moduleObject =& $GLOBALS['xoopsModule'];
+            }
+            $moduleID = $moduleObject->get('mid');
+            $this->setRight($gpermName, $gpermObject->getKey(), $gpermGroupIds, $moduleID);
+        }
 
         /**
          * Add a permission
          * 
-         * @param	string  $gpermName       Name of permission
-         * @param	int     $gpermItemId     ID of an item
-         * @param	int     $gpermGroupId    ID of a group
-         * @param	int     $gpermModuleId      ID of a module
+         * @param   string  $gpermName       Name of permission
+         * @param   int     $gpermItemId     ID of an item
+         * @param   int     $gpermGroupId    ID of a group
+         * @param   int     $gpermModuleId      ID of a module
          *
-         * @return	bool    TRUE if success
+         * @return  bool    TRUE if success
          */
         function addRight($gpermName, $gpermItemId, $gpermGroupId, $gpermModuleId)
         {
@@ -87,32 +126,32 @@ if(!class_exists('NBFrameGroupPermHandler')) {
             $groupPermObject->set('gperm_modid', $gpermModuleId);
             return $this->insert($groupPermObject);
         }
-    	
+        
         /**
          * Remove a permission
          * 
-         * @param	string  $gpermName       Name of permission
-         * @param	int     $gpermItemId     ID of an item
-         * @param	int     $gpermGroupId    ID of a group
-         * @param	int     $gpermModuleId      ID of a module
+         * @param   string  $gpermName       Name of permission
+         * @param   int     $gpermItemId     ID of an item
+         * @param   int     $gpermGroupId    ID of a group
+         * @param   int     $gpermModuleId      ID of a module
          *
-         * @return	bool    TRUE jf success
+         * @return  bool    TRUE jf success
          */
         function removeRight($gpermName, $gpermItemId, $gpermGroupId, $gpermModuleId)
         {
-    		$criteria =& $this->getCriteria($gpermName, $gpermItemId, $gpermGroupId, $gpermModuleId);
-    		return $this->deleteAll($criteria);
+            $criteria =& $this->getCriteria($gpermName, $gpermItemId, $gpermGroupId, $gpermModuleId);
+            return $this->deleteAll($criteria);
         }
 
         /**
          * Generate a criteria from given params
          * 
-         * @param	string  $gpermName       Name of permission
-         * @param	int     $gpermItemId     ID of an item
-         * @param	int     $gpermGroupId    ID of a group
-         * @param	int     $gpermModuleId      ID of a module
+         * @param   string  $gpermName       Name of permission
+         * @param   int     $gpermItemId     ID of an item
+         * @param   int     $gpermGroupId    ID of a group
+         * @param   int     $gpermModuleId      ID of a module
          *
-         * @return	CriteiaCompo
+         * @return  CriteiaCompo
          */
         function &getCriteria($gpermName, $gpermItemId, $gpermGroupId, $gpermModuleId)
         {
@@ -186,6 +225,24 @@ if(!class_exists('NBFrameGroupPermHandler')) {
                 $ret[] = $groupPermObjects[$i]->get('gperm_groupid');
             }
             return $ret;
+        }
+        
+        function getGroupIdsByObjectKey($gpermName, &$gpermObject)
+        {
+            if (is_object($gpermObject->mHandler)) {
+                $environment =& $gpermObject->mHandler->mEnvironment;
+            } else {
+                $environment = null;
+            }
+            if (!empty($environment)) {
+                $moduleHandler =& NBFrame::getHandler('NBFrame.xoops.Module', NBFrame::null());
+                $moduleObject =& $moduleHandler->getByEnvironment($environment);
+            } else {
+                $moduleObject =& $GLOBALS['xoopsModule'];
+            }
+            $moduleID = $moduleObject->get('mid');
+            $result = $this->getGroupIds($gpermName, $gpermObject->getKey(), $moduleID);
+            return $result;
         }
     }
 }
