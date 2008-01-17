@@ -302,7 +302,7 @@ if (!class_exists('NBFrameObjectHandler')) {
                 }
                 if ($record->mUseSystemField == true) {
                     if (isset($GLOBALS['xoopsUser']) && is_object($GLOBALS['xoopsUser'])) {
-                        $uid = intval($GLOBALS['xoopsUser']->get('uid'));
+                        $uid = intval($GLOBALS['xoopsUser']->getVar('uid'));
                     } else {
                         $uid = 0;
                     }
