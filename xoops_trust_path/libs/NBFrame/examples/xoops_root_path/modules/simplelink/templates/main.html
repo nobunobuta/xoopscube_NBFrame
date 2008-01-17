@@ -1,0 +1,12 @@
+<h3><{$simplelink_moduleObject->getVar('name')}></h3>
+<br />
+<{foreach item=category from=$simplelink_list}>
+<ul>
+  <{if $category->getExtraVar('_object_level_') == 1 }>
+  <li style="list-style-type: none; margin-bottom=20px;">
+    <span style="font-size:medium"><b>&laquo;<{$category->getVar('category_name')}>&raquo;</b></span>
+	<{include file="db:`$mydirname`_main_category_item.html" category=$category list=$simplelink_list}>
+  </li>
+  <{/if}>
+</ul>
+<{/foreach}>

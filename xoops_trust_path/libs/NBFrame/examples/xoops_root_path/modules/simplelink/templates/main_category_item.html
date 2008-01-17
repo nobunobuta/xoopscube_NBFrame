@@ -1,0 +1,16 @@
+<dl style="margin-top:15px;margin-left:20px">
+<{foreach item=link from=$category->getExtraVar('link_objects')}>
+<dt style="font-size:medium;margin-top:8px"><a href="<{$link->getVar('link_url')}>"><{$link->getVar('link_name')}></a></dt>
+<dd style="font-size:small;margin-top:3px"><{$link->getVar('link_desc')}></dd>
+<{/foreach}>
+</dl>
+<ul style="margin-top:10px;margin-left:20px">
+<{foreach item=child from=$list}>
+  <{if $child->getVar('category_parent_id') == $category->getVar('category_id') }>
+  <li style="list-style-type: none">
+    <span style="font-size:medium"><b>&laquo;<{$child->getVar('category_name')}>&raquo;</b></span>
+    <{include file="db:`$mydirname`_main_category_item.html" category=$child list=$list}>
+  </li>
+  <{/if}>
+<{/foreach}>
+</ul>
