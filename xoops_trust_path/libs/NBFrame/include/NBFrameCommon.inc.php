@@ -42,5 +42,11 @@ if(!defined('NBFRAME_COMMON_FUNCTION_INCLUDED')){
         return $gpermHandler->checkRight($gperm_name, $gperm_itemid, 
                                     $groups, $GLOBALS['xoopsModule']->getVar('mid'));
     }
+    
+    if (preg_match('/^4/',PHP_VERSION)) {
+        include_once (dirname(__FILE__).'/NBFramePHP4.inc.php');
+    } else {
+        include_once (dirname(__FILE__).'/NBFramePHP5.inc.php');
+    }
 }
 ?>

@@ -256,7 +256,7 @@ if (!class_exists('NBFrame')) {
                     $ret->setTableBaseName($dirName.'_'.$ret->getTableBaseName());
                 }
                 if ($ret && !empty($environment)) {
-                    $ret->mEnvironment = $environment;
+                    $ret->mEnvironment =& NBFrame::makeClone($environment);
                     $target = $environment->mTarget;
                 } else {
                     $target = 0;
@@ -587,6 +587,12 @@ if (!class_exists('NBFrame')) {
         function &null()
         {
             $result = null;
+            return $result;
+        }
+        
+        function &makeClone(&$object)
+        {
+            $result =& __NBFrameClone($object);
             return $result;
         }
     }
