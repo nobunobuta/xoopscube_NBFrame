@@ -7,7 +7,7 @@ if (!class_exists('Simplelink_Base_Backend')) {
         function preBlockFilter()
         {
             $root=&XCube_Root::getSingleton();
-            $root->mDelegateManager->add("Legacy_BackendAction.GetRSSItems", array($this, 'getRSS'));
+            $root->mDelegateManager->add("Legacy_BackendAction.GetRSSItems", array(&$this, 'getRSS'));
         }
 
         function getRSS(&$items)
