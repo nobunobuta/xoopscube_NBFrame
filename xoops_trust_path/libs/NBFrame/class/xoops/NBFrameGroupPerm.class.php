@@ -45,8 +45,7 @@ if(!class_exists('NBFrameGroupPermHandler')) {
                 }
             }
             if (!empty($environment)) {
-                $moduleHandler =& NBFrame::getHandler('NBFrame.xoops.Module', NBFrame::null());
-                $moduleObject =& $moduleHandler->getByEnvironment($environment);
+                $moduleObject =& $environment->getModule();
             } else {
                 $moduleObject =& $GLOBALS['xoopsModule'];
             }
@@ -89,7 +88,7 @@ if(!class_exists('NBFrameGroupPermHandler')) {
             }
             if (!empty($environment)) {
                 $moduleHandler =& NBFrame::getHandler('NBFrame.xoops.Module', NBFrame::null());
-                $moduleObject =& $moduleHandler->getByEnvironment($environment);
+                $moduleObject =& $environment->getModule();
             } else {
                 $moduleObject =& $GLOBALS['xoopsModule'];
             }
@@ -235,8 +234,7 @@ if(!class_exists('NBFrameGroupPermHandler')) {
                 $environment = null;
             }
             if (!empty($environment)) {
-                $moduleHandler =& NBFrame::getHandler('NBFrame.xoops.Module', NBFrame::null());
-                $moduleObject =& $moduleHandler->getByEnvironment($environment);
+                $moduleObject =& $environment->getModule();
             } else {
                 $moduleObject =& $GLOBALS['xoopsModule'];
             }

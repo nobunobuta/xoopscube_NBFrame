@@ -8,6 +8,7 @@ if (!class_exists('NBFrameEnvironment')) {
         var $mUrlBase;
         var $mAttributeArr;
         var $mTarget;
+        var $mModule = null;
 
         function NBFrameEnvironment($origDirName='', $currentDirBase='') {
             $this->setOrigDirName($origDirName);
@@ -40,6 +41,14 @@ if (!class_exists('NBFrameEnvironment')) {
             } else {
                 return null;
             }
+        }
+
+        function &getModule() {
+            if (!is_object($this->mModule)) {
+                $moduleHandler =& NBFrame::getHandler('NBFrame.xoops.Module', NBFrame::null());
+                $this->mModule =& $moduleHandler->getByEnvironment($this);
+            }
+            return $this->mModule;
         }
 
         function prefix($basename) {
