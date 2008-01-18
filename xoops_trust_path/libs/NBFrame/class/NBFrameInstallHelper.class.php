@@ -120,7 +120,7 @@ if (!class_exists('NBFrameInstallHelper')) {
                                 $defMatch = false;
                             }
                             $nulldef = strtoupper(trim($value['fields'][$name][1]));
-                            if (!((($nulldef=='NOT NULL')&&($row['Null']=='NO'))||(($nulldef=='NULL')&&($row['Null']=='YES')))) {
+                            if (!((($nulldef=='NOT NULL')&&($row['Null']!='YES'))||(($nulldef=='NULL')&&($row['Null']=='YES')))) {
                                 $this->addMsg('   Field('.$name.') null definition is changed.');
                                 $defMatch = false;
                             }

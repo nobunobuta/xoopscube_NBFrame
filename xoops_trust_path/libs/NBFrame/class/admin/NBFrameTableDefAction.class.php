@@ -48,22 +48,27 @@ if (!class_exists('NBFrameTableDefAction')) {
             echo '    $tableDef[\''.$this->mOrigDirName.'\'][\''.$this->mTableName.'\'] = array('."\n";
             echo '        \'fields\' => array('."\n";
             $delim = '';
+            $useSysField = false;
             foreach($this->mFieldDefArr as $fieldDef) {
-                echo $delim.'            \''.$fieldDef['Field'].'\' => array(';
-                echo '\''.$fieldDef['Type'].'\', ';
-                if ($fieldDef['Null'] == 'NO') {
-                    echo '\'NOT NULL\', ';
+                if (preg_match('/^_NBsys_/',$fieldDef['Field'])) {
+                    $useSysField = true;
                 } else {
-                    echo '\'NULL\', ';
+                    echo $delim.'            \''.$fieldDef['Field'].'\' => array(';
+                    echo '\''.$fieldDef['Type'].'\', ';
+                    if ($fieldDef['Null'] == 'YES') {
+                        echo '\'NULL\', ';
+                    } else {
+                        echo '\'NOT NULL\', ';
+                    }
+                    if ($fieldDef['Default'] !== NULL) {
+                        echo '\''.$fieldDef['Default'].'\', ';
+                    } else {
+                        echo 'null, ' ;
+                    }
+                    echo '\''.$fieldDef['Extra'].'\'';
+                    echo ')';
+                    $delim = ','."\n";
                 }
-                if ($fieldDef['Default'] !== NULL) {
-                    echo '\''.$fieldDef['Default'].'\', ';
-                } else {
-                    echo 'null, ' ;
-                }
-                echo '\''.$fieldDef['Extra'].'\'';
-                echo ')';
-                $delim = ','."\n";
             }
             echo "\n".'        )';
             if (count($this->mPrimaryKeys)>0) {
@@ -104,6 +109,9 @@ if (!class_exists('NBFrameTableDefAction')) {
                     $delim1 = ','."\n";
                 }
                 echo "\n".'        )';
+            }
+            if ($userSysField) {
+                echo ','."\n".'        \'usesys\' => true';
             }
             echo "\n".'    );'."\n";
             
