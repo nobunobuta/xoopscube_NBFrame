@@ -29,7 +29,9 @@ if (!class_exists('NBFrameAltSysAction')) {
             $_REQUEST['op'] = $this->mRequestedOp;
             $_GET['op'] = $this->mRequestedOp;
             $_POST['op'] = $this->mRequestedOp;
-            ob_start(array(&$this, '_cutHeader'));
+            if (!class_exists('XCube_Root')) {
+                ob_start(array(&$this, '_cutHeader'));
+            }
             if( file_exists( XOOPS_TRUST_PATH.'/libs/'.$lib.'/'.$page.'.php' ) ) {
                 include XOOPS_TRUST_PATH.'/libs/'.$lib.'/'.$page.'.php' ;
             } else if( file_exists( XOOPS_TRUST_PATH.'/libs/'.$lib.'/index.php' ) ) {
@@ -37,13 +39,15 @@ if (!class_exists('NBFrameAltSysAction')) {
             } else {
                 die( 'wrong request' ) ;
             }
-            ob_end_flush();
-            exit();
+            if (!class_exists('XCube_Root')) {
+                ob_end_flush();
+                exit();
+            }
         }
 
         // Hack For cutting Altsys Generated cp_header on XOOPS2.0.x
         function _cutHeader($str) {
-            if (class_exists(XCube_Root)) {
+            if (class_exists('XCube_Root')) {
                 return $str;
             } else {
                 $matches = preg_split('/\<div class=\'content\'><br \/>\n/',$str);
