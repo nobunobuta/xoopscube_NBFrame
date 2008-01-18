@@ -76,9 +76,6 @@ if (!class_exists('NBFrameLanguage')) {
                 if (defined('XOOPS_TRUST_PATH') && file_exists(XOOPS_TRUST_PATH. $fileOffset)) {
                     $languageFile = XOOPS_TRUST_PATH.$fileOffset;
                     require $languageFile;
-                } else if (file_exists(XOOPS_ROOT_PATH.'/common'.$fileOffset)) {
-                    $languageFile =  XOOPS_ROOT_PATH.'/common'.$fileOffset;
-                    require $languageFile;
                 }
             }
             if (!empty($languageFile)) {

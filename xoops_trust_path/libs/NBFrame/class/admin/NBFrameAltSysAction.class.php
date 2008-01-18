@@ -23,9 +23,7 @@ if (!class_exists('NBFrameAltSysAction')) {
             $page = preg_replace( '[^a-zA-Z0-9_-]' , '' , @$_GET['page'] ) ;
             $mydirname = $this->mEnvironment->mDirName;
             $mydirpath = $this->mEnvironment->mDirBase;
-            if (is_dir(XOOPS_ROOT_PATH. '/common/modules/'.$this->mEnvironment->mOrigDirName)) {
-                $mytrustdirpath = XOOPS_ROOT_PATH. '/common/modules/'.$this->mEnvironment->mOrigDirName;
-            } else if (!defined('XOOPS_TRUST_PATH') && is_dir(XOOPS_TRUST_PATH. '/modules/'.$this->mEnvironment->mOrigDirName)) {
+            if (!defined('XOOPS_TRUST_PATH') && is_dir(XOOPS_TRUST_PATH. '/modules/'.$this->mEnvironment->mOrigDirName)) {
                 $mytrustdirpath = XOOPS_TRUST_PATH. '/modules/'.$this->mEnvironment->mOrigDirName;
             }
             $_REQUEST['op'] = $this->mRequestedOp;

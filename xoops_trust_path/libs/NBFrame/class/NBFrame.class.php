@@ -573,8 +573,6 @@ if (!class_exists('NBFrame')) {
             $fileName = '';
             if (!empty($customPrefix) && file_exists(XOOPS_ROOT_PATH.'/modules/'.$dirName.'/'.$offset.$customPrefix.$name)){
                 $fileName = XOOPS_ROOT_PATH.'/modules/'.$dirName.'/'.$offset.$customPrefix.$name;
-            } else if (file_exists(XOOPS_ROOT_PATH.'/common/modules/'.$origDirName.'/'.$offset.$name)) {
-                $fileName = XOOPS_ROOT_PATH.'/common/modules/'.$origDirName.'/'.$offset.$name;
             } else if (defined('XOOPS_TRUST_PATH') && file_exists(XOOPS_TRUST_PATH.'/modules/'.$origDirName.'/'.$offset.$name)){
                 $fileName = XOOPS_TRUST_PATH.'/modules/'.$origDirName.'/'.$offset.$name;
             } else if ($searchCurrent && file_exists(XOOPS_ROOT_PATH.'/modules/'.$dirName.'/'.$offset.$name)){
