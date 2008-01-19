@@ -1,12 +1,15 @@
 <?php
-if (!class_exists('NBFrame')) exit();
 /**
-* Generic Table Manupulation XoopsObject class
+ * Generic Table Manupulation XoopsObject class
  *
- * @copyright copyright (c) 2004-2006 Kowa.ORG
- * @author Nobuki Kowa <Nobuki@Kowa.ORG>
- * @package NBFrameObject
+ * @package NBFrame
+ * @version $Id: admin.php,v 1.2 2007/06/24 07:26:21 nobunobu Exp $
+ * @copyright Copyright 2007 NobuNobuXOOPS Project <http://sourceforge.net/projects/nobunobuxoops/>
+ * @author NobuNobu <nobunobu@nobunobu.com>
+ * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
+ *
  */
+if (!class_exists('NBFrame')) exit();
 if(!class_exists('NBFrameObject')) {
     require_once XOOPS_ROOT_PATH.'/kernel/object.php';
 
