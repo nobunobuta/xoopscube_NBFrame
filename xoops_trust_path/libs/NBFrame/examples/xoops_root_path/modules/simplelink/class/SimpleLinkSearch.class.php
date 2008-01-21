@@ -8,8 +8,8 @@
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
  *
  */
-if(! class_exists('SimpleLinkSeach')) {
-    class SimpleLinkSeach {
+if(! class_exists('SimpleLinkSearch')) {
+    class SimpleLinkSearch {
         function search(&$environment, $queryarray, $andor, $limit, $offset, $userid)
         {
             $ret = array();
