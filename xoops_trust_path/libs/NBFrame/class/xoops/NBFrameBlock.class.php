@@ -26,7 +26,7 @@ if(!class_exists('NBFrameBlock')) {
 
         function &getVar_modules($value, $format) {
             if ($value === null) {
-                $blockModuleLinkHandler =& NBFrame::getHandler('NBFrame.xoops.BlockModuleLink', $this->mEnvironment);
+                $blockModuleLinkHandler =& NBFrame::getHandler('NBFrame.xoops.BlockModuleLink', NBFrame::null());
                 $criteria =& new Criteria('block_id', $this->get('bid'));
                 $resultSet = $blockModuleLinkHandler->open($criteria);
                 $value = array();

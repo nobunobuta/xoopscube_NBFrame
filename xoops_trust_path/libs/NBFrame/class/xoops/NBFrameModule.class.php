@@ -13,13 +13,20 @@ if(!class_exists('NBFrameModuleHandler')) {
         var $mTableName = 'modules';
         var $mUseModuleTablePrefix = false;
 
-        function &getByEnvironment(&$environment)
-        {
-            $dirName = $environment->mDirName;
+        function &getByDirname($dirName) {
             $criteria = new Criteria('dirname', $dirName);
             $objects = $this->getObjects($criteria);
             if (count($objects) > 0) {
                 $object =& $objects[0];
+            } else {
+                $object = null;
+            }
+            return $object;
+        }
+
+        function &getByEnvironment(&$environment) {
+            if (is_object($environment) && ($dirName = $environment->mDirName)) {
+                $object =& $this->getByDirname($dirName);
             } else {
                 $object = null;
             }

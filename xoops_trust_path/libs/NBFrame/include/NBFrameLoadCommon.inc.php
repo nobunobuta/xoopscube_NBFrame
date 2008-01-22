@@ -30,14 +30,14 @@ if (empty($_REQUEST['action']) || !in_array($_REQUEST['action'], $noCommonAction
         $root=&XCube_Root::getSingleton();
         $root->mController->executeCommonSubset(true);
 
-        $handler =& xoops_gethandler('config');
+        $configHandler =& NBFrame::getHandler('NBFrame.xoops.Config', NBFrame::null());
         $criteria =& new CriteriaCompo(new Criteria('conf_modid', 0));
-        $criteria->add(new Criteria('conf_catid', XOOPS_CONF));
+        $criteria->add(new Criteria('conf_catid', XOOPS_NB_CONF));
         $criteria->add(new Criteria('conf_name', 'language'));
-        $configs =& $handler->getConfigs($criteria);
-    
-        if (count($configs) > 0) {
-            $language = $configs[0]->get('conf_value', 'none');
+        $configObjects = $configHandler->getObjects($criteria);
+
+        if (count($configObjects) > 0) {
+            $language = $configObjects[0]->get('conf_value');
         }
 
         $filename = XOOPS_MODULE_PATH . '/legacy/language/' . $language . '/charset_' . XOOPS_DB_TYPE . '.php';

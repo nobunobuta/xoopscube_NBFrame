@@ -522,8 +522,8 @@ if (!class_exists('NBFrame')) {
                     if ($dirOnly) {
                         return true;
                     } else {
-                        $module_handler =& xoops_gethandler('module') ;
-                        if ($module_handler->getByDirname('altsys')) {
+                        $moduleHandler =& NBFrame::getHandler('NBFrame.xoops.Module', NBFrame::null());
+                        if ($moduleHandler->getByDirname('altsys')) {
                             return true;
                         }
                     }
