@@ -341,6 +341,16 @@ if (!class_exists('NBFrameObjectHandler')) {
                 $idValue=$this->db->getInsertId();
                 $record->assignVar($idField,$idValue);
             }
+            
+            if (count($record->mGroupPermAttrib)>0) {
+                $groupPermHandler =& NBFrame::getHandler('NBFrame.xoops.GroupPerm', NBFrame::null());
+                foreach ($record->mGroupPermAttrib as $field =>$permKey) {
+                    if (!$updateOnlyChanged || $vars[$field]['changed']) {
+                        $groups = $record->vars[$field]['value'];
+                        $groupPermHandler->setRightByObjectKey($permKey, $record, $groups);
+                    }
+                }
+            }
             $record->resetChenged();
             return true;
         }
@@ -383,6 +393,12 @@ if (!class_exists('NBFrameObjectHandler')) {
             $sql = sprintf("DELETE FROM %s WHERE %s", $this->mTableName, $whereList);
             if (!$result =& $this->query($sql, $force)) {
                 return false;
+            }
+            if (count($record->mGroupPermAttrib)>0) {
+                $groupPermHandler =& NBFrame::getHandler('NBFrame.xoops.GroupPerm', NBFrame::null());
+                foreach ($record->mGroupPermAttrib as $field =>$permKey) {
+                    $groupPermHandler->setRightByObjectKey($permKey, $record, array());
+                }
             }
             return true;
         }
@@ -617,11 +633,11 @@ if (!class_exists('NBFrameObjectHandler')) {
             }
         }
 
-        function &getSelectOptionArray($criteria=null, $gperm_mode='') {
+        function &getSelectOptionArray($criteria=null, $gperm_mode='', $bypassAdminCheck=false) {
             $resultSet =& $this->open($criteria);
             $optionArray = array();
             while($object =& $this->getNext($resultSet)) {
-                if (!empty($gperm_mode) && !$object->checkGroupPerm($gperm_mode)) {
+                if (!empty($gperm_mode) && !$object->checkGroupPerm($gperm_mode, $bypassAdminCheck)) {
                     continue;
                 }
                 $optionArray[$object->getKey()] = $object->getName();

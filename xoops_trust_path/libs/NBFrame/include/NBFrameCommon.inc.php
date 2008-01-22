@@ -41,17 +41,6 @@ if(!defined('NBFRAME_COMMON_FUNCTION_INCLUDED')){
         }
     }
 
-    function NBFrameCheckRight($gperm_name, $gperm_itemid) {
-        if (is_object($GLOBALS['xoopsUser'])) {
-            $groups = $GLOBALS['xoopsUser']->getGroups();
-        } else {
-            $groups = array(XOOPS_GROUP_ANONYMOUS);
-        }
-        $gpermHandler = xoops_gethandler('groupperm');
-        return $gpermHandler->checkRight($gperm_name, $gperm_itemid, 
-                                    $groups, $GLOBALS['xoopsModule']->getVar('mid'));
-    }
-    
     if (preg_match('/^4/',PHP_VERSION)) {
         include_once (dirname(__FILE__).'/NBFramePHP4.inc.php');
     } else {

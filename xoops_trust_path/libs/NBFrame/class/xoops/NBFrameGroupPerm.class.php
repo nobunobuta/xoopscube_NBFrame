@@ -39,7 +39,7 @@ if(!class_exists('NBFrameGroupPermHandler')) {
             return false;
         }
 
-        function checkRightByObjectKey($gpermName, &$gpermObject, $gpermGroupId=0)
+        function checkRightByObjectKey($gpermName, &$gpermObject, $bypassAdminCheck = false, $gpermGroupId=0)
         {
             if (is_object($gpermObject->mHandler)) {
                 $environment =& $gpermObject->mHandler->mEnvironment;
@@ -59,7 +59,7 @@ if(!class_exists('NBFrameGroupPermHandler')) {
                 $moduleObject =& $GLOBALS['xoopsModule'];
             }
             $moduleID = $moduleObject->get('mid');
-            return $this->checkRight($gpermName, $gpermObject->getKey(), $gpermGroupId, $moduleID, true);
+            return $this->checkRight($gpermName, $gpermObject->getKey(), $gpermGroupId, $moduleID, $bypassAdminCheck);
         }
 
         /**

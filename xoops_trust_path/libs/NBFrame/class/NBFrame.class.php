@@ -541,11 +541,11 @@ if (!class_exists('NBFrame')) {
         function getAdminMenu($environment) {
             $languageManager =& NBFrame::getLanguageManager(NBFRAME_TARGET_TEMP);
             $adminmenu = array();
+            if ($environment->getAttribute('UseBlockAdmin')) {
+                $adminmenu[] = array('title' => $languageManager->__l('Block Admin'),
+                                     'link'  => '?action=NBFrame.admin.BlocksAdmin' );
+            }
             if (NBFrame::checkAltSys(false)&&$environment->getAttribute('UseAltSys')) {
-                if ($environment->getAttribute('UseBlockAdmin')) {
-                    $adminmenu[] = array('title' => $languageManager->__l('Block Admin'),
-                                         'link'  => '?action=NBFrame.admin.AltSys&page=myblocksadmin' );
-                }
                 if ($environment->getAttribute('UseTemplateAdmin')) {
                     $adminmenu[] = array('title' => $languageManager->__l('Template Admin'),
                                          'link'  => '?action=NBFrame.admin.AltSys&page=mytplsadmin' );
@@ -553,11 +553,6 @@ if (!class_exists('NBFrame')) {
                 if ($environment->getAttribute('UseLanguageAdmin')) {
                     $adminmenu[] = array('title' => $languageManager->__l('Language Admin'),
                                          'link'  => '?action=NBFrame.admin.AltSys&page=mylangadmin' );
-                }
-            } else {
-                if ($environment->getAttribute('UseBlockAdmin')) {
-                    $adminmenu[] = array('title' => $languageManager->__l('Block Admin'),
-                                         'link'  => '?action=NBFrame.admin.BlocksAdmin' );
                 }
             }
             return $adminmenu;
@@ -589,6 +584,17 @@ if (!class_exists('NBFrame')) {
             }
             $fileNames[$offset][$name] = $fileName;
             return $fileName;
+        }
+        
+        function checkRight($gperm_name, $gperm_itemid=1, $bypassAdminCheck = false) {
+            if (is_object($GLOBALS['xoopsUser'])) {
+                $groups = $GLOBALS['xoopsUser']->getGroups();
+            } else {
+                $groups = array(XOOPS_GROUP_ANONYMOUS);
+            }
+            $groupPermHandler =& NBFrame::getHandler('NBFrame.xoops.GroupPerm', NBFrame::null());
+            return $groupPermHandler->checkRight($gperm_name, $gperm_itemid, 
+                                        $groups, $GLOBALS['xoopsModule']->getVar('mid'), $bypassAdminCheck);
         }
         
         function &null()

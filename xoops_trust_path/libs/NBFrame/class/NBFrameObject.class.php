@@ -35,6 +35,7 @@ if(!class_exists('NBFrameObject')) {
         var $mClassName;
         var $mUseSystemField = false;
         var $mVerifier = array();
+        var $mGroupPermAttrib = array();
 
         function NBFrameObject() {
             //親クラスのコンストラクタ呼出
@@ -60,6 +61,11 @@ if(!class_exists('NBFrameObject')) {
             if (isset($this->vars[$verifyField])) {
                 $this->mVerifier[$verifyField] = $verifyInput;
             }
+        }
+
+        function setGroupPermAttrib($perm, $prefix='perm_') {
+            $this->setAttribute($prefix.$perm, array(), XOBJ_DTYPE_CUSTOM);
+            $this->mGroupPermAttrib[$prefix.$perm] = $perm;
         }
 
         function enableVerify() {
@@ -260,6 +266,9 @@ if(!class_exists('NBFrameObject')) {
                 $getMethod = 'getVar_'.$key;
                 if(method_exists($this, $getMethod)) {
                     $ret =& $this->$getMethod($this->vars[$key]['value'],$format);
+                } else if (in_array($key, array_keys($this->mGroupPermAttrib))) {
+                    $groupPermHandler =& NBFrame::getHandler('NBFrame.xoops.GroupPerm', NBFrame::null());
+                    $ret = $groupPermHandler->getGroupIdsByObjectKey($this->mGroupPermAttrib[$key], $this);
                 } else {
                     $this->vars[$key]['data_type'] = XOBJ_DTYPE_TXTBOX;
                     $ret =& parent::getVar($key, $format);
@@ -274,19 +283,13 @@ if(!class_exists('NBFrameObject')) {
             return $ret;
         }
 
-        function checkGroupPerm($mode) {
-            foreach ($this->vars as $k => $v) {
-                $value = $v['value'];
-                //個別の変数権限チェックがあれば実行;
-                $checkMethod = 'checkGroupPerm_'.$k;
-                if(method_exists($this, $checkMethod)) {
-                    $this->$checkMethod($value, $mode);
-                }
-            }
-            if (count($this->getErrors()) > 0) {
-                return false;
-            }
+        function checkGroupPerm($mode, $bypassAdminCheck=false) {
             return true;
+        }
+
+        function checkRight($perm, $bypassAdminCheck=false) {
+            $groupPermHandler =& NBFrame::getHandler('NBFrame.xoops.GroupPerm', NBFrame::null());
+            return $groupPermHandler->checkRightByObjectKey($perm, $this, $bypassAdminCheck);
         }
 
         function cleanVars() {
@@ -365,7 +368,6 @@ if(!class_exists('NBFrameObject')) {
                 $this->setVar($k, $wp_object->$k, true);
             }
         }
-
     }
 }
 ?>

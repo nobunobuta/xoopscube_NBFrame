@@ -83,7 +83,7 @@ if (!class_exists('NBFrameAction')) {
         }
 
         function _actionDispatch() {
-            if (!empty($this->mExecutePermission) && !NBFrameCheckRight($this->mExecutePermission, 1)) {
+            if (!empty($this->mExecutePermission) && !NBFrame::checkRight($this->mExecutePermission)) {
                 $this->mErrorMsg = $this->__e('Permission Error');
                 return NBFRAME_ACTION_ERROR;
             }
@@ -178,7 +178,7 @@ if (!class_exists('NBFrameAction')) {
         }
 
         function executeActionError() {
-            redirect_header($this->mUrl, 2, $this->mErrorMsg,2);
+            redirect_header($this->mEnvironment->mUrlBase, 2, $this->mErrorMsg,2);
         }
 
         function __l($msg) {

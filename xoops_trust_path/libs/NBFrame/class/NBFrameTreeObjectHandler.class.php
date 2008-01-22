@@ -64,12 +64,12 @@ if(!class_exists('NBFrameTreeObjectHandler')) {
             return $criteria;
         }
 
-        function getSelectOptionArray($criteria=null, $gperm_mode='', $padChar='&#8211;')
+        function getSelectOptionArray($criteria=null, $gperm_mode='', $bypassAdminCheck=false, $padChar='&#8211;')
         {
-            $objects =& $this->getNestedObjects($criteria);
+            $objects =& $this->getNestedObjects($criteria, $padChar);
             $optionArray = array();
             foreach ($objects as $object) {
-                if (!empty($gperm_mode) && !$object->checkGroupPerm($gperm_mode)) {
+                if (!empty($gperm_mode) && !$object->checkGroupPerm($gperm_mode, $bypassAdminCheck)) {
                     continue;
                 }
                 $optionArray[$object->getKey()] = $object->getName();

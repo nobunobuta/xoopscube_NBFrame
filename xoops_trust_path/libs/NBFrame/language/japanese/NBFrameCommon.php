@@ -26,6 +26,7 @@
    $GLOBALS['NBFrameLanguage']['This record may have been updated by somebody'] = '既に別の人が同じレコードを更新したようです。確認して下さい。';
 
    $GLOBALS['NBFrameLanguage']['Block Admin'] = 'ブロック管理';
+   $GLOBALS['NBFrameLanguage']['GroupPerm Admin'] = '権限管理';
    $GLOBALS['NBFrameLanguage']['Side'] = '表示サイド';
    $GLOBALS['NBFrameLanguage']['Weight'] = '並び順';
    $GLOBALS['NBFrameLanguage']['Visible'] = '表示/非表示';
@@ -41,8 +42,14 @@
    $GLOBALS['NBFrameLanguage']['Center block - left'] = '中央ブロック - 左';
    $GLOBALS['NBFrameLanguage']['Right block'] = '右ブロック';
    $GLOBALS['NBFrameLanguage']['Left block'] = '左ブロック';
+   $GLOBALS['NBFrameLanguage']['Permission'] = '権限';
+   $GLOBALS['NBFrameLanguage']['Group'] = 'グループ';
 
    $GLOBALS['NBFrameLanguage']['Template Admin'] = 'テンプレート管理';
    $GLOBALS['NBFrameLanguage']['Language Admin'] = '言語定数管理';
-
+   $GLOBALS['NBFrameLanguage']['Group Perm module_read'] = 'モジュールアクセス権限';
+   $GLOBALS['NBFrameLanguage']['Group Perm module_admin'] = 'モジュール管理権限';
+   $GLOBALS['NBFrameLanguage']['block show permission'] = 'ブロックの表示権限';
+   $GLOBALS['NBFrameLanguage']['Module Dependent Permission'] = 'モジュール固有の権限';
+   $GLOBALS['NBFrameLanguage']['Block Showing Permission'] = 'ブロック表示権限';
 ?>

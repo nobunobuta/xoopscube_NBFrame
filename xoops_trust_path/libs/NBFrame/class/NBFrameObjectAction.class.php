@@ -89,6 +89,8 @@ if (!class_exists('NBFrameObjectAction')) {
         var $mHalfAutoForm = false;
         var $mHalfAutoList = false;
         
+        var $mBypassAdminCheck = true;
+        
         function prepare($classprefix, $name, $caption) {
             parent::prepare();
             $this->mDefaultOp = 'edit';
@@ -163,7 +165,7 @@ if (!class_exists('NBFrameObjectAction')) {
 
         function _showForm(&$object, $caption, $errmsg='') {
             if (is_object($object)) {
-                if (!$object->checkGroupPerm('write')) {
+                if (!$object->checkGroupPerm('write', $this->mBypassAdminCheck)) {
                     $this->mErrorMsg = $this->__e('Permission Error');
                     return NBFRAME_ACTION_ERROR;
                 }
@@ -217,7 +219,7 @@ if (!class_exists('NBFrameObjectAction')) {
                 
                 $object->SetRequestVars($this->mRequest);
                 
-                if (!$object->checkGroupPerm('write')) {
+                if (!$object->checkGroupPerm('write', $this->mBypassAdminCheck)) {
                     $this->mErrorMsg = $this->__e('Permission Error');
                     return NBFRAME_ACTION_ERROR;
                 }
@@ -238,7 +240,7 @@ if (!class_exists('NBFrameObjectAction')) {
                 return NBFRAME_ACTION_ERROR;
             }
             $object =& $this->mObjectHandler->get($key);
-            if (!$object->checkGroupPerm('write')) {
+            if (!$object->checkGroupPerm('write', $this->mBypassAdminCheck)) {
                 $this->mErrorMsg = $this->__e('Permission Error');
                 return NBFRAME_ACTION_ERROR;
             }
@@ -259,7 +261,7 @@ if (!class_exists('NBFrameObjectAction')) {
                 return NBFRAME_ACTION_ERROR;
             }
             $object =& $this->mObjectHandler->get($key);
-            if (is_object($object)) {                if (!$object->checkGroupPerm('write')) {
+            if (is_object($object)) {                if (!$object->checkGroupPerm('write', $this->mBypassAdminCheck)) {
                     $this->mErrorMsg = $this->__e('Permission Error');
                     return NBFRAME_ACTION_ERROR;
                 }
@@ -308,7 +310,7 @@ if (!class_exists('NBFrameObjectAction')) {
 
         function executeViewOp() {
             if (isset($_GET[$this->mObjectKeyField])) {                if ($object =& $this->mObjectHandler->get(intval($_GET[$this->mObjectKeyField]))) {
-                    if (!$object->checkGroupPerm('read')) {
+                    if (!$object->checkGroupPerm('read', $this->mBypassAdminCheck)) {
                         $this->mErrorMsg = $this->__e('Permission Error');
                         return NBFRAME_ACTION_ERROR;
                     }
