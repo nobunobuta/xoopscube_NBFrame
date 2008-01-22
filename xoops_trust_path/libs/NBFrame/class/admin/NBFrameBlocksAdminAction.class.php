@@ -2,7 +2,7 @@
 /**
  *
  * @package NBFrame
- * @version $Id: admin.php,v 1.2 2007/06/24 07:26:21 nobunobu Exp $
+ * @version $Id$
  * @copyright Copyright 2007 NobuNobuXOOPS Project <http://sourceforge.net/projects/nobunobuxoops/>
  * @author NobuNobu <nobunobu@nobunobu.com>
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
@@ -20,6 +20,11 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
         var $mName;
         var $mCaption;
         var $mErrorMsg = '';
+        var $mGroupPermSysKeys = array('module_read', 'module_admin');
+        var $mGroupPermModuleKeys = array();
+        var $mGroupPermSysArray = array();
+        var $mGroupPermModuleArray = array();
+        var $mGroupPermBlockArray = array();
 
         function NBFrameBlocksAdminAction(&$environment) {
             parent::NBFrameObjectAction($environment);
@@ -28,32 +33,81 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
         }
 
         function prepare() {
-            $this->mObjectHandler =& NBFrame::getHandler('NBFrame.xoops.Block', $this->mEnvironment);
+            $this->mObjectHandler =& NBFrame::getHandler('NBFrame.xoops.Block', NBFrame::null());
 
             parent::prepare('NBFrameBlocksAdmin','NBFrameBlocksAdmin',$this->__l('Block Admin'));
 
             $this->mDefaultOp = 'list';
-            $this->mAllowedOp = array('list', 'edit', 'delete', 'deleteok', 'clone', 'order', 'save', 'insert',);
+            $this->mAllowedOp = array('list', 'edit', 'delete', 'deleteok', 'clone', 'order', 'save', 'insert','gperm');
             $this->mFormTemplate = 'admin/NBFrameAdminForm.html';
             $this->setObjectForm('NBFrame.admin.BlocksAdmin');
             $this->mListTemplate = 'admin/NBFrameAdminBlocksAdmin.html';
+            
+            if (($groupPermArray = $this->mEnvironment->getAttribute('ModuleGroupPermKeys'))&&is_array($groupPermArray)) {
+                $this->mGroupPermModuleKeys = $groupPermArray;
+            }
         }
 
         function executeListOp() {
-            $criteria =& new Criteria('mid', $GLOBALS['xoopsModule']->getVar( 'mid' ));
+            $mid = $GLOBALS['xoopsModule']->getVar('mid');
+            $criteria =& new Criteria('mid', $mid);
             $criteria->setSort(array(
                                  array('sort'=>'visible', 'order'=>'DESC'),
                                  array('sort'=>'side', 'order'=>'ASC'),
                                  array('sort'=>'weight', 'order'=>'ASC'),
                               ));
             $this->mObjects =& $this->mObjectHandler->getObjects($criteria);
+            
+            $groupPermHandler =& NBFrame::getHandler('NBFrame.xoops.GroupPerm', NBFrame::null());
+
+            foreach($this->mGroupPermSysKeys as $groupPermKey) {
+                $this->mGroupPermSysArray[$groupPermKey] = $groupPermHandler->getGroupIds($groupPermKey, $mid, 1);
+            }
+
+            foreach($this->mGroupPermModuleKeys as $groupPermKey) {
+                $this->mGroupPermModuleArray[$groupPermKey] = $groupPermHandler->getGroupIds($groupPermKey, 1, $mid);
+            }
+            
+            foreach($this->mObjects as $object) {
+                $bid = $object->getKey();
+                $this->mGroupPermBlockArray[$bid]['groups'] = $groupPermHandler->getGroupIds('block_read', $bid, 1);
+                $this->mGroupPermBlockArray[$bid]['name'] = $object->getVar('title');
+            }
+            
             return NBFRAME_ACTION_VIEW_DEFAULT;
+        }
+
+        function executeGpermOp() {
+            $mid = $GLOBALS['xoopsModule']->getVar('mid');
+            $criteria =& new Criteria('mid', $mid);
+            $this->mObjects =& $this->mObjectHandler->getObjects($criteria);
+
+            $groupPermHandler =& NBFrame::getHandler('NBFrame.xoops.GroupPerm', NBFrame::null());
+            foreach($this->mGroupPermSysKeys as $groupPermKey) {
+                $this->mRequest->defParam('gperm_'.$groupPermKey, 'POST', 'array-int', array());
+                $groups = $this->mRequest->getParam('gperm_'.$groupPermKey);
+                $groupPermHandler->setRight($groupPermKey, $mid, $groups, 1);
+            }
+            foreach($this->mGroupPermModuleKeys as $groupPermKey) {
+                $this->mRequest->defParam('gperm_'.$groupPermKey, 'POST', 'array-int', array());
+                $groups = $this->mRequest->getParam('gperm_'.$groupPermKey);
+                $groupPermHandler->setRight($groupPermKey, 1, $groups, $mid);
+            }
+            foreach($this->mObjects as $object) {
+                $bid = $object->getKey();
+                $this->mRequest->defParam('gperm_block_read_'.$bid, 'POST', 'array-int', array());
+                $groups = $this->mRequest->getParam('gperm_block_read_'.$bid);
+                $groupPermHandler->setRight('block_read', $bid, $groups, 1);
+            }
+            
+            return NBFRAME_ACTION_SUCCESS;
         }
 
         function viewListOp() {
             if(!empty($this->mObjects)) {
                 $this->_listblocks() ;
             }
+            $this->_listgperm();
         }
 
         function viewFormOp() {
@@ -97,7 +151,7 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
         function executeCloneOp() {
             if (isset($_GET[$this->mObjectKeyField])) {                $old_object =& $this->mObjectHandler->get(intval($_GET[$this->mObjectKeyField]));
                 $object =& $this->mObjectHandler->create();
-                $object->set($old_object->getVarArray('n'));
+                $object->setVars($old_object->getVarArray('n'));
                 return $this->_showForm($object, $this->__l('Clone'));
             } else {
                 $this->mErrorMsg = $this->__e('Invalid Request');
@@ -114,6 +168,7 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
             }
             $object =& $this->mObjectHandler->create();
             $object->setVars($old_object->getVarArray('n'), true);
+            $object->set('c_type', 1);
             $object->set('bid', 0);
             $object->set('block_type', $block_type == 'C' ? 'C' : 'D' );
             $object->set('func_num', 255);
@@ -196,6 +251,31 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
                 $blocks[] = $block;
             }
             $this->mXoopsTpl->assign('blocks', $blocks);
+        }
+
+        function _listgperm() {
+            $gperm['sys'] = array();
+            foreach($this->mGroupPermSysArray as $key=>$value) {
+                $gperm['sys'][] = $this->_getGroupSelectList($key, $value);
+            }
+            $gperm['block'] = array();
+            foreach($this->mGroupPermBlockArray as $key=>$value) {
+                $gperm['block'][] = $this->_getGroupSelectList('block_read_'.$key, $value['groups'],$value['name'].' '.$this->__l('block show permission'));
+            }
+            $gperm['module'] = array();
+            foreach($this->mGroupPermModuleArray as $key=>$value) {
+                $gperm['module'][] = $this->_getGroupSelectList($key, $value);
+            }
+            $this->mXoopsTpl->assign('gperm', $gperm);
+        }
+        function _getGroupSelectList($name, $groups, $caption='') {
+            if (empty($caption)) {
+                $caption = $this->__l('Group Perm '.$name);
+            }
+            $element =& new XoopsFormSelectGroup($caption, 'gperm_'.$name, true, $groups, 5, true);
+            $result = array('caption' => $caption, 'html'=>$element->render());
+            unset($element);
+            return $result;
         }
     }
 }

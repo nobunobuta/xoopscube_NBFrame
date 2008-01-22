@@ -68,3 +68,47 @@
     </tr>
   </table>
 </form>
+<h4><{"GroupPerm Admin"|__l}></h4>
+<form action="?action=NBFrame.admin.BlocksAdmin" name="blockadmin" method="post">
+  <table width="95%" class="outer" cellpadding="4" cellspacing="1">
+    <tr valign="middle">
+      <th align="center" nowrap="nowrap"><{"Permission"|__l}></th>
+      <th align="center"><{"Group"|__l}></th>
+    </tr>
+<{foreach item=output from=$gperm.sys}>
+    <tr class="<{cycle values="odd,even"}>" valign="middle">
+    	<td><{$output.caption}></td><td><{$output.html}></td>
+    </tr>
+<{/foreach}>
+<{if $gperm.module}>
+    <tr>
+    <td class="foot" valign="middle" align="center" colspan="2">
+    <{"Module Dependent Permission"|__l}>
+    </td>
+	</tr>
+<{foreach item=output from=$gperm.module}>
+    <tr class="<{cycle values="odd,even"}>" valign="middle">
+    	<td><{$output.caption}></td><td><{$output.html}></td>
+    </tr>
+<{/foreach}>
+<{/if}>
+<{if $gperm.block}>
+    <tr>
+    <td class="foot" valign="middle" align="center" colspan="2">
+    <{"Block Showing Permission"|__l}>
+    </td>
+	</tr>
+<{foreach item=output from=$gperm.block}>
+    <tr class="<{cycle values="odd,even"}>" valign="middle">
+    	<td><{$output.caption}></td><td><{$output.html}></td>
+    </tr>
+<{/foreach}>
+<{/if}>
+    <tr>
+        <td class="foot" align="center" colspan="2">
+            <input type="hidden" name="op" value="gperm" />
+            <input type="submit" name="submit" value="<{"Submit"|__l}>" />
+        </td>
+    </tr>
+  </table>
+</form>
