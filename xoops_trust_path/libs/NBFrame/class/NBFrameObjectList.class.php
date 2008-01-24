@@ -20,7 +20,7 @@ if (!class_exists('NBFrameObjectList')) {
         var $mListRecords;
 
         function NBFrameObjectList($environment) {
-            $this->mLanguage =& NBFrame::getLanguageManager();
+            $this->mLanguage =& NBFrameBase::getLanguageManager();
             $this->mEnvironment = $environment;
         }
         
@@ -125,9 +125,7 @@ if (!class_exists('NBFrameObjectList')) {
 
         // Special List Item '__SimpleEditLink__'
         function extraItem___SimpleEditLink__(&$object,$element) {
-            $objectKey = $object->getKeyFields();
-            $objectKey = $objectKey[0];
-            $key = $object->getVar($objectKey);
+            $key = $object->getKey();
             if (!empty($this->mAction)) {
                 $item['link'] = $this->mAction->addUrlParam('op=edit&amp;'.$objectKey.'='.$key);
             } else {
@@ -141,9 +139,7 @@ if (!class_exists('NBFrameObjectList')) {
 
         // Special List Item '__SimpleDeleteLink__'
         function extraItem___SimpleDeleteLink__(&$object,$element) {
-            $objectKey = $object->getKeyFields();
-            $objectKey = $objectKey[0];
-            $key = $object->getVar($objectKey);
+            $key = $object->getKey();
             if (!empty($this->mAction)) {
                 $item['link'] = $this->mAction->addUrlParam('op=delete&amp;'.$objectKey.'='.$key);
             } else {

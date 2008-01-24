@@ -20,14 +20,16 @@ if (!class_exists('NBFrame')) {
 
     class NBFrame {
         /**
-         * Declaration of NBFrame Class
+         * Declaration of NBFrame Using Class
          *
          * @param string $className
          * @param NBFrameEnvironment $environment  if null, using NBFrame core classes;
          * @param string $classType
+         *
          */
         function using($className, $environment=null, $classType='class') {
-            if (substr($className, 0, 1) == '+') { // if $className starts with '+', custom Override is disabled.
+            // if $className starts with '+', custom Override is disabled.
+            if (substr($className, 0, 1) == '+') {
                 $noCustom = true;
                 $className = substr($className, 1);
             } else {
@@ -53,50 +55,27 @@ if (!class_exists('NBFrame')) {
                 if ($fileName) require_once $fileName;
             }
         }
-        
+
         /**
-         * Pre Preparing in NBFrameLoader
+         * Create or Return Environment of Specified Target
          *
-         * @param string $currentDirBase
+         * @param int     $target
+         * @param boolean $force (True: create a new environment if not exists)
+         *
          */
-        function prePrepare($currentDirBase) {
-            $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_TEMP, true);
-            $environment->setDirBase($currentDirBase);
-        }
-
-        function &prepare($origDirName='', $target=NBFRAME_TARGET_MAIN) {
-            $envtemp =& NBFrame::getEnvironments(NBFRAME_TARGET_TEMP);
-            if (!empty($envtemp)) {
-                $environment =& NBFrame::getEnvironments($target, true);
-                if (!empty($origDirName)) {
-                    $environment->setOrigDirName($origDirName);
-                } else {
-                    $environment->setOrigDirName($envtemp->mOrigDirName);
-                }
-                $environment->setDirBase($envtemp->mDirBase);
-                $environment->mAttributeArr = $envtemp->mAttributeArr;
-                if ($target != NBFRAME_TARGET_MAIN) {
-                    NBFrame::getLanguageManager($target);
-                }
-            } else {
-                $environment = null;
-            }
-            return $environment;
-        }
-
-        function &getEnvironments($target=NBFRAME_TARGET_MAIN, $force = false) {
+        function &getEnvironments($target=NBFRAME_TARGET_MAIN, $forceCreate = false) {
             static $mEnvironmentArr;
             if ($target == NBFRAME_TARGET_SYS) {
                 $ret = null;
             } else if (isset($mEnvironmentArr[$target])) {
-                if ($target == NBFRAME_TARGET_TEMP && $force) {
+                if ($target == NBFRAME_TARGET_TEMP && $forceCreate) {
                     unset($mEnvironmentArr[$target]);
                     NBFrame::using('Environment');
                     $mEnvironmentArr[$target] =& new NBFrameEnvironment();
                     $mEnvironmentArr[$target]->mTarget = $target;
                 }
                 $ret =& $mEnvironmentArr[$target];
-            } else if ($force) {
+            } else if ($forceCreate) {
                 NBFrame::using('Environment');
                 $mEnvironmentArr[$target] =& new NBFrameEnvironment();
                 $mEnvironmentArr[$target]->mTarget = $target;
@@ -111,10 +90,12 @@ if (!class_exists('NBFrame')) {
          * Enter description here...
          *
          * @param string $origDirName
-         * @param string $className
+         * @param string $defaultAction
+         * @param string $defaultAction
+         *
          */
         function executeAction($origDirName='', $defaultAction='', $allowedAction=array()) {
-            $environment =& NBFrame::prepare($origDirName);
+            $environment =& NBFrameBase::prepare($origDirName);
             if (empty($defaultAction)) {
                 $defaultAction = $environment->getAttribute('ModueleMainAction');
                 if (empty($allowedAction)) {
@@ -144,15 +125,15 @@ if (!class_exists('NBFrame')) {
                 $requestAction = '';
                 $className = $defaultAction;
             }
-            if (NBFrame::checkAltSys() && 
+            if (NBFrameBase::checkAltSys() && 
                 isset($_GET['lib']) && ($_GET['lib']=='altsys') && 
                 isset($_GET['page'])) {
                 $className = 'NBFrame.admin.AltSys';
             }
-            if (($environment->getAttribute('AutoUpdateMode')===true) && !NBFrame::isNoCommonAction($className, $environment)) {
+            if (($environment->getAttribute('AutoUpdateMode')===true) && !NBFrameBase::isNoCommonAction($className, $environment)) {
                 $info = $GLOBALS['xoopsModule']->getInfo();
 
-                $installHelper =& NBFrame::getInstallHelper();
+                $installHelper =& NBFrameBase::getInstallHelper();
                 $installHelper->postUpdateProcessforDuplicate(true);
             }
             if ($action =& NBFrame::getInstance($className, $environment, 'Action')) {
@@ -270,160 +251,11 @@ if (!class_exists('NBFrame')) {
                 } else {
                     $target = 0;
                 }
-                $ret->mLanguage =& NBFrame::getLanguageManager($target);
+                $ret->mLanguage =& NBFrameBase::getLanguageManager($target);
             } else {
                 $ret =& $mHandlerArr[$key];
             }
             return $ret;
-        }
-
-        function &getLanguageManager($target=NBFRAME_TARGET_MAIN) {
-            static $mLanguageArr;
-            NBFrame::using('Language');
-            if (!empty($target)) {
-                $environment =& NBFrame::getEnvironments($target);
-                $dirName = $environment->mDirName;
-            } else {
-                $dirName = '_NB_System_';
-            }
-            if (empty($mLanguageArr[$dirName][$target])) {
-                $mLanguageArr[$dirName][$target] =& new NBFrameLanguage($target);
-            }
-            return $mLanguageArr[$dirName][$target];
-        }
-
-        // Utilitiy Functions for Install Module
-
-        function &getXoopsVersionFileName($origDirName) {
-            $environment =& NBFrame::prepare($origDirName, NBFRAME_TARGET_INSTALLER);
-            $fileName= NBFrame::findFile('xoops_version.php', $environment, '', false);
-            return $fileName;
-        }
-        
-        function &getInstallHelper() {
-            static $mInstallHelperArr;
-
-            $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
-            $dirname = $environment->mDirName;
-            $origname = $environment->mOrigDirName;
-
-            if (!isset($mInstallHelperArr[$dirname])) {
-                NBFrame::using('InstallHelper');
-                $mInstallHelperArr[$dirname] =& new NBFrameInstallHelper($dirname, $origname);
-            }
-            return $mInstallHelperArr[$dirname];
-        }
-
-        function parseXoopsVerionFile(&$modversion) {
-            $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
-
-            $modversion['name'] .= ' ['.$environment->mDirName.']';
-            $modversion['dirname'] = $environment->mDirName;
-            if (!empty($modversion['image'])) {
-                $modversion['image'] = '?action=NBFrame.GetModuleIcon&file='.basename($modversion['image']);
-            } else {
-                $modversion['image'] = '?action=NBFrame.GetModuleIcon';
-            }
-
-            if (@$modversion['hasAdmin']){
-                $modversion['adminindex'] = 'index.php?action='.$environment->getAttribute('AdminMainAction');
-                $modversion['adminmenu'] = 'include/NBFrameAdminMenu.inc.php';
-            }
-            // SubMenu Settings
-            if ($fname = NBFrame::findFile('sub_menu.inc.php',$environment, '/include', false, $environment->mOrigDirName)) {
-                include $fname;
-            }
-            // Table Settings
-            if ($fname = NBFrame::findFile('tabledef.inc.php',$environment, '/include', false, $environment->mOrigDirName)) {
-                include $fname;
-                $modversion['tables'] = array();
-                foreach($tableDef[$environment->mOrigDirName] as $key =>$value) {
-                    $modversion['tables'][] = $environment->mDirName.'_'.$key;
-                }
-            }
-            // Template Settings
-            $tempaltePath = NBFrame::findFile('templates',$environment, '');
-            $templateFiles = glob($tempaltePath.'/*.html');
-            $i = 1;
-            unset($modversion['templates']);
-            foreach ($templateFiles as $templateFile) {
-                $modversion['templates'][$i] = array('file'=>$environment->prefix(basename($templateFile)), 'desc'=>'');
-                $i++;
-            }
-            if (isset($modversion['blocks'])){
-                foreach($modversion['blocks'] as $key=>$block) {
-                    $modversion['blocks'][$key]['file'] = 'NBFrameBlockLoader.php';
-                    if (isset($block['template'])) {
-                        $modversion['blocks'][$key]['template'] = $environment->prefix($block['template']);
-                    }
-                    if (isset($block['class'])) {
-                        $modversion['blocks'][$key]['NBclass'] = $block['class'];
-                        unset($modversion['blocks'][$key]['class']);
-                        if (isset($block['show_func'])) {
-                            $modversion['blocks'][$key]['NBShowMethod'] = $modversion['blocks'][$key]['show_func'];
-                            $modversion['blocks'][$key]['show_func'] = $environment->prefix('b_'.$modversion['blocks'][$key]['NBclass'].'_'.$block['show_func']);
-                        }
-                        if (isset($block['edit_func'])) {
-                            $modversion['blocks'][$key]['NBEditMethod'] = $modversion['blocks'][$key]['edit_func'];
-                            $modversion['blocks'][$key]['edit_func'] = $environment->prefix('b_'.$modversion['blocks'][$key]['NBclass'].'_'.$block['edit_func']);
-                        }
-                    } else {
-                        if (isset($block['show_func'])) {
-                            if (preg_match('/^b_(.*)_show$/', $block['show_func'], $matches)) {
-                                $modversion['blocks'][$key]['NBclass'] = $matches[1];
-                                $modversion['blocks'][$key]['NBShowMethod'] = 'show';
-                            }
-                            $modversion['blocks'][$key]['show_func'] = $environment->prefix($block['show_func']);
-                        }
-                        if (isset($block['edit_func'])) {
-                            if (preg_match('/^b_(.*)_edit$/', $block['edit_func'], $matches)) {
-                                $modversion['blocks'][$key]['NBclass'] = $matches[1];
-                                $modversion['blocks'][$key]['NBEditMethod'] = 'edit';
-                            }
-                            $modversion['blocks'][$key]['edit_func'] = $environment->prefix($block['edit_func']);
-                        }
-                    }
-                    if (isset($block['show_func'])) {
-                        $GLOBALS['_NBBlockFuncInfo'][$environment->mDirName][$modversion['blocks'][$key]['show_func']]['class'] = $modversion['blocks'][$key]['NBclass'];
-                        $GLOBALS['_NBBlockFuncInfo'][$environment->mDirName][$modversion['blocks'][$key]['show_func']]['method'] = $modversion['blocks'][$key]['NBShowMethod'];
-                    }
-                    if (isset($modversion['blocks'][$key]['edit_func'])) {
-                        $GLOBALS['_NBBlockFuncInfo'][$environment->mDirName][$modversion['blocks'][$key]['edit_func']]['class'] = $modversion['blocks'][$key]['NBclass'];
-                        $GLOBALS['_NBBlockFuncInfo'][$environment->mDirName][$modversion['blocks'][$key]['edit_func']]['method'] = $modversion['blocks'][$key]['NBEditMethod'];
-                    }
-                }
-            }
-            if (!empty($modversion['hasSearch'])){
-                if (isset($modversion['search']['class'])) {
-                    if (isset($modversion['search']['func'])) {
-                        $class = $modversion['search']['class'];
-                        $method = 'search';
-                        if (isset($modversion['search']['func'])) {
-                            $method = $modversion['search']['func'];
-                        }
-                    }
-                } else {
-                    if (isset($modversion['search']['func'])) {
-                        $class = $modversion['search']['func'];
-                        $method = 'show';
-                    }
-                }
-                $modversion['search']['func'] = $environment->prefix($class.'_'.$method);
-                $modversion['search']['file'] = 'include/NBFrameSearchLoader.php';
-
-                $GLOBALS['_NBSearchFuncInfo'][$environment->mDirName]['class'] = $class;
-                $GLOBALS['_NBSearchFuncInfo'][$environment->mDirName]['method'] = $method;
-            }
-
-            NBFrame::_prepareCustomInstaller($modversion);
-
-            $installHelper =& NBFrame::getInstallHelper();
-            if ($installHelper->isPreModuleUpdate() && !$installHelper->isPreModuleUpdateDone() ) {
-                $installHelper->preUpdateProcessforDuplicate();
-                if(!defined('XOOPS_CUBE_LEGACY')) {
-                    $installHelper->preBlockUpdateProcess($modversion);
-                }
-            }
         }
 
         function langConstPrefix($prefix='',$target=NBFRAME_TARGET_MAIN) {
@@ -440,62 +272,6 @@ if (!class_exists('NBFrame')) {
                 return '_'.$prefix.'_'.strtoupper($dirname).'_';
             } else {
                 return '_'.strtoupper($dirname).'_';
-            }
-        }
-
-        function _prepareCustomInstaller(&$modversion) {
-            $installHelper =& NBFrame::getInstallHelper();
-            if (isset($modversion['NBFrameOnInstall']) && !empty($modversion['NBFrameOnInstall']['file']) && !empty($modversion['NBFrameOnInstall']['func'])) {
-                $installHelper->mOnInstallOption = $modversion['NBFrameOnInstall'];
-            } else {
-                $installHelper->mOnInstallOption = null;
-            }
-            if (isset($modversion['NBFrameOnUpdate']) && !empty($modversion['NBFrameOnUpdate']['file']) && !empty($modversion['NBFrameOnUpdate']['func'])) {
-                $installHelper->mOnUpdateOption = $modversion['NBFrameOnUpdate'];
-            } else {
-                $installHelper->mOnUpdateOption = null;
-            }
-            if (isset($modversion['NBFrameOnUninstall']) && !empty($modversion['NBFrameOnUninstall']['file']) && !empty($modversion['NBFrameOnUninstall']['func'])) {
-                $installHelper->mOnUninstallOption = $modversion['NBFrameOnUninstall'];
-            } else {
-                $installHelper->mOnUninstallOption = null;
-            }
-            $modversion['onInstall'] = 'include/NBFrameInstall.inc.php';
-            $modversion['onUpdate'] = 'include/NBFrameInstall.inc.php';
-            $modversion['onUninstall'] = 'include/NBFrameInstall.inc.php';
-        }
-
-        // Utilitiy Functions for Blocks
-
-        function prepareBlockFunction(&$environment) {
-            if (isset($GLOBALS['_NBBlockFuncInfo'][$environment->mDirName])) {
-                $blockFuncInfoArr = $GLOBALS['_NBBlockFuncInfo'][$environment->mDirName];
-                foreach ($blockFuncInfoArr as $funcName =>$blockFuncInfo) {
-                    NBFrame::using('blocks.'.$blockFuncInfo['class'], $environment);
-                    $envStr = serialize($environment);
-                    $str = 'if (!function_exists("'.$funcName.'")) {'."\n";
-                    $str .= 'function '.$funcName.'($option) {'."\n";
-                    $str .= '  $environment = unserialize(\''.$envStr.'\');'."\n";
-                    $str .= 'return '.$blockFuncInfo['class'].'::'.$blockFuncInfo['method'].'($environment, $option); }}';
-                    eval($str);
-                }
-            }
-        }
-
-        // Utilitiy Functions for Search
-        function prepareSearchFunction(&$environment) {
-            if (isset($GLOBALS['_NBSearchFuncInfo'][$environment->mDirName])) {
-                $class = $GLOBALS['_NBSearchFuncInfo'][$environment->mDirName]['class'];
-                $method = $GLOBALS['_NBSearchFuncInfo'][$environment->mDirName]['method'];
-                $funcName = $environment->prefix($class.'_'.$method);
-                NBFrame::using($class, $environment);
-
-                $envStr = serialize($environment);
-                $str = 'if (!function_exists("'.$funcName.'")) {'."\n";
-                $str .= 'function '.$funcName.'($queryarray, $andor, $limit, $offset, $userid) {'."\n";
-                $str .= '  $environment = unserialize(\''.$envStr.'\');'."\n";
-                $str .= 'return '.$class.'::'.$method.'($environment, $queryarray, $andor, $limit, $offset, $userid); }}';
-                eval($str);
             }
         }
 
@@ -516,48 +292,6 @@ if (!class_exists('NBFrame')) {
             }
         }
 
-        function checkAltSys($dirOnly=true) {
-            if (defined('XOOPS_TRUST_PATH')) {
-                if (is_dir(XOOPS_TRUST_PATH.'/libs/altsys')) {
-                    if ($dirOnly) {
-                        return true;
-                    } else {
-                        $moduleHandler =& NBFrame::getHandler('NBFrame.xoops.Module', NBFrame::null());
-                        if ($moduleHandler->getByDirname('altsys')) {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-
-        function isNoCommonAction($className, $environment) {
-            $noCommonActions = $environment->getAttribute('NoCommonAction');
-            if (!is_array($noCommonActions)) return false;
-            return in_array($className, $noCommonActions);
-        }
-
-        function getAdminMenu($environment) {
-            $languageManager =& NBFrame::getLanguageManager(NBFRAME_TARGET_TEMP);
-            $adminmenu = array();
-            if ($environment->getAttribute('UseBlockAdmin')) {
-                $adminmenu[] = array('title' => $languageManager->__l('Block Admin'),
-                                     'link'  => '?action=NBFrame.admin.BlocksAdmin' );
-            }
-            if (NBFrame::checkAltSys(false)&&$environment->getAttribute('UseAltSys')) {
-                if ($environment->getAttribute('UseTemplateAdmin')) {
-                    $adminmenu[] = array('title' => $languageManager->__l('Template Admin'),
-                                         'link'  => '?action=NBFrame.admin.AltSys&page=mytplsadmin' );
-                }
-                if ($environment->getAttribute('UseLanguageAdmin')) {
-                    $adminmenu[] = array('title' => $languageManager->__l('Language Admin'),
-                                         'link'  => '?action=NBFrame.admin.AltSys&page=mylangadmin' );
-                }
-            }
-            return $adminmenu;
-        }
-        
         function findFile($name, $environment, $offset='', $searchCurrent=true, $customPrefix='') {
             static $fileNames;
             $origDirName = $environment->mOrigDirName;

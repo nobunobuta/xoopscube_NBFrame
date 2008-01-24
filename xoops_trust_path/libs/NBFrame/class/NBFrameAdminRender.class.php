@@ -40,7 +40,7 @@ if (!class_exists('NBFrameAdminRender')) {
             include NBFrame::findFile('NBFrameAdminMenu.inc.php', $this->mAction->mEnvironment, 'include');
             $module =& $GLOBALS['xoopsModule'];
             if( $module->getVar('hasconfig') ){
-                if (NBFrame::checkAltSys(false) && $this->mAction->mEnvironment->getAttribute('UseAltSys')) {
+                if (NBFrameBase::checkAltSys(false) && $this->mAction->mEnvironment->getAttribute('UseAltSys')) {
                     array_push($adminmenu,
                                  array( 'title' => _PREFERENCES ,
                                         'link' => '?action=NBFrame.admin.AltSys&page=mypreferences'

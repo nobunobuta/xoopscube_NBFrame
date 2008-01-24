@@ -23,8 +23,9 @@ if (!defined('NBFRAME_BASE_DIR')) {
 }
 if (defined('NBFRAME_BASE_DIR')) {
     require_once NBFRAME_BASE_DIR.'/include/NBFrameCommon.inc.php';
+    require_once NBFRAME_BASE_DIR.'/class/NBFrameBase.class.php';
     require_once NBFRAME_BASE_DIR.'/class/NBFrame.class.php';
-    NBFrame::prePrepare($_moduleBaseDir);
+    NBFrameBase::prePrepare($_moduleBaseDir);
     require $_moduleBaseDir.'/module_settings.php';
     require_once NBFRAME_BASE_DIR.'/include/NBFrameLoadCommon.inc.php';
 } else {

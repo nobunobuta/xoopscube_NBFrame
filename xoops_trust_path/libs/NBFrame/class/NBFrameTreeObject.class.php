@@ -15,18 +15,16 @@ if(!class_exists('NBFrameTreeObject')) {
 
     class NBFrameTreeObject  extends NBFrameObject
     {
-        var $mParentField;
-        
         function setParentField($name) {
-            $this->mParentField = $name;
+            $this->mHandler->setParentField($name);
         }
 
         function getParentField() {
-            return $this->mParentField;
+            return $this->mHandler->getParentField();
         }
         
         function getParentKey($format = 's') {
-            return $this->getVar($this->mParentField, $format);;
+            return $this->getVar($this->mHandler->getParentField(), $format);;
         }
         
         function &getParentObject() {

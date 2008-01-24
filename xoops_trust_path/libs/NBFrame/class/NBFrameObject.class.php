@@ -28,9 +28,7 @@ if(!class_exists('NBFrameObject')) {
     class NBFrameObject  extends XoopsObject
     {
         var $mExtraVars = array();
-        var $mKeys;
-        var $mNameField;
-        var $mAutoIncrement;
+
         var $mHandler;
         var $mClassName;
         var $mUseSystemField = false;
@@ -130,19 +128,19 @@ if(!class_exists('NBFrameObject')) {
         }
 
         function setKeyFields($keys) {
-            $this->mKeys = $keys;
+            $this->mHandler->setKeyFields($keys);
         }
 
         function getKeyFields() {
-            return $this->mKeys;
+            return $this->mHandler->getKeyFields();
         }
 
         function isKey($field) {
-            return in_array($field,$this->mKeys);
+            return $this->mHandler->getKeyFields($field);
         }
 
         function cacheKey() {
-            $recordKeys = $this->getKeyFields();
+            $recordKeys = $this->mHandler->getKeyFields();
             $cacheKey = array();
             foreach ($recordKeys as $key) {
                 $cacheKey[$key] = $this->get($key);
@@ -151,24 +149,42 @@ if(!class_exists('NBFrameObject')) {
         }
 
         function getKey($format = 's') {
-            if (!array($this->mKeys)) {
+            $recordKeys = $this->mHandler->getKeyFields();
+            if (!array($recordKeys)) {
                 return false;
             } else {
-                return $this->getVar($this->mKeys[0], $format);;
+                return $this->getVar($recordKeys[0], $format);;
             }
         }
 
         //AUTO_INCREMENT属性のフィールドはテーブルに一つしかない前提
         function setAutoIncrementField($fieldName) {
-            $this->mAutoIncrement = $fieldName;
+            $this->mHandler->setAutoIncrementField($fieldName);
         }
 
         function &getAutoIncrementField() {
-            return $this->mAutoIncrement;
+            return $this->mHandler->getAutoIncrementField;
         }
 
         function isAutoIncrement($fieldName) {
-            return ($fieldName == $this->mAutoIncrement);
+            return $this->mHandler->isAutoIncrement($fieldName);
+        }
+
+        function setNameField($fieldname) {
+            $this->mHandler->setNameField($fieldname);
+        }
+
+        function getNameField() {
+            return $this->mHandler->getNameField();
+        }
+
+        function getName($format = 's') {
+            $nameField = $this->mHandler->getNameField();
+            if ($nameField) {
+                return $this->getVar($nameField, $format);
+            } else {
+                return false;
+            }
         }
 
         function resetChenged() {
@@ -191,22 +207,6 @@ if(!class_exists('NBFrameObject')) {
 
         function setExtraVar($key, $value) {
             $this->mExtraVars[$key] =& $value;
-        }
-
-        function setNameField($fieldname) {
-            $this->mNameField = $fieldname;
-        }
-
-        function getNameField() {
-            return $this->mNameField;
-        }
-
-        function getName($format = 's') {
-            if ($this->mNameField) {
-                return $this->getVar($this->mNameField, $format);
-            } else {
-                return false;
-            }
         }
 
         /**

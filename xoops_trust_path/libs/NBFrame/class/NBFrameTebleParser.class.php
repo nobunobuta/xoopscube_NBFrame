@@ -18,7 +18,7 @@
             $this->db_=& $db;
         }
 
-        function setInitVars($table, &$object) {
+        function setInitVars($table, &$object, &$handler) {
             $this->parse($table);
             $name = false;
             $parent = false;
@@ -63,18 +63,18 @@
                     if ($object) {
                         $object->initVar($key,$type,$value, $required, $maxlenth);
                         if ($autoinc) {
-                            $object->setAutoIncrementField($key);
+                            $handler->setAutoIncrementField($key);
                         }
                     }
                 }
             }
             if ($object) {
-                $object->setKeyFields($this->mPrimaryKeys);
+                $handler->setKeyFields($this->mPrimaryKeys);
                 if ($name) {
-                    $object->setNameField($name);
+                    $handler->setNameField($name);
                 }
                 if ($parent) {
-                    $object->setParentField($parent);
+                    $handler->setParentField($parent);
                 }
             }
         }

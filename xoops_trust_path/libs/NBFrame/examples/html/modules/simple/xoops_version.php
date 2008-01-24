@@ -2,7 +2,7 @@
 /**
  *
  * @package NBFrame
- * @version $Id: admin.php,v 1.2 2007/06/24 07:26:21 nobunobu Exp $
+ * @version $Id$
  * @copyright Copyright 2007 NobuNobuXOOPS Project <http://sourceforge.net/projects/nobunobuxoops/>
  * @author NobuNobu <nobunobu@nobunobu.com>
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
@@ -10,7 +10,7 @@
  */
 include dirname(__FILE__).'/include/NBFrameLoader.inc.php';
 // Include Moudle xoops_version.php
-include (NBFrame::getXoopsVersionFileName(null));
+include (NBFrameBase::getXoopsVersionFileName(null));
 // Parse xoops_version.php
-NBFrame::parseXoopsVerionFile($modversion);
+NBFrameBase::parseXoopsVerionFile($modversion);
 ?>

@@ -16,6 +16,15 @@ if(!class_exists('NBFrameTreeObjectHandler')) {
 
     class NBFrameTreeObjectHandler  extends NBFrameObjectHandler
     {
+        var $mParentField;
+        
+        function setParentField($name) {
+            $this->mParentField = $name;
+        }
+
+        function getParentField() {
+            return $this->mParentField;
+        }
         
         function &getNestedObjects($criteria = null, $padChar='&#8211;')
         {
@@ -81,7 +90,7 @@ if(!class_exists('NBFrameTreeObjectHandler')) {
         {
             $optionArray=array(0=>'-----');
             $record =& $this->create(false);
-            $keys = $record->getKeyFields();
+            $keys = $this->getKeyFields();
             $criteria =& new Criteria($keys[0], $currentKey, '<>');
             $criteria->setSort($record->getNameField());
             $optionArray += $this->getSelectOptionArray($criteria);

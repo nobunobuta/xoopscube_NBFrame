@@ -10,7 +10,7 @@
  */
 include dirname(__FILE__).'/include/NBFrameLoader.inc.php';
 // Include Moudle xoops_version.php
-include (NBFrame::getXoopsVersionFileName(null));
+include (NBFrameBase::getXoopsVersionFileName(null));
 // Parse xoops_version.php
-NBFrame::parseXoopsVerionFile($modversion);
+NBFrameBase::parseXoopsVerionFile($modversion);
 ?>

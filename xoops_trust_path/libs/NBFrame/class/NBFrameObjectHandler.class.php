@@ -19,6 +19,11 @@ if (!class_exists('NBFrameObjectHandler')) {
         var $mTableAlias = null;
         var $mClassName;
         var $mEntityClassName;
+
+        var $mKeys = null;
+        var $mAutoIncrement = null;
+        var $mNameField = null;
+
         var $mErrors;
         var $mSql;
         var $mEnvironment = null;
@@ -67,6 +72,39 @@ if (!class_exists('NBFrameObjectHandler')) {
             }
         }
 
+        function setKeyFields($keys) {
+            $this->mKeys = $keys;
+        }
+
+        function getKeyFields() {
+            return $this->mKeys;
+        }
+
+        function isKey($field) {
+            return in_array($field,$this->mKeys);
+        }
+
+        //AUTO_INCREMENT属性のフィールドはテーブルに一つしかない前提
+        function setAutoIncrementField($fieldName) {
+            $this->mAutoIncrement = $fieldName;
+        }
+
+        function &getAutoIncrementField() {
+            return $this->mAutoIncrement;
+        }
+
+        function isAutoIncrement($fieldName) {
+            return ($fieldName == $this->mAutoIncrement);
+        }
+
+        function setNameField($fieldname) {
+            $this->mNameField = $fieldname;
+        }
+
+        function getNameField() {
+            return $this->mNameField;
+        }
+
         function getErrors($html=true, $clear=true) {
             $error_str = "";
             $delim = $html ? "<br />\n" : "\n";
@@ -112,7 +150,7 @@ if (!class_exists('NBFrameObjectHandler')) {
                 if (empty($this->mObjectCache)) {
                     NBFrame::using('TebleParser');
                     $parser = new NBFrameTebleParser($this->db);
-                    $parser->setInitVars($this->mTableName, $record);
+                    $parser->setInitVars($this->mTableName, $record, $this);
                     $record->setAttribute('dohtml', 0);
                     $record->setAttribute('doxcode', 1);
                     $record->setAttribute('dosmiley', 1);
@@ -124,15 +162,14 @@ if (!class_exists('NBFrameObjectHandler')) {
                     $record = unserialize($this->mObjectCache);
                 }
             }
+            $record->mHandler =& $this;
             $record->mClassName = $this->mEntityClassName;
             $record->prepare();
             if ($isNew) {
                 $record->setNew();
             }
-            $record->mHandler =& $this;
             return $record;
         }
-
         /**
          * レコードの取得(プライマリーキーによる一意検索）
          *
@@ -166,7 +203,7 @@ if (!class_exists('NBFrameObjectHandler')) {
 
         function _key2where($keys) {
             $record =& $this->create(false);
-            $recordKeys = $record->getKeyFields();
+            $recordKeys = $this->getKeyFields();
             $recordVars = $record->getVars();
             if (!is_array($keys)) {
                 if (count($recordKeys) == 1) {
@@ -226,7 +263,7 @@ if (!class_exists('NBFrameObjectHandler')) {
                         continue;
                     }
                     $fieldList .= $delim ."`$field`";
-                    if ($record->isAutoIncrement($field)) {
+                    if ($this->isAutoIncrement($field)) {
                         $value = $this->getAutoIncrementValue();
                     }
                     if (isset($vars[$field]['func'])) {  // for value using MySQL function.
@@ -337,7 +374,7 @@ if (!class_exists('NBFrameObjectHandler')) {
                 return false;
             }
             if ($record->isNew()) {
-                $idField=$record->getAutoIncrementField();
+                $idField=$this->getAutoIncrementField();
                 $idValue=$this->db->getInsertId();
                 $record->assignVar($idField,$idValue);
             }
@@ -422,7 +459,7 @@ if (!class_exists('NBFrameObjectHandler')) {
                     if (!$id_as_key) {
                         $records[] =& $record;
                     } else {
-                        $ids = $record->getKeyFields();
+                        $ids = $this->getKeyFields();
                         $r =& $records;
                         $count_ids = count($ids);
                         for ($i=0; $i<$count_ids; $i++) {

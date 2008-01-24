@@ -12,7 +12,8 @@ if (!class_exists('NBFrame')) exit();
 if (!class_exists('NBFrameInstallHelper')) {
     class NBFrameInstallHelper
     {
-        var $mOrigName;
+        var $mEnvironment;
+        var $mOrigDirName;
         var $mDirName;
 
         var $mPreProcessMsg = array();
@@ -35,14 +36,15 @@ if (!class_exists('NBFrameInstallHelper')) {
         );
 
 
-        function NBFrameInstallHelper($dirname, $orig_name) {
-            $this->mOrigName = $orig_name;
-            $this->mDirName = $dirname;
+        function NBFrameInstallHelper(&$environment) {
+            $this->mEnvironment = $environment;
+            $this->mOrigDirName = $environment->mOrigDirName;
+            $this->mDirName = $environment->mDirName;
             if( defined('XOOPS_CUBE_LEGACY')) {
                 $root =& XCube_Root::getSingleton();
-                $root->mDelegateManager->add('Legacy.Admin.Event.ModuleInstall.'.ucfirst($dirname).'.Success', array(&$this, 'putCubeMsg'));
-                $root->mDelegateManager->add('Legacy.Admin.Event.ModuleUnInstall.'.ucfirst($dirname).'.Success', array(&$this, 'putCubeMsg'));
-                $root->mDelegateManager->add('Legacy.Admin.Event.ModuleUpdate.'.ucfirst($dirname).'.Success', array(&$this, 'putCubeMsg'));
+                $root->mDelegateManager->add('Legacy.Admin.Event.ModuleInstall.'.ucfirst($this->mDirName).'.Success', array(&$this, 'putCubeMsg'));
+                $root->mDelegateManager->add('Legacy.Admin.Event.ModuleUnInstall.'.ucfirst($this->mDirName).'.Success', array(&$this, 'putCubeMsg'));
+                $root->mDelegateManager->add('Legacy.Admin.Event.ModuleUpdate.'.ucfirst($this->mDirName).'.Success', array(&$this, 'putCubeMsg'));
             }
         }
 
@@ -65,12 +67,11 @@ if (!class_exists('NBFrameInstallHelper')) {
         }
 
         function createTables($force=false) {
-            $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
-            if ($fname = NBFrame::findFile('tabledef.inc.php',$environment, '/include')) @include $fname;
-            if (($fname0 = NBFrame::findFile('tabledef.inc.php',$environment, '/include', false, $this->mDirName.'_'))&&($fname!=$fname0)) @include $fname0;
+            if ($fname = NBFrame::findFile('tabledef.inc.php', $this->mEnvironment, '/include')) @include $fname;
+            if (($fname0 = NBFrame::findFile('tabledef.inc.php', $this->mEnvironment, '/include', false, $this->mDirName.'_'))&&($fname!=$fname0)) @include $fname0;
             if (!empty($tableDef)) {
                 $this->addMsg('NBFrame Automatic Table Creater start...');
-                foreach($tableDef[$this->mOrigName] as $key =>$value) {
+                foreach($tableDef[$this->mOrigDirName] as $key =>$value) {
                     $tableName = $GLOBALS['xoopsDB']->prefix($this->mDirName.'_'.$key);
                     $this->addMsg(' Table '.$tableName);
                     if (!empty($value['usesys'])) {
@@ -89,12 +90,11 @@ if (!class_exists('NBFrameInstallHelper')) {
         }
 
         function alterTables($force=false) {
-            $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
-            if ($fname = NBFrame::findFile('tabledef.inc.php',$environment, '/include', false, $this->mDirName.'_')) @include $fname;
-            if (($fname0 = NBFrame::findFile('tabledef.inc.php',$environment, '/include', false, $this->mDirName.'_'))&&($fname!=$fname0)) @include $fname0;          
+            if ($fname = NBFrame::findFile('tabledef.inc.php', $this->mEnvironment, '/include', false, $this->mDirName.'_')) @include $fname;
+            if (($fname0 = NBFrame::findFile('tabledef.inc.php', $this->mEnvironment, '/include', false, $this->mDirName.'_'))&&($fname!=$fname0)) @include $fname0;          
             if (!empty($tableDef)) {
                 $this->addMsg('NBFrame Automatic Table Updater start...');
-                foreach($tableDef[$this->mOrigName] as $key =>$value) {
+                foreach($tableDef[$this->mOrigDirName] as $key =>$value) {
                     if (!empty($value['usesys'])) {
                         if ($value['usesys'] == true) {
                             foreach ($this->mSysFieldsArray as $sysName => $sysField) {
@@ -352,14 +352,13 @@ if (!class_exists('NBFrameInstallHelper')) {
             require_once XOOPS_ROOT_PATH.'/class/template.php' ;
             $tpl = new XoopsTpl();
             $this->addMsg('NBFrame Duplicatable Template Definition starts...');
-            $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
-            $tempaltePath = NBFrame::findFile('templates',$environment, '');
+            $tempaltePath = NBFrame::findFile('templates', $this->mEnvironment, '');
             $moduleInfo = $this->_getModuleInfo();
-            $tplFileHandler =& NBFrame::getHandler('NBFrame.xoops.TplFile', $environment);
+            $tplFileHandler =& NBFrame::getHandler('NBFrame.xoops.TplFile', $this->mEnvironment);
             $templateFiles = glob($tempaltePath.'/*.html');
             foreach ($templateFiles as $templateFile) {
                 $templateFileBaseName = basename($templateFile);
-                $templateFile = NBFrame::findFile($templateFileBaseName, $environment, '/templates', false, $this->mDirName.'_');
+                $templateFile = NBFrame::findFile($templateFileBaseName, $this->mEnvironment, '/templates', false, $this->mDirName.'_');
                 $templateName = $this->mDirName.'_'.$templateFileBaseName;
                 $fileContent = file($templateFile);
                 $fileContent = implode('', $fileContent);
@@ -400,7 +399,7 @@ if (!class_exists('NBFrameInstallHelper')) {
                 foreach($moduleInfo['blocks'] as $key=>$blockDef) {
                     if (isset($blockDef['template'])) {
                         $basename = preg_replace('/^'.$this->mDirName.'_/','', $blockDef['template']);
-                        $templateFile = NBFrame::findFile($basename, $environment, '/templates/blocks', false, $this->mDirName.'_');
+                        $templateFile = NBFrame::findFile($basename, $this->mEnvironment, '/templates/blocks', false, $this->mDirName.'_');
                         if ($templateFile) {
                             $templateName = $this->mDirName.'_'.$basename;
                             $fileContent = file($templateFile);
@@ -510,7 +509,7 @@ if (!class_exists('NBFrameInstallHelper')) {
                     $str .= '$options["func"][]="'.$funcname.'";';
                 }
             }
-            $str .= '$installHelper =& NBFrame::getInstallHelper();';
+            $str .= '$installHelper =& NBFrameBase::getInstallHelper();';
             $str .= 'return $installHelper->onInstallProcess(&$module, $options); }';
             eval($str);
         }
@@ -526,7 +525,7 @@ if (!class_exists('NBFrameInstallHelper')) {
                     $str .= '$options["func"][]="'.$funcname.'";';
                 }
             }
-            $str .= '$installHelper =& NBFrame::getInstallHelper();';
+            $str .= '$installHelper =& NBFrameBase::getInstallHelper();';
             $str .= 'return $installHelper->onUpdateProcess(&$module, $prevVer, $options); }';
             eval($str);
         }
@@ -542,7 +541,7 @@ if (!class_exists('NBFrameInstallHelper')) {
                     $str .= '$options["func"][]="'.$funcname.'";';
                 }
             }
-            $str .= '$installHelper =& NBFrame::getInstallHelper();';
+            $str .= '$installHelper =& NBFrameBase::getInstallHelper();';
             $str .= 'return $installHelper->onUninstallProcess(&$module, $options); }';
             eval($str);
         }
@@ -568,8 +567,7 @@ if (!class_exists('NBFrameInstallHelper')) {
         function executeCustomInstallProcess($options, &$module) {
             $ret = true;
             if (is_array($options) && !empty($options['file']) && !empty($options['func'])) {
-                $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
-                @include_once  NBFrame::findFile(basename($options['file']),$environment ,dirname($options['file']),false);
+                @include_once  NBFrame::findFile(basename($options['file']), $this->mEnvironment ,dirname($options['file']),false);
                 foreach($options['func'] as $funcname) {
                     if (function_exists($funcname)) {
                         $this->addMsg('Execute Custom functon <b>'.$funcname.'</b>');
@@ -587,8 +585,7 @@ if (!class_exists('NBFrameInstallHelper')) {
         function executeCustomUpdatellProcess($options, &$module, $prevVer) {
             $ret = true;
             if (is_array($options) && !empty($options['file']) && !empty($options['func'])) {
-                $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
-                @include_once  NBFrame::findFile(basename($options['file']),$environment ,dirname($options['file']),false);
+                @include_once  NBFrame::findFile(basename($options['file']), $this->mEnvironment ,dirname($options['file']),false);
                 foreach($options['func'] as $funcname) {
                     if (function_exists($funcname)) {
                         $this->addMsg('Execute Custom functon <b>'.$funcname.'</b>');

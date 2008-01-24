@@ -105,8 +105,7 @@ if (!class_exists('NBFrameObjectAction')) {
         }
 
         function setObjectKeyField() {
-            $object =& $this->mObjectHandler->create();
-            $objectKey = $object->getKeyFields();
+            $objectKey = $this->mObjectHandler->getKeyFields();
             $this->mObjectKeyField = $objectKey[0];
         }
         

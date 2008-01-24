@@ -28,7 +28,7 @@ if (!class_exists('NBFrameObjectForm')) {
             include_once XOOPS_ROOT_PATH.'/class/xoopsformloader.php';
             $this->mElements = array();
             $this->mEnvironment = $environment;
-            $this->mLanguage =& NBFrame::getLanguageManager();
+            $this->mLanguage =& NBFrameBase::getLanguageManager();
         }
         
         function prepare() {

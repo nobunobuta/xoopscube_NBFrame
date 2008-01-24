@@ -2,7 +2,7 @@
 /**
  *
  * @package NBFrame
- * @version $Id: admin.php,v 1.2 2007/06/24 07:26:21 nobunobu Exp $
+ * @version $Id$
  * @copyright Copyright 2007 NobuNobuXOOPS Project <http://sourceforge.net/projects/nobunobuxoops/>
  * @author NobuNobu <nobunobu@nobunobu.com>
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
@@ -47,8 +47,7 @@ if (!class_exists('NBFrameCachedObjectHandler')) {
         }
 
         function _getCacheKey($keys) {
-            $record =& $this->create(false);
-            $recordKeys = $record->getKeyFields();
+            $recordKeys = $this->getKeyFields();
             $cacheKey = array();
             if (!is_array($keys)) {
                 if (count($recordKeys) == 1) {
@@ -59,13 +58,11 @@ if (!class_exists('NBFrameCachedObjectHandler')) {
             }
             foreach ($recordKeys as $key) {
                 if (array_key_exists($key, $keys)) {
-                    $cacheKey[$key] = $record->get($key);
+                    $cacheKey[$key] = $keys[$key];
                 } else {
-                    unset($record);
                     return false;
                 }
             }
-            unset($record);
             return serialize($cacheKey);
         }
 
@@ -117,7 +114,7 @@ if (!class_exists('NBFrameCachedObjectHandler')) {
                     if (!$id_as_key) {
                         $records[] =& $record;
                     } else {
-                        $ids = $record->getKeyFields();
+                        $ids = $this->getKeyFields();
                         $r =& $records;
                         $count_ids = count($ids);
                         for ($i=0; $i<$count_ids; $i++) {
@@ -144,7 +141,7 @@ if (!class_exists('NBFrameCachedObjectHandler')) {
                     if (!$id_as_key) {
                         $records[] =& $record;
                     } else {
-                        $ids = $record->getKeyFields();
+                        $ids = $this->getKeyFields();
                         $r =& $records;
                         $count_ids = count($ids);
                         for ($i=0; $i<$count_ids; $i++) {

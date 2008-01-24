@@ -2,7 +2,7 @@
 /**
  *
  * @package NBFrame
- * @version $Id: admin.php,v 1.2 2007/06/24 07:26:21 nobunobu Exp $
+ * @version $Id$
  * @copyright Copyright 2007 NobuNobuXOOPS Project <http://sourceforge.net/projects/nobunobuxoops/>
  * @author NobuNobu <nobunobu@nobunobu.com>
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
@@ -23,8 +23,9 @@ if (!defined('NBFRAME_BASE_DIR')) {
 }
 if (defined('NBFRAME_BASE_DIR')) {
     require_once NBFRAME_BASE_DIR.'/include/NBFrameCommon.inc.php';
+    require_once NBFRAME_BASE_DIR.'/class/NBFrameBase.class.php';
     require_once NBFRAME_BASE_DIR.'/class/NBFrame.class.php';
-    NBFrame::prePrepare($_moduleBaseDir);
+    NBFrameBase::prePrepare($_moduleBaseDir);
     require $_moduleBaseDir.'/module_settings.php';
     require_once NBFRAME_BASE_DIR.'/include/NBFrameLoadCommon.inc.php';
 } else {
