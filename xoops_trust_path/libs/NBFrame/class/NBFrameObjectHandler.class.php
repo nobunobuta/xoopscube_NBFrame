@@ -11,6 +11,7 @@
 if (!class_exists('NBFrame')) exit();
 if (!class_exists('NBFrameObjectHandler')) {
     require_once XOOPS_ROOT_PATH.'/kernel/object.php';
+    NBFrame::using('TebleParser');
 
     class NBFrameObjectHandler  extends XoopsObjectHandler
     {
@@ -31,6 +32,8 @@ if (!class_exists('NBFrameObjectHandler')) {
         var $mLanguage;
         var $mObjectCache = null;
         var $mLogQueryError = true;
+    
+        var $mTableParser = null;
 
         /**
          * @param XoopsDB $db
@@ -77,11 +80,14 @@ if (!class_exists('NBFrameObjectHandler')) {
         }
 
         function getKeyFields() {
+            if (empty($this->mKeys)) {
+                $this->_getTableProperty();
+            }
             return $this->mKeys;
         }
 
         function isKey($field) {
-            return in_array($field,$this->mKeys);
+            return in_array($field,$this->getKeyFields());
         }
 
         //AUTO_INCREMENT属性のフィールドはテーブルに一つしかない前提
@@ -89,12 +95,15 @@ if (!class_exists('NBFrameObjectHandler')) {
             $this->mAutoIncrement = $fieldName;
         }
 
-        function &getAutoIncrementField() {
+        function getAutoIncrementField() {
+            if (empty($this->mAutoIncrement)) {
+                $this->_getTableProperty();
+            }
             return $this->mAutoIncrement;
         }
 
         function isAutoIncrement($fieldName) {
-            return ($fieldName == $this->mAutoIncrement);
+            return ($fieldName == $this->getAutoIncrementField());
         }
 
         function setNameField($fieldname) {
@@ -102,7 +111,18 @@ if (!class_exists('NBFrameObjectHandler')) {
         }
 
         function getNameField() {
+            if (empty($this->mNameField)) {
+                $this->_getTableProperty();
+            }
             return $this->mNameField;
+        }
+
+        function _getTableProperty() {
+            if (empty($this->mTableParser) && !empty($this->db) && !empty($this->mTableName)) {
+                $this->mTableParser =& new NBFrameTebleParser($this->db);
+                $this->mTableParser->parse($this->mTableName);
+                $this->mTableParser->setHandlerProperty($this);
+            }
         }
 
         function getErrors($html=true, $clear=true) {
@@ -148,9 +168,12 @@ if (!class_exists('NBFrameObjectHandler')) {
             }
             if (!$record->varsDefined()) {
                 if (empty($this->mObjectCache)) {
-                    NBFrame::using('TebleParser');
-                    $parser = new NBFrameTebleParser($this->db);
-                    $parser->setInitVars($this->mTableName, $record, $this);
+                    if (empty($this->mTableParser)) {
+                        $this->mTableParser =& new NBFrameTebleParser($this->db);
+                        $this->mTableParser->parse($this->mTableName);
+                    }
+                    $this->mTableParser->setInitVars($record, $this);
+                    $this->mTableParser->setHandlerProperty($this);
                     $record->setAttribute('dohtml', 0);
                     $record->setAttribute('doxcode', 1);
                     $record->setAttribute('dosmiley', 1);

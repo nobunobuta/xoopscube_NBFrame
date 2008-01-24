@@ -18,34 +18,51 @@
             $this->db_=& $db;
         }
 
-        function setInitVars($table, &$object, &$handler) {
-            $this->parse($table);
+        function setHandlerProperty(&$handler) {
             $name = false;
             $parent = false;
             
+            foreach($this->mFields as $field) {
+                $key = $field['Field'];
+                if (!preg_match('/^_NBsys_/', $key)) {
+                    $type = $this->convertXoopsObjectType($field['Type']);
+                    $autoinc = (preg_match('/auto_increment/',$field['Extra'])) ? true : false;
+                    if ($type==XOBJ_DTYPE_TXTBOX && $field['Key']!="PRI") {
+                        if (!$name) {
+                            $name = $key;
+                        } else if (!preg_match('/(name|title|subject)/i', $name) && preg_match('/(name|title|subject)/i', $key)) {
+                            $name = $key;
+                        }
+                    }
+                    if (is_a($handler, 'NBFrameTreeObjectHandler') && !$parent && $type==XOBJ_DTYPE_INT && $field['Key']!="PRI" && preg_match('/parent/i', $key)) {
+                        $parent = $key;
+                    }
+                    if ($autoinc) {
+                        $handler->setAutoIncrementField($key);
+                    }
+                }
+            }
+            if ($handler) {
+                $handler->setKeyFields($this->mPrimaryKeys);
+                if ($name) {
+                    $handler->setNameField($name);
+                }
+                if ($parent) {
+                    $handler->setParentField($parent);
+                }
+            }
+        }
+
+        function setInitVars(&$object) {
             foreach($this->mFields as $field) {
                 $key = $field['Field'];
                 if (preg_match('/^_NBsys_/', $key)) {
                     $object->initSysFields();
                 } else {
                     $type = $this->convertXoopsObjectType($field['Type']);
-                    $value = "";
-                    
+                    $default = "";
                     $autoinc = (preg_match('/auto_increment/',$field['Extra'])) ? true : false;
-                    
                     $required = ($field['Null']=="YES" || $autoinc) ? false : true;
-                    if ($type==XOBJ_DTYPE_TXTBOX && $field['Key']!="PRI") {
-                        if (!$name) {
-                            $name = $key;
-                        } else {
-                            if (!preg_match('/(name|title|subject)/i', $name) && preg_match('/(name|title|subject)/i', $key)) {
-                                $name = $key;
-                            }
-                        }
-                    }
-                    if (is_a($object, 'NBFrameTreeObject') && !$parent && $type==XOBJ_DTYPE_INT && $field['Key']!="PRI" && preg_match('/parent/i', $key)) {
-                        $parent = $key;
-                    }
                     switch ($type) {
                         case XOBJ_DTYPE_INT:
                             $default = intval($field['Default']);
@@ -61,20 +78,8 @@
                             break;
                     }
                     if ($object) {
-                        $object->initVar($key,$type,$value, $required, $maxlenth);
-                        if ($autoinc) {
-                            $handler->setAutoIncrementField($key);
-                        }
+                        $object->initVar($key, $type, $default, $required, $maxlenth);
                     }
-                }
-            }
-            if ($object) {
-                $handler->setKeyFields($this->mPrimaryKeys);
-                if ($name) {
-                    $handler->setNameField($name);
-                }
-                if ($parent) {
-                    $handler->setParentField($parent);
                 }
             }
         }
