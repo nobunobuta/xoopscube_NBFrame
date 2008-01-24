@@ -126,6 +126,8 @@ if (!class_exists('NBFrameObjectList')) {
         // Special List Item '__SimpleEditLink__'
         function extraItem___SimpleEditLink__(&$object,$element) {
             $key = $object->getKey();
+            $keyFields = $object->getKeyFields();
+            $objectKey = $keyFields[0];
             if (!empty($this->mAction)) {
                 $item['link'] = $this->mAction->addUrlParam('op=edit&amp;'.$objectKey.'='.$key);
             } else {
@@ -140,6 +142,8 @@ if (!class_exists('NBFrameObjectList')) {
         // Special List Item '__SimpleDeleteLink__'
         function extraItem___SimpleDeleteLink__(&$object,$element) {
             $key = $object->getKey();
+            $keyFields = $object->getKeyFields();
+            $objectKey = $keyFields[0];
             if (!empty($this->mAction)) {
                 $item['link'] = $this->mAction->addUrlParam('op=delete&amp;'.$objectKey.'='.$key);
             } else {
