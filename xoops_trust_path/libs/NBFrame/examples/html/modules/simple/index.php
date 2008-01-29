@@ -9,6 +9,7 @@
  *
  */
 include dirname(__FILE__).'/include/NBFrameLoader.inc.php';
+$environment =& NBFrameBase::prepare();
 require_once NBFRAME_BASE_DIR.'/include/NBFrameLoadCommon.inc.php';
-NBFrame::executeAction();
+NBFrame::executeAction($environment);
 ?>

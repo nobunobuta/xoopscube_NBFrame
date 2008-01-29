@@ -94,8 +94,7 @@ if (!class_exists('NBFrame')) {
          * @param string $defaultAction
          *
          */
-        function executeAction($origDirName='', $defaultAction='', $allowedAction=array()) {
-            $environment =& NBFrameBase::prepare($origDirName);
+        function executeAction(&$environment, $defaultAction='', $allowedAction=array()) {
             if (empty($defaultAction)) {
                 $defaultAction = $environment->getAttribute('ModueleMainAction');
                 if (empty($allowedAction)) {
