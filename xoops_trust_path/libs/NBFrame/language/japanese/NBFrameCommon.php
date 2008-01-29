@@ -47,6 +47,7 @@
 
    $GLOBALS['NBFrameLanguage']['Template Admin'] = 'テンプレート管理';
    $GLOBALS['NBFrameLanguage']['Language Admin'] = '言語定数管理';
+   $GLOBALS['NBFrameLanguage']['Preference'] = '一般設定';
    $GLOBALS['NBFrameLanguage']['Group Perm module_read'] = 'モジュールアクセス権限';
    $GLOBALS['NBFrameLanguage']['Group Perm module_admin'] = 'モジュール管理権限';
    $GLOBALS['NBFrameLanguage']['block show permission'] = 'ブロックの表示権限';

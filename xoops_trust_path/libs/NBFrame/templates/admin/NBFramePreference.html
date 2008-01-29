@@ -1,27 +1,5 @@
-<div class="adminnavi">
-  <{if $module != null}>
-    <a href="<{$smarty.const.XOOPS_URL}>/modules/<{$module->getShow('dirname')}>/<{$module->getInfo('adminindex')|escape}>"><{$module->getShow('name')}></a>
-    <{if $category != null}>
-      &raquo;&raquo; <a href="<{$smarty.const.XOOPS_URL}>/modules/<{$module->getVar('dirname')}>/admin/index.php?action=PreferenceList"><{$smarty.const._MI_LEGACY_MENU_PREFERENCE}></a>
-      &raquo;&raquo; <{$category->getName()|escape}>
-    <{else}>
-      &raquo;&raquo; <span class="adminnaviTitle"><{$smarty.const._MI_LEGACY_MENU_PREFERENCE}></span>
-    <{/if}>
-  <{else}>
-    <a href="<{$smarty.const.XOOPS_URL}>/modules/legacy/admin/index.php"><{$smarty.const._MI_LEGACY_NAME}></a>
-    &raquo;&raquo; <a href="./index.php?action=PreferenceList"><{$smarty.const._MI_LEGACY_MENU_PREFERENCE}></a>
-    &raquo;&raquo; <span class="adminnaviTitle"><{$category->getName()|escape}></span>
-  <{/if}>
-</div>
-
-<h3 class="admintitle">
-  <{if $category != null}>
-    <{$category->getName()|escape}>
-  <{else}>
-    <{$smarty.const._MI_LEGACY_MENU_PREFERENCE}>
-  <{/if}>
-</h3>
-
+<h3><{$module->getVar('name')}></h3>
+<h4><{"Preference"|__l}></h4>
 <{if $actionForm->hasError()}>
 <div class="error">
   <ul>
