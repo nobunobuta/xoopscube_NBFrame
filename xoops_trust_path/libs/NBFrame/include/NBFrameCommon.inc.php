@@ -8,6 +8,7 @@
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
  *
  */
+if (!defined('NBFRAME_BASE_DIR')) exit();
 if(!defined('NBFRAME_COMMON_FUNCTION_INCLUDED')){
     define('NBFRAME_COMMON_FUNCTION_INCLUDED', 1) ;
 
@@ -16,5 +17,9 @@ if(!defined('NBFRAME_COMMON_FUNCTION_INCLUDED')){
     } else {
         include_once (dirname(__FILE__).'/NBFramePHP5.inc.php');
     }
+    require_once NBFRAME_BASE_DIR.'/class/NBFrameBase.class.php';
+    require_once NBFRAME_BASE_DIR.'/class/NBFrame.class.php';
 }
+NBFrameBase::prePrepare($_NBFrame_moduleBaseDir);
+require $_NBFrame_moduleBaseDir.'/module_settings.php';
 ?>

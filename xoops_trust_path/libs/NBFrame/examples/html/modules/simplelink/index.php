@@ -9,5 +9,6 @@
  *
  */
 include dirname(__FILE__).'/include/NBFrameLoader.inc.php';
+require_once NBFRAME_BASE_DIR.'/include/NBFrameLoadCommon.inc.php';
 NBFrame::executeAction();
 ?>
