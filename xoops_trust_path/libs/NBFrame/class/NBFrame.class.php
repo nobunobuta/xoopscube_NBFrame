@@ -257,14 +257,16 @@ if (!class_exists('NBFrame')) {
             return $ret;
         }
 
-        function langConstPrefix($prefix='',$target=NBFRAME_TARGET_MAIN) {
-            $environment =& NBFrame::getEnvironments($target);
-            if ($environment) {
-                $dirname = $environment->mDirName;
-            } else if (!empty($GLOBALS['xoopsModule']) && $GLOBALS['xoopsModule']->getVar('dirname')=='altsys' && !empty($_GET['dirname'])) {
-                $dirname = htmlspecialchars($_GET['dirname'], ENT_QUOTES);
-            }
+        function langConstPrefix($prefix='',$dirname, $target=NBFRAME_TARGET_MAIN) {
             if (empty($dirname)) {
+                $environment =& NBFrame::getEnvironments($target);
+                if ($environment) {
+                    $dirname = $environment->mDirName;
+                } else if (!empty($GLOBALS['xoopsModule']) && $GLOBALS['xoopsModule']->getVar('dirname')=='altsys' && !empty($_GET['dirname'])) {
+                    $dirname = htmlspecialchars($_GET['dirname'], ENT_QUOTES);
+                }
+            }
+            if ($dirname == '') {
                 return '';
             }
             if (!empty($prefix)) {

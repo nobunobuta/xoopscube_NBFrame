@@ -8,8 +8,11 @@
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
  *
  */
-$constpref = NBFrame::langConstPrefix('MI', NBFRAME_TARGET_TEMP);
-if (!defined($constpref.'LANGUAGE_MODINFO_READ')) {
+if( defined( 'FOR_XOOPS_LANG_CHECKER' ) ) $mydirname = 'simplelink' ;
+$constpref = NBFrame::langConstPrefix('MI', $mydirname);
+
+if (defined( 'FOR_XOOPS_LANG_CHECKER' ) || !defined($constpref.'LANGUAGE_MODINFO_READ')) {
+
 define ($constpref.'LANGUAGE_MODINFO_READ','1');
 // Module Info
 define($constpref.'DESC','簡単なリンク集');

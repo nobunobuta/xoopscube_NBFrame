@@ -2,14 +2,17 @@
 /**
  *
  * @package NBFrame
- * @version $Id: admin.php,v 1.2 2007/06/24 07:26:21 nobunobu Exp $
+ * @version $Id$
  * @copyright Copyright 2007 NobuNobuXOOPS Project <http://sourceforge.net/projects/nobunobuxoops/>
  * @author NobuNobu <nobunobu@nobunobu.com>
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
  *
  */
-$constpref = NBFrame::langConstPrefix('AD', NBFRAME_TARGET_TEMP);
-if (!defined($constpref.'LANGUAGE_ADMIN_READ')) {
+if( defined( 'FOR_XOOPS_LANG_CHECKER' ) ) $mydirname = 'simplelink' ;
+$constpref = NBFrame::langConstPrefix('AD', $mydirname);
+
+if (defined( 'FOR_XOOPS_LANG_CHECKER' ) || !defined($constpref.'LANGUAGE_ADMIN_READ')) {
+
 define($constpref.'LANGUAGE_ADMIN_READ','1');
 
 define($constpref.'LANG_LINK_ADMIN','リンクの管理');

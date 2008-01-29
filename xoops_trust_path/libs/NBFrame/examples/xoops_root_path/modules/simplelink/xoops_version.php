@@ -8,8 +8,7 @@
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
  *
  */
-$modEnv =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
-$langPrefix = NBFrame::langConstPrefix('MI', NBFRAME_TARGET_INSTALLER);
+$langPrefix = NBFrame::langConstPrefix('MI', '', NBFRAME_TARGET_INSTALLER);
 $modversion['name'] = 'SimpleLink';   // It'll be rewritten like "SimleLink [dirname]"
 $modversion['version'] = '0.01';
 $modversion['description'] = constant($langPrefix.'DESC');

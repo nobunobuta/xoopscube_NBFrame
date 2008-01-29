@@ -64,10 +64,11 @@ if (!class_exists('NBFrameBase')) {
                 $environment =& NBFrame::getEnvironments($target);
                 $dirName = $environment->mDirName;
             } else {
+                $environment = null;
                 $dirName = '_NB_System_';
             }
             if (empty($mLanguageArr[$dirName][$target])) {
-                $mLanguageArr[$dirName][$target] =& new NBFrameLanguage($target);
+                $mLanguageArr[$dirName][$target] =& new NBFrameLanguage($target, $environment);
             }
             return $mLanguageArr[$dirName][$target];
         }
@@ -114,7 +115,6 @@ if (!class_exists('NBFrameBase')) {
 
         function parseXoopsVerionFile(&$modversion) {
             $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
-
             $modversion['name'] .= ' ['.$environment->mDirName.']';
             $modversion['dirname'] = $environment->mDirName;
             if (!empty($modversion['image'])) {
