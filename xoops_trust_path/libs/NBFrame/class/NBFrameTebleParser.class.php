@@ -38,17 +38,29 @@
                         $parent = $key;
                     }
                     if ($autoinc) {
-                        $handler->setAutoIncrementField($key);
+                        $wk = $handler->getAutoIncrementField();
+                        if (empty($wk)) {
+                            $handler->setAutoIncrementField($key);
+                        }
                     }
                 }
             }
             if ($handler) {
-                $handler->setKeyFields($this->mPrimaryKeys);
+                $wk = $handler->getKeyFields();
+                if (empty($wk)) {
+                    $handler->setKeyFields($this->mPrimaryKeys);
+                }
                 if ($name) {
-                    $handler->setNameField($name);
+                    $wk = $handler->getNameField();
+                    if (empty($wk)) {
+                        $handler->setNameField($name);
+                    }
                 }
                 if ($parent) {
-                    $handler->setParentField($parent);
+                    $wk = $handler->getParentField();
+                    if (empty($wk)) {
+                        $handler->setParentField($parent);
+                    }
                 }
             }
         }

@@ -174,6 +174,7 @@ if (!class_exists('NBFrameObjectHandler')) {
                     }
                     $this->mTableParser->setInitVars($record, $this);
                     $this->mTableParser->setHandlerProperty($this);
+
                     $record->setAttribute('dohtml', 0);
                     $record->setAttribute('doxcode', 1);
                     $record->setAttribute('dosmiley', 1);

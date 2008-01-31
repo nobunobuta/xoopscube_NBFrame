@@ -136,7 +136,7 @@ if(!class_exists('NBFrameObject')) {
         }
 
         function isKey($field) {
-            return $this->mHandler->getKeyFields($field);
+            return $this->mHandler->isKey($field);
         }
 
         function cacheKey() {
