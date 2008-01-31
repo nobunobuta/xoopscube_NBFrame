@@ -20,7 +20,7 @@ if (!class_exists('NBFrameObjectList')) {
         var $mListRecords;
 
         function NBFrameObjectList($environment) {
-            $this->mLanguage =& NBFrameBase::getLanguageManager();
+            $this->mLanguage =& $environment->getLanguageManager();
             $this->mEnvironment = $environment;
         }
         

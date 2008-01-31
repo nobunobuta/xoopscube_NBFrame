@@ -501,6 +501,7 @@ if (!class_exists('NBFrameInstallHelper')) {
         function prepareOnInstallFunction() {
             $options = $this->mOnInstallOption;
             $dirName = $this->mDirName;
+            $envStr = serialize($this->mEnvironment);
             $str = 'function xoops_module_install_'.$dirName.'(&$module) {';
             $str .= '$options=array();';
             if (is_array($options) && !empty($options['file']) && !empty($options['func'])) {
@@ -509,7 +510,8 @@ if (!class_exists('NBFrameInstallHelper')) {
                     $str .= '$options["func"][]="'.$funcname.'";';
                 }
             }
-            $str .= '$installHelper =& NBFrameBase::getInstallHelper();';
+            $str .= '$environment = unserialize(\''.$envStr.'\');';
+            $str .= '$installHelper =& NBFrameBase::getInstallHelper($environment);';
             $str .= 'return $installHelper->onInstallProcess(&$module, $options); }';
             eval($str);
         }
@@ -517,6 +519,7 @@ if (!class_exists('NBFrameInstallHelper')) {
         function prepareOnUpdateFunction() {
             $options = $this->mOnUpdateOption;
             $dirName = $this->mDirName;
+            $envStr = serialize($this->mEnvironment);
             $str = 'function xoops_module_update_'.$dirName.'(&$module, $prevVer) {';
             $str .= '$options=array();';
             if (is_array($options) && !empty($options['file']) && !empty($options['func'])) {
@@ -525,7 +528,8 @@ if (!class_exists('NBFrameInstallHelper')) {
                     $str .= '$options["func"][]="'.$funcname.'";';
                 }
             }
-            $str .= '$installHelper =& NBFrameBase::getInstallHelper();';
+            $str .= '$environment = unserialize(\''.$envStr.'\');';
+            $str .= '$installHelper =& NBFrameBase::getInstallHelper($environment);';
             $str .= 'return $installHelper->onUpdateProcess(&$module, $prevVer, $options); }';
             eval($str);
         }
@@ -533,6 +537,7 @@ if (!class_exists('NBFrameInstallHelper')) {
         function prepareOnUninstallFunction() {
             $options = $this->mOnUninstallOption;
             $dirName = $this->mDirName;
+            $envStr = serialize($this->mEnvironment);
             $str = 'function xoops_module_uninstall_'.$dirName.'(&$module) {';
             $str .= '$options=array();';
             if (is_array($options) && !empty($options['file']) && !empty($options['func'])) {
@@ -541,7 +546,8 @@ if (!class_exists('NBFrameInstallHelper')) {
                     $str .= '$options["func"][]="'.$funcname.'";';
                 }
             }
-            $str .= '$installHelper =& NBFrameBase::getInstallHelper();';
+            $str .= '$environment = unserialize(\''.$envStr.'\');';
+            $str .= '$installHelper =& NBFrameBase::getInstallHelper($environment);';
             $str .= 'return $installHelper->onUninstallProcess(&$module, $options); }';
             eval($str);
         }

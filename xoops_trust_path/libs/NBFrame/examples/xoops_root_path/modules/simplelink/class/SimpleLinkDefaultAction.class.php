@@ -2,7 +2,7 @@
 /**
  *
  * @package NBFrame
- * @version $Id: admin.php,v 1.2 2007/06/24 07:26:21 nobunobu Exp $
+ * @version $Id$
  * @copyright Copyright 2007 NobuNobuXOOPS Project <http://sourceforge.net/projects/nobunobuxoops/>
  * @author NobuNobu <nobunobu@nobunobu.com>
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
@@ -25,9 +25,8 @@ class SimpleLinkDefaultAction extends NBFrameAction {
     function executeDefaultOp() {
         $this->mList = array();
 
-        $moduleHandler =& xoops_gethandler('module');
-        $this->mModuleObject =& $moduleHandler->getByDirname($this->mDirName);
-
+        $this->mModuleObject =& $this->mEnvironment->getModule();
+
         $linkHandler =& NBFrame::getHandler('SimpleLinkLink', $this->mEnvironment);
         $categoryHandler =& NBFrame::getHandler('SimpleLinkCategory', $this->mEnvironment);
 

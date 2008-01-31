@@ -19,6 +19,8 @@ if(! class_exists('SimpleLinkSearch')) {
                 for($i=1;$i<$count;$i++){
                     $criteria->add(new Criteria('link_name', '%'.$queryarray[$i].'%', 'LIKE'), $andor);
                 }
+            } else {
+                $criteria =& new CriteriaCompo(new CriteriaElement());
             }
             $criteria->setLimit($limit);
             $criteria->setStart($offset);
@@ -27,6 +29,7 @@ if(! class_exists('SimpleLinkSearch')) {
                 $ret[] = array(
                     'title' => $linkObject->getVar('link_name'),
                     'page' => $linkObject->getVar('link_name'),
+                    'uid' => 0,
                 );
             }
             return $ret;

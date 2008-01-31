@@ -8,7 +8,7 @@
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
  *
  */
-$environment =& NBFrame::getEnvironments(NBFRAME_TARGET_TEMP);
+$environment =& NBFrame::getEnvironments(NBFRAME_TARGET_LOADER);
 $noCommonActions = $environment->getAttribute('NoCommonAction');
 if (!is_array($noCommonActions)) {
     $noCommonActions = array();
@@ -31,15 +31,7 @@ if (empty($_REQUEST['action']) || !in_array($_REQUEST['action'], $noCommonAction
         $root->mController->executeCommonSubset(true);
 
         $configHandler =& NBFrame::getHandler('NBFrame.xoops.Config', NBFrame::null());
-        $criteria =& new CriteriaCompo(new Criteria('conf_modid', 0));
-        $criteria->add(new Criteria('conf_catid', XOOPS_NB_CONF));
-        $criteria->add(new Criteria('conf_name', 'language'));
-        $configObjects = $configHandler->getObjects($criteria);
-
-        if (count($configObjects) > 0) {
-            $language = $configObjects[0]->get('conf_value');
-        }
-
+        $language = $configHandler->getConfig('language');
         $filename = XOOPS_MODULE_PATH . '/legacy/language/' . $language . '/charset_' . XOOPS_DB_TYPE . '.php';
         if (file_exists($filename)) {
             require_once($filename);

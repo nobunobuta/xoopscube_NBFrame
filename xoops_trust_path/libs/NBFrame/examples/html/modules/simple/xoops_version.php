@@ -9,8 +9,9 @@
  *
  */
 include dirname(__FILE__).'/include/NBFrameLoader.inc.php';
+$environment =& NBFrameBase::prepare(NBFRAME_TARGET_INSTALLER);
 // Include Moudle xoops_version.php
-include (NBFrameBase::getXoopsVersionFileName(null));
+if ($fileName= NBFrame::findFile('xoops_version.php', $environment, '', false)) include $fileName;
 // Parse xoops_version.php
-NBFrameBase::parseXoopsVerionFile($modversion);
+NBFrameBase::parseXoopsVerionFile($modversion, $environment);
 ?>

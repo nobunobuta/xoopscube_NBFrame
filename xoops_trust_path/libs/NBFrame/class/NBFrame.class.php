@@ -14,7 +14,7 @@ if (!class_exists('NBFrame')) {
     if (!defined('NBFRAME_TARGET_BLOCK')) define('NBFRAME_TARGET_BLOCK',2);
     if (!defined('NBFRAME_TARGET_INSTALLER')) define('NBFRAME_TARGET_INSTALLER',3);
     if (!defined('NBFRAME_TARGET_SYS')) define('NBFRAME_TARGET_SYS', 4);
-    if (!defined('NBFRAME_TARGET_TEMP')) define('NBFRAME_TARGET_TEMP', 99);
+    if (!defined('NBFRAME_TARGET_LOADER')) define('NBFRAME_TARGET_LOADER', 99);
 
     if (!defined('NBFRAME_NO_DEFAULT_PARAM')) define('NBFRAME_NO_DEFAULT_PARAM', '__nodefault__');
 
@@ -63,23 +63,25 @@ if (!class_exists('NBFrame')) {
          * @param boolean $force (True: create a new environment if not exists)
          *
          */
-        function &getEnvironments($target=NBFRAME_TARGET_MAIN, $forceCreate = false) {
+        function &getEnvironments($target=NBFRAME_TARGET_MAIN, $dirName = '', $forceCreate=false) {
             static $mEnvironmentArr;
             if ($target == NBFRAME_TARGET_SYS) {
                 $ret = null;
-            } else if (isset($mEnvironmentArr[$target])) {
-                if ($target == NBFRAME_TARGET_TEMP && $forceCreate) {
+            } else if ($target == NBFRAME_TARGET_LOADER) {
+                if (!isset($mEnvironmentArr[$target]) || $forceCreate) {
                     unset($mEnvironmentArr[$target]);
                     NBFrame::using('Environment');
                     $mEnvironmentArr[$target] =& new NBFrameEnvironment();
                     $mEnvironmentArr[$target]->mTarget = $target;
                 }
                 $ret =& $mEnvironmentArr[$target];
+            } else if (isset($mEnvironmentArr[$target][$dirName])) {
+                $ret =& $mEnvironmentArr[$target][$dirName];
             } else if ($forceCreate) {
                 NBFrame::using('Environment');
-                $mEnvironmentArr[$target] =& new NBFrameEnvironment();
-                $mEnvironmentArr[$target]->mTarget = $target;
-                $ret =& $mEnvironmentArr[$target];
+                $mEnvironmentArr[$target][$dirName] = new NBFrameEnvironment();
+                $mEnvironmentArr[$target][$dirName]->mTarget = $target;
+                $ret =& $mEnvironmentArr[$target][$dirName];
             } else {
                 $ret = null;
             }
@@ -132,7 +134,7 @@ if (!class_exists('NBFrame')) {
             if (($environment->getAttribute('AutoUpdateMode')===true) && !NBFrameBase::isNoCommonAction($className, $environment)) {
                 $info = $GLOBALS['xoopsModule']->getInfo();
 
-                $installHelper =& NBFrameBase::getInstallHelper();
+                $installHelper =& NBFrameBase::getInstallHelper($environment);
                 $installHelper->postUpdateProcessforDuplicate(true);
             }
             if ($action =& NBFrame::getInstance($className, $environment, 'Action')) {
@@ -246,11 +248,11 @@ if (!class_exists('NBFrame')) {
                 }
                 if ($ret && !empty($environment)) {
                     $ret->mEnvironment =& NBFrame::makeClone($environment);
-                    $target = $environment->mTarget;
+                    $target = $ret->mEnvironment->mTarget;
                 } else {
                     $target = 0;
                 }
-                $ret->mLanguage =& NBFrameBase::getLanguageManager($target);
+                $ret->mLanguage =& NBFrameBase::getLanguageManager($ret->mEnvironment);
             } else {
                 $ret =& $mHandlerArr[$key];
             }
@@ -258,15 +260,15 @@ if (!class_exists('NBFrame')) {
         }
 
         function langConstPrefix($prefix='',$dirname, $target=NBFRAME_TARGET_MAIN) {
-            if (empty($dirname)) {
-                $environment =& NBFrame::getEnvironments($target);
+            if (empty($dirname) && $target==NBFRAME_TARGET_LOADER) {
+                $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_LOADER);
                 if ($environment) {
                     $dirname = $environment->mDirName;
                 } else if (!empty($GLOBALS['xoopsModule']) && $GLOBALS['xoopsModule']->getVar('dirname')=='altsys' && !empty($_GET['dirname'])) {
                     $dirname = htmlspecialchars($_GET['dirname'], ENT_QUOTES);
                 }
             }
-            if ($dirname == '') {
+            if (empty($dirname)) {
                 return '';
             }
             if (!empty($prefix)) {

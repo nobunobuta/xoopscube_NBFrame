@@ -24,7 +24,7 @@ if (!class_exists('NBFrameLanguage')) {
                 if ($environment == null) {
                     $this->mEnvironment =& NBFrame::getEnvironments($target);
                 } else {
-                    $this->mEnvironment =& NBFrame::makeClone($environment);
+                    $this->mEnvironment =& $environment;
                 }
                 $this->mDirName = $this->mEnvironment->mDirName;
                 $this->mSalt = substr( md5( XOOPS_ROOT_PATH . XOOPS_DB_USER . XOOPS_DB_PREFIX ) , 0 , 6 );
@@ -51,6 +51,7 @@ if (!class_exists('NBFrameLanguage')) {
                         $this->loadModuleLanguageFile('blocks.php');
                         break;
                     case NBFRAME_TARGET_INSTALLER:
+                    case NBFRAME_TARGET_LOADER:
                         $this->loadModuleLanguageFile('modinfo.php');
                         break;
                     default:

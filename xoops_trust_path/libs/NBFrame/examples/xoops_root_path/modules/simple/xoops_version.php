@@ -8,7 +8,6 @@
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
  *
  */
-$modEnv =& NBFrame::getEnvironments(NBFRAME_TARGET_INSTALLER);
 $modversion['name'] = 'Simple';   // It'll be rewritten like "Simle [dirname]"
 $modversion['version'] = '0.01';
 $modversion['description'] = 'NBFrame Sample';

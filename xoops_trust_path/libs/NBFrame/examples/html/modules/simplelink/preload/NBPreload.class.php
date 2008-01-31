@@ -9,6 +9,6 @@
  *
  */
 include dirname(dirname(__FILE__)).'/include/NBFrameLoader.inc.php';
-$preloadEnvironment =& NBFrame::getEnvironments(NBFRAME_TARGET_TEMP);
+$preloadEnvironment =& NBFrame::getEnvironments(NBFRAME_TARGET_LOADER);
 @include NBFRAME_BASE_DIR.'/include/NBFramePreload.inc.php';
 ?>

@@ -18,6 +18,7 @@ if (!class_exists('NBFrameEnvironment')) {
         var $mAttributeArr;
         var $mTarget;
         var $mModule = null;
+        var $mLanguageManager = null;
 
         function NBFrameEnvironment($origDirName='', $currentDirBase='') {
             $this->setOrigDirName($origDirName);
@@ -58,6 +59,13 @@ if (!class_exists('NBFrameEnvironment')) {
                 $this->mModule =& $moduleHandler->getByEnvironment($this);
             }
             return $this->mModule;
+        }
+        
+        function &getLanguageManager() {
+            if (!is_object($this->mLanguageManager)) {
+                $this->mLanguageManager =& NBFrameBase::getLanguageManager($this);
+            }
+            return $this->mLanguageManager;
         }
 
         function prefix($basename) {

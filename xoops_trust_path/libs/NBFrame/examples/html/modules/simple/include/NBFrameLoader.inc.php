@@ -10,6 +10,7 @@
  */
 $xoopsOption['nocommon'] = true;
 $_NBFrame_moduleBaseDir = dirname(dirname(__FILE__));
+$_NBFrame_dirName = basename($_NBFrame_moduleBaseDir);
 require_once dirname(dirname($_NBFrame_moduleBaseDir)).'/mainfile.php';
 
 if (!defined('NBFRAME_BASE_DIR')) {

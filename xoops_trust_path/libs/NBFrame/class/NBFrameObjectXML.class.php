@@ -16,7 +16,7 @@ if (!class_exists('NBFrameObjectXML')) {
         var $mElements;
 
         function NBFrameObjectXML($environment) {
-            $this->mLanguage =& NBFrameBase::getLanguageManager();
+            $this->mLanguage =& $environment->getLanguageManager();
             $this->mEnvironment = $environment;
         }
         

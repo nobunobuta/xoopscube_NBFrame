@@ -45,7 +45,7 @@ if (!class_exists('NBFrameAction')) {
                 $this->mOrigDirName = $this->mDirName;
             }
             $this->mUrl = XOOPS_URL.xoops_getenv('PHP_SELF');
-            $this->mLanguage =& NBFrameBase::getLanguageManager();
+            $this->mLanguage =& $environment->getLanguageManager();
             NBFrame::using('ModuleRender');
             $this->mRender =& new NBFrameModuleRender($this);
             NBFrame::using('Request');
