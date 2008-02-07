@@ -20,6 +20,9 @@ if(! class_exists('SimpleLinkSearch')) {
                     $criteria->add(new Criteria('link_name', '%'.$queryarray[$i].'%', 'LIKE'), $andor);
                 }
             } else {
+                if ($userid) {
+                    return array();
+                }
                 $criteria =& new CriteriaCompo(new CriteriaElement());
             }
             $criteria->setLimit($limit);
