@@ -28,9 +28,9 @@
 //
 // I did not test so much, so it is a just a sample of my idea.
 
-//*****************
-// Configuration (Maybe, you may not edit this)
-//*****************
+//*******************************************************
+// Configuration (Maybe, you may not edit this for trial)
+//*******************************************************
 
 // You can set Dirname directly like following line
 //  $NBFrameFrontendConf['dirname']='simple';
@@ -139,17 +139,20 @@ if (!function_exists('__NBFrameShortURLFrontEnd__')) {
                 header('HTTP/1.0 404 Not Found');
                 exit('404 Not Found');
             }
+            // Force redirect URL eg. http://for/simple to http://for/simple/
             if (!preg_match('/^(.*\/)?'.preg_quote('/'.$confArray['dirname'],'/').'(\.php)?\//',$_SERVER['REQUEST_URI'])) {
                 $uri = preg_replace('/^(.*\/)?('.preg_quote('/'.$confArray['dirname'],'/').')(\.php)?/','\\1\\2\\3/', $_SERVER['REQUEST_URI']);
                 header('Location:'. $uri);
             }
             
+            // Rewrite Some Server Variables.
             $origRequestUri = $_SERVER['REQUEST_URI'];
             list ($_SERVER['REQUEST_URI'], $_SERVER['PHP_SELF'], $_SERVER['HTTP_REFERER']) =
                 preg_replace('/^(.*\/)?'.preg_quote('/'.$confArray['dirname'],'/').'(\.php)?/','\\1/modules/'.$confArray['dirname'], 
                              array($_SERVER['REQUEST_URI'], $_SERVER['PHP_SELF'], $_SERVER['HTTP_REFERER']));
 
         }
+        
         $queryArray = preg_split('/[?#]/', $origRequestUri);
         $pathArray = array_slice(explode('/', $queryArray[0]),1);
         $i = 0;
@@ -232,6 +235,7 @@ if ($_NBFrontIncludeFile && $_NBFrontStatus == '200') {
     exit('403 Forbidden');
 } else if ($_NBFrontStatus == '404') {
     if (file_exists(dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname'].'/include/NBFrameLoader.inc.php')) {
+        // If NBFrame based Module, try for executing module front controller (index.php)
         $_NBFrontIncludeFile = dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname'].'/index.php';
         $_SERVER['SCRIPT_FILENAME'] = $_NBFrontIncludeFile;
         $_SERVER['SCRIPT_NAME'] = basename($_NBFrontIncludeFile);
