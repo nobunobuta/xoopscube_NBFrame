@@ -264,16 +264,16 @@ if (!class_exists('NBFrameBase')) {
             $adminmenu = array();
             if ($environment->getAttribute('UseBlockAdmin')) {
                 $adminmenu[] = array('title' => $languageManager->__l('Block Admin'),
-                                     'link'  => NBFrame::getActionUrl($environment, 'NBFrame.admin.BlocksAdmin', array(), 'html', true));
+                                     'link'  => NBFrame::getActionUrl($environment, 'NBFrame.admin.BlocksAdmin', array(), 'html', true, false));
             }
             if (NBFrameBase::checkAltSys(false)&&$environment->getAttribute('UseAltSys')) {
                 if ($environment->getAttribute('UseTemplateAdmin')) {
                     $adminmenu[] = array('title' => $languageManager->__l('Template Admin'),
-                                         'link'  => NBFrame::getActionUrl($environment, 'NBFrame.admin.AltSys', array('page'=>'mytplsadmin'), 'html', true));
+                                         'link'  => NBFrame::getActionUrl($environment, 'NBFrame.admin.AltSys', array('page'=>'mytplsadmin'), 'html', true, false));
                 }
                 if ($environment->getAttribute('UseLanguageAdmin')) {
                     $adminmenu[] = array('title' => $languageManager->__l('Language Admin'),
-                                         'link'  => NBFrame::getActionUrl($environment, 'NBFrame.admin.AltSys', array('page'=>'mylangadmin'), 'html', true));
+                                         'link'  => NBFrame::getActionUrl($environment, 'NBFrame.admin.AltSys', array('page'=>'mylangadmin'), 'html', true, false));
                 }
             }
             return $adminmenu;
