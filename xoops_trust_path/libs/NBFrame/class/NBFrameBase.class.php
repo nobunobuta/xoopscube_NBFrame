@@ -92,16 +92,20 @@ if (!class_exists('NBFrameBase')) {
         }
 
         function parseXoopsVerionFile(&$modversion, &$environment) {
+            if (!empty($environment->mModuleInfo)) {
+                $modversion = $environment->mModuleInfo;
+                return;
+            }
             $modversion['name'] .= ' ['.$environment->mDirName.']';
             $modversion['dirname'] = $environment->mDirName;
             if (!empty($modversion['image'])) {
-                $modversion['image'] = '?action=NBFrame.GetModuleIcon&file='.basename($modversion['image']);
+                $modversion['image'] = NBFrame::getActionUrl($environment, 'NBFrame.GetModuleIcon', array('file'=>basename($modversion['image'])), 'html',true);
             } else {
-                $modversion['image'] = '?action=NBFrame.GetModuleIcon';
+                $modversion['image'] = NBFrame::getActionUrl($environment, 'NBFrame.GetModuleIcon', array(), 'html',true);
             }
 
             if (@$modversion['hasAdmin']){
-                $modversion['adminindex'] = 'index.php?action='.$environment->getAttribute('AdminMainAction');
+                $modversion['adminindex'] = NBFrame::getActionUrl($environment, $environment->getAttribute('AdminMainAction'), array(), 'html',true);
                 $modversion['adminmenu'] = 'include/NBFrameAdminMenu.inc.php';
             }
             // SubMenu Settings
@@ -199,6 +203,7 @@ if (!class_exists('NBFrameBase')) {
                     $installHelper->preBlockUpdateProcess($modversion);
                 }
             }
+            $environment->mModuleInfo = $modversion;
         }
 
         function _prepareCustomInstaller(&$modversion, &$environment) {
@@ -259,16 +264,16 @@ if (!class_exists('NBFrameBase')) {
             $adminmenu = array();
             if ($environment->getAttribute('UseBlockAdmin')) {
                 $adminmenu[] = array('title' => $languageManager->__l('Block Admin'),
-                                     'link'  => '?action=NBFrame.admin.BlocksAdmin' );
+                                     'link'  => NBFrame::getActionUrl($environment, 'NBFrame.admin.BlocksAdmin', array(), 'html', true));
             }
             if (NBFrameBase::checkAltSys(false)&&$environment->getAttribute('UseAltSys')) {
                 if ($environment->getAttribute('UseTemplateAdmin')) {
                     $adminmenu[] = array('title' => $languageManager->__l('Template Admin'),
-                                         'link'  => '?action=NBFrame.admin.AltSys&page=mytplsadmin' );
+                                         'link'  => NBFrame::getActionUrl($environment, 'NBFrame.admin.AltSys', array('page'=>'mytplsadmin'), 'html', true));
                 }
                 if ($environment->getAttribute('UseLanguageAdmin')) {
                     $adminmenu[] = array('title' => $languageManager->__l('Language Admin'),
-                                         'link'  => '?action=NBFrame.admin.AltSys&page=mylangadmin' );
+                                         'link'  => NBFrame::getActionUrl($environment, 'NBFrame.admin.AltSys', array('page'=>'mylangadmin'), 'html', true));
                 }
             }
             return $adminmenu;
@@ -278,6 +283,66 @@ if (!class_exists('NBFrameBase')) {
             $noCommonActions = $environment->getAttribute('NoCommonAction');
             if (!is_array($noCommonActions)) return false;
             return in_array($className, $noCommonActions);
+        }
+
+        function parseURL(&$environment) {
+            if (isset($_SERVER['REQUEST_URI'])) {
+                $paramPath = '';
+                $hostName = preg_replace('!(^https?\:[\d]*//[^/]+).*$!','\\1',XOOPS_URL);
+                if (preg_match('/^'.preg_quote($environment->mUrlBase, '/').'\/(?:(?:index|page)(?:\.php)?\/)?(.*)$/', $hostName.$_SERVER['REQUEST_URI'], $matches)) {
+                    $moduleRequest = $matches[1];
+                    if (preg_match('!^images/([\w_]*?\.(gif|jpeg|jpg|png|swf))([?#].*)?$!', $moduleRequest, $matches)) {
+                        $_GET['action'] = 'NBFrame.GetImage';
+                        $_REQUEST['action'] = 'NBFrame.GetImage';
+                        $_GET['NBImgFile'] = $matches[1];
+                        return;
+                    } else if (preg_match('!^contents/([\w_]*?\.(html|htm))([?#].*)?$!', $moduleRequest, $matches)) {
+                        $_GET['action'] = 'NBFrame.GetPage';
+                        $_REQUEST['action'] = 'NBFrame.GetPage';
+                        $_GET['NBContentFile'] = $matches[1];
+                        return;
+                    } else if (preg_match('!^(NBFrame\/)?(admin\/)?([A-Za-z0-9\._]+)Action/(.*)$!', $moduleRequest, $matches)) {
+                        $_GET['action'] = '';
+                        if ($matches[1]) {
+                            $_GET['action'] .= 'NBFrame.';
+                        }
+                        if ($matches[2]) {
+                            $_GET['action'] .= 'admin.';
+                        }
+                        $_GET['action'] .= $matches[3];
+                        $_REQUEST['action'] = $_GET['action'];
+                        if (preg_match('!^(.*?)\.([A-Za-z0-9]+)([?#].*)?$!', $matches[4], $matches1)) {
+                            $paramPath = $matches1[1];
+                            $paramExt = $matches1[2];
+                        }
+                    } else if (preg_match('!^(.*?)\.([A-Za-z0-9]+)([?#].*)?$!', $moduleRequest, $matches)) {
+                        $paramPath = $matches[1];
+                        $paramExt = $matches[2];
+                    }
+                    if (!empty($paramPath)) {
+                        $paramArray = explode('/', $paramPath);
+                        $paramIndex = 0;
+                        $paramCount = count($paramArray);
+                        foreach($paramArray as $paramStr) {
+                            $paramIndex++;
+                            $paramDelimPos =strpos($paramStr, '__',1);
+                            if ($paramDelimPos !== false) {
+                                $paramName = substr($paramStr, 0, $paramDelimPos);
+                                if (($paramIndex == $paramCount) && (substr($paramName,0,2)=='__')) {
+                                    $paramName   = substr($paramName, 2);
+                                    $paramValue = substr($paramStr, $paramDelimPos+2).'.'.$paramExt;
+                                } else {
+                                    $paramValue = substr($paramStr, $paramDelimPos+2);
+                                }
+                                if (!isset($_GET[$paramName])) $_GET[$paramName] = $paramValue;
+                                if (!isset($_REQUEST[$paramName])) $_REQUEST[$paramName] = $paramValue;
+                            }
+                        }
+                        $environment->setAttribute('RawParam', $paramPath.'.'.$paramExt);
+                    }
+//                    var_dump($_GET);exit();
+                }
+            }
         }
     }
 }
