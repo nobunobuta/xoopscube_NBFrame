@@ -19,6 +19,7 @@ if (!class_exists('NBFrameEnvironment')) {
         var $mTarget;
         var $mModule = null;
         var $mLanguageManager = null;
+        var $mModuleInfo = array();
 
         function NBFrameEnvironment($origDirName='', $currentDirBase='') {
             $this->setOrigDirName($origDirName);
