@@ -11,16 +11,16 @@
 if (!class_exists('NBFrame')) exit();
 if (!class_exists('NBFrameHTTPOutput')) {
     class NBFrameHTTPOutput {
-        function putFile($fileName, $contentType, $static=true, $do_exit=true) {
+        function putFile($fileName, $contentType, $static=true, $expires=-1, $do_exit=true) {
             error_reporting(E_ERROR);
             if (file_exists($fileName)) {
                 header('Content-Type: '.$contentType);
                 if ($static) {
                     header('Content-Disposition: inline; filename="'.basename($fileName).'"');
-                    NBFrameHTTPOutput::staticContentHeader(filemtime($fileName), $fileName);
+                    NBFrameHTTPOutput::staticContentHeader(filemtime($fileName), $fileName, $expires);
                 } else {
                     header('Pragma: no-cache');
-                    header('Cache-Control: no-store, no-cache, must-revalidate,post-check=0, pre-check=0');
+                    header('Cache-Control: private, no-store, no-cache, must-revalidate,post-check=0, pre-check=0');
                     header('Expires: '.gmdate('D, d M Y H:i:s', time()-60).' GMT');
                     header('Content-Disposition: inline; filename="'.basename($fileName).'"');
                 }
@@ -35,15 +35,17 @@ if (!class_exists('NBFrameHTTPOutput')) {
             }
         }
         
-        function staticContentHeader($mod_timestamp, $etag_base='') {
+        function staticContentHeader($mod_timestamp, $etag_base='', $expires=-1) {
             if (!empty($mod_timestamp)) {
                 $etag = md5($_SERVER["REQUEST_URI"] . $mod_timestamp . $etag_base);
                 header('Pragma:');
                 header('Etag: "'.$etag.'"' );
                 header('Cache-Control:');
-                header('Expires:');
-//                header('Cache-Control: max-age=0');
-//                header('Expires:'.gmdate('D, d M Y H:i:s', time()+60).' GMT');
+                if ($expires == -1) {
+                    header('Expires:');
+                } else {
+                    header('Expires: '.gmdate('D, d M Y H:i:s', time()+intval($expires)).' GMT');
+                }
                 header('Last-Modified: '.gmdate('D, d M Y H:i:s', $mod_timestamp).' GMT');
                 if((!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && ($mod_timestamp==NBFrameHTTPOutput::_str2Time($_SERVER['HTTP_IF_MODIFIED_SINCE'])))||
                    (!empty($_SERVER['HTTP_IF_NONE_MATCH']) && ($etag==$_SERVER['HTTP_IF_NONE_MATCH']))){
