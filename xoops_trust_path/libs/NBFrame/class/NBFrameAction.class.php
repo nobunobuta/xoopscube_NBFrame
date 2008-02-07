@@ -48,6 +48,7 @@ if (!class_exists('NBFrameAction')) {
             }
             $this->mUrl = XOOPS_URL.xoops_getenv('PHP_SELF');
             $this->mLanguage =& $environment->getLanguageManager();
+            $this->mLanguage->loadModuleLanguageFile('main.php');
             NBFrame::using('ModuleRender');
             $this->mRender =& new NBFrameModuleRender($this);
             NBFrame::using('Request');

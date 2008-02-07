@@ -69,11 +69,12 @@ if (!class_exists('NBFrameLanguage')) {
             if ($inAdmin) {
                 $this->loadModuleLanguageFile('modinfo.php');
                 $this->loadModuleLanguageFile('admin.php');
-                $this->loadModuleLanguageFile('main.php');
             }
         }
 
         function loadModuleLanguageFile($filename) {
+            if (!isset($GLOBALS['xoopsConfig']['language'])) return;
+            
             $languageFile = null;
             $mydirname = $this->mDirName;
             $cacheFile = $this->_getCacheFileName( $filename , $this->mDirName) ;
