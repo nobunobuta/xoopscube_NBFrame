@@ -107,13 +107,17 @@ if(!class_exists('NBFrameTreeObjectHandler')) {
             return $parentObject;
         }
         
-        function getParentPath($currentKey)
+        function getParentPath($currentKey, $nameField='')
         {
             $pathArray = array();
             while(1) {
                 if ($parentObject =& $this->getParent($currentKey)) {
                     $parentKey = $parentObject->getKey();
-                    $parentName = $parentObject->getName();
+                    if ($nameField) {
+                        $parentName = $parentObject->getVar($nameField);
+                    } else {
+                        $parentName = $parentObject->getName();
+                    }
                     array_unshift($pathArray, array('key'=>$parentKey, 'name'=>$parentName));
                     $currentKey = $parentKey;
                 } else {
@@ -121,6 +125,19 @@ if(!class_exists('NBFrameTreeObjectHandler')) {
                 }
             }
             return $pathArray;
+        }
+
+        function getPathStr($currentKey, $nameField='')
+        {
+            $str = ''; $delim = '';
+            $pathArray = $this->getParentPath($currentKey, $nameField);
+            foreach($pathArray as $path) {
+                $str .= $delim.$path['name'];
+                $delim = '/';
+            }
+            $object = $this->get($currentKey);
+            $str .= $delim.$object->getVar($nameField);
+            return $str;
         }
     }
 }

@@ -35,6 +35,14 @@ if (!class_exists('NBFrameGetImageAction')) {
                 }
                 NBFrame::using('HTTPOutput');
                 NBFrameHTTPOutput::putFile($fileName, $mimeType);
+            } else {
+                NBFrame::display404Page();
+            }
+        }
+        
+        function getParamString(&$environment, $paramArray) {  
+            if (isset($paramArray['NBImgFile'])) {
+                return 'images/'.rawurlencode($paramArray['NBImgFile']);
             }
         }
     }

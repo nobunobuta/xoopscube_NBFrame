@@ -35,6 +35,8 @@ if (!class_exists('NBFrameAction')) {
         var $mLoadCommon = true;
         var $mDialogMode = false;
         var $mRequest;
+        var $mStartTime;
+        var $mElapsedTime;
 
         function NBFrameAction(&$environment) {
             $this->mEnvironment = $environment;
@@ -74,6 +76,10 @@ if (!class_exists('NBFrameAction')) {
             return XOOPS_URL.'/modules/'.$this->mDirName;
         }
         
+        function getUrl($paramArray=array()) {
+            return NBFrame::getActionURL($this->mEnvironment, $this->mActionName, $paramArray);
+        }
+        
         function addUrlParam($str) {
             if (!empty($this->mActionName)) {
                 return $this->mUrl. '&'. $str;
@@ -111,6 +117,7 @@ if (!class_exists('NBFrameAction')) {
         }
 
         function execute() {
+            $this->mStartTime = NBFrame::getClock();
             $this->mRequest->defParam('op', '', 'var', $this->mDefaultOp);
             $result = $this->_actionDispatch();
             switch ($result) {
@@ -147,6 +154,7 @@ if (!class_exists('NBFrameAction')) {
                 default:
                     break;
              }
+             $this->mElapsedTime = NBFrame::getClock() - $this->mStartTime;
         }
 
         function startRender() {
@@ -174,11 +182,11 @@ if (!class_exists('NBFrameAction')) {
         }
 
         function executeActionSuccess() {
-            redirect_header($this->mUrl, 2, $this->__l('Action Success'));
+            NBFrame::redirect($this->mEnvironment, $this->mActionName, 2, $this->__l('Action Success'));
         }
 
         function executeActionError() {
-            redirect_header($this->mEnvironment->mUrlBase, 2, $this->mErrorMsg,2);
+            NBFrame::redirect($this->mEnvironment, '', 2, $this-mErrorMsg);
         }
 
         function __l($msg) {

@@ -30,8 +30,39 @@ if (!class_exists('NBFrameRender')) {
         function _addSmartyPugin() {
             $this->mXoopsTpl->register_modifier('__l', array(&$this,'__l'));
             $this->mXoopsTpl->register_modifier('__e', array(&$this,'__e'));
+            $this->mXoopsTpl->register_modifier('NBFrameAction', array(&$this,'_Smarty_NBFrameAction'));
+            $this->mXoopsTpl->register_modifier('NBFrameImage', array(&$this,'_Smarty_NBFrameImage'));
+            $this->mXoopsTpl->register_modifier('NBFramePage', array(&$this,'_Smarty_NBFramePage'));
             $this->mXoopsTpl->register_compiler_function('__l', array(&$this,'__l_s'));
             $this->mXoopsTpl->register_compiler_function('__e', array(&$this,'__e_s'));
+        }
+
+        function _Smarty_NBFrameAction() {
+            $environment =& $this->mAction->mEnvironment;
+            $action = '';
+            $paramArray = array();
+            $args = func_get_args();
+            if (count($args)>0) {
+                $action = $args[0];
+                if (count($args)>1) {
+                    for ($i=1; $i < count($args); $i=$i+2) {
+                        $paramKey = trim($args[$i]);
+                        $paramValue = trim($args[$i+1]);
+                        $paramArray[$paramKey] = $paramValue;
+                    }
+                }
+            }
+            return NBFrame::getActionURL($environment, $action, $paramArray);
+        }
+
+        function _Smarty_NBFrameImage($file) {
+            $environment =& $this->mAction->mEnvironment;
+            return NBFrame::getImageURL($environment, $file);
+        }
+
+        function _Smarty_NBFramePage($file) {
+            $environment =& $this->mAction->mEnvironment;
+            return NBFrame::getPageURL($environment, $file);
         }
 
         function __l($msg) {

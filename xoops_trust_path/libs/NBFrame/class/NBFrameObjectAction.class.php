@@ -369,7 +369,7 @@ if (!class_exists('NBFrameObjectAction')) {
                     $this->mXoopsTpl->assign('headers',$this->mObjectList->mListHeaders);
                     $this->mXoopsTpl->assign('records',$this->mObjectList->mListRecords);
                     $this->mXoopsTpl->assign('lang', array('new'=>$this->__l('New')));
-                    $this->mXoopsTpl->assign('newlink', $this->addUrlParam('op=new'));
+                    $this->mXoopsTpl->assign('newlink', $this->getUrl(array('op'=>'new')));
                     $this->mXoopsTpl->assign('pagenav', $this->mPageNav->renderNav());
                 } else {
                     $headers = $this->mObjectList->mListHeaders;
@@ -408,7 +408,7 @@ if (!class_exists('NBFrameObjectAction')) {
             if ($this->mRender->mTemplate) {
                 ob_start();
             }
-            $key = intval($_GET[$this->mObjectKeyField]);            xoops_confirm(array('op'=>'deleteok',$this->mObjectKeyField=>$key), $this->mUrl, $this->__l("Delete this Record? [ID=%d]",$key));
+            $key = intval($_GET[$this->mObjectKeyField]);            xoops_confirm(array('op'=>'deleteok',$this->mObjectKeyField=>$key), $this->getUrl(), $this->__l("Delete this Record? [ID=%d]",$key));
             if ($this->mRender->mTemplate) {
                 $this->mXoopsTpl->assign('formhtml',ob_get_contents());
                 ob_end_clean();

@@ -49,12 +49,12 @@
             </select>
         </td>
         <td align="right">
-            <a href="?action=NBFrame.admin.BlocksAdmin&amp;op=edit&amp;bid=<{$block.bid}>"><{"Edit"|__l}></a>
+            <a href="<{'NBFrame.admin.BlocksAdmin'|NBFrameAction:'op':'edit':'bid':$block.bid}>"><{"Edit"|__l}></a>
 <{if $block.can_delete}>
-            <br /><a href="?action=NBFrame.admin.BlocksAdmin&amp;op=delete&amp;bid=<{$block.bid}>"><{"Delete"|__l}></a>
+            <br /><a href="<{'NBFrame.admin.BlocksAdmin'|NBFrameAction:'op':'delete':'bid':$block.bid}>"><{"Delete"|__l}></a>
 <{/if}>
 <{if $block.can_clone}>
-            <br /><a href="?action=NBFrame.admin.BlocksAdmin&amp;op=clone&amp;bid=<{$block.bid}>"><{"Clone"|__l}></a>
+            <br /><a href="<{'NBFrame.admin.BlocksAdmin'|NBFrameAction:'op':'clone':'bid':$block.bid}>"><{"Clone"|__l}></a>
 <{/if}>
             <br /><input type="hidden" name="bid[<{$block.bid}>]" value="<{$block.bid}>" />
         </td>

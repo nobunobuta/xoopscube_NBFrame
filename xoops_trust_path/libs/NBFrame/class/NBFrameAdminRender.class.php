@@ -43,7 +43,7 @@ if (!class_exists('NBFrameAdminRender')) {
                 if (NBFrameBase::checkAltSys(false) && $this->mAction->mEnvironment->getAttribute('UseAltSys')) {
                     array_push($adminmenu,
                                  array( 'title' => _PREFERENCES ,
-                                        'link' => '?action=NBFrame.admin.AltSys&page=mypreferences'
+                                        'link'  => NBFrame::getActionUrl($this->mAction->mEnvironment, 'NBFrame.admin.AltSys', array('page'=>'mypreferences'), 'html', true),
                                  )
                                );
                 } else if (class_exists('XCube_Root')) {

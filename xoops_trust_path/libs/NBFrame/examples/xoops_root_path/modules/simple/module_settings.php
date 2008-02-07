@@ -9,7 +9,7 @@
  *
  */
 if (class_exists('NBFrame')) {
-    $environment->setAttribute('ModueleMainAction','SimpleDefault');
+    $environment->setAttribute('ModueleMainAction','SimpleDefault');             //Default Action Name
     $environment->setAttribute('AdminMainAction',  'admin.SimpleTableAdmin');
 
     $environment->setAttribute('AllowedAction', array('SimpleDefault',

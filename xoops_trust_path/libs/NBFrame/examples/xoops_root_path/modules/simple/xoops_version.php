@@ -41,7 +41,8 @@ $modversion['hasMain'] = 1;
 $modversion['hasAdmin'] = 1;
 $modversion['adminindex'] = 'admin/index.php';   // It'll be rewritten
 $modversion['adminmenu'] = 'include/admin_menu.inc.php'; // It'll be rewritten
-$modversion['hasconfig'] = 1;
+
+$modversion['hasconfig'] = 0;
 //$modversion['config'][1] = array(
 //    'name'          => 'config1' ,
 //    'title'         => '_MI_XXX_CONFIG1_MSG' ,

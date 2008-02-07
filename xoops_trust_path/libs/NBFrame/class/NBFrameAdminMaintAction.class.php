@@ -51,11 +51,11 @@ if (!class_exists('NBFrameAdminMaintAction')) {
         }
 
         function executeActionSuccess() {
-            redirect_header($this->mUrl, 2, $this->__l('Action Success'));
+            NBFrame::redirect($this->mEnvironment, $this->mActionName, 2, $this->__l('Action Success'));
         }
 
         function executeActionError() {
-            redirect_header($this->mUrl, 2, $this->mErrorMsg,2);
+            NBFrame::redirect($this->mEnvironment, '', 2, $this-mErrorMsg);
         }
     }
 }

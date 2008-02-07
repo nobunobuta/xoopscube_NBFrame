@@ -81,25 +81,21 @@ if (!class_exists('NBFrameObjectList')) {
                 $head = array();
                 $head['name'] = $key;
                 if (isset($value['ext']['sort'])&&($value['ext']['sort']===true)) {
-                    $param= 'list_sort='.$key;
+                    $param['list_sort']=$key;
                     if (($sort==$key)&&(strtolower($order)=='asc')) {
-                        $param .= '&amp;list_order=desc';
+                        $param['list_order']='desc';
                         $head['linktitle'] = 'Descending Sort';
                         $head['style']='style="color:#00FF00"';
                     } else if (($sort==$key)&&(strtolower($order)=='desc')) {
-                        $param .= '&amp;list_order=asc';
+                        $param['list_order']='asc';
                         $head['linktitle'] = 'Ascending Sort';
                         $head['style']='style="color:#FFFF00"';
                     } else {
-                        $param .= '&amp;list_order=asc';
+                        $param['list_order']='asc';
                         $head['linktitle'] = 'Ascending Sort';
                         $head['style']='style="color:#DDFFDD"';
                     }
-                    if (!empty($this->mAction)) {
-                        $head['link'] = $this->mAction->addUrlParam($param);
-                    } else {
-                        $head['link'] = XOOPS_URL.xoops_getenv('PHP_SELF').'?'.$param;
-                    }
+                    $head['link'] = $this->mAction->getUrl($param);
                 } else {
                     $head['link'] ='';
                 }
@@ -128,11 +124,7 @@ if (!class_exists('NBFrameObjectList')) {
             $key = $object->getKey();
             $keyFields = $object->getKeyFields();
             $objectKey = $keyFields[0];
-            if (!empty($this->mAction)) {
-                $item['link'] = $this->mAction->addUrlParam('op=edit&amp;'.$objectKey.'='.$key);
-            } else {
-                $item['link'] = XOOPS_URL.xoops_getenv('PHP_SELF').'?op=edit&amp;'.$objectKey.'='.$key;
-            }
+            $item['link'] = $this->mAction->getUrl(array('op'=>'edit',$objectKey=>$key));
             $item['linktitle'] = 'Edit this record';
             $item['value'] = $element['ext']['caption'];
             $item['align'] = 'center';
@@ -144,11 +136,7 @@ if (!class_exists('NBFrameObjectList')) {
             $key = $object->getKey();
             $keyFields = $object->getKeyFields();
             $objectKey = $keyFields[0];
-            if (!empty($this->mAction)) {
-                $item['link'] = $this->mAction->addUrlParam('op=delete&amp;'.$objectKey.'='.$key);
-            } else {
-                $item['link'] = XOOPS_URL.xoops_getenv('PHP_SELF').'?op=delete&amp;'.$objectKey.'='.$key;
-            }
+            $item['link'] = $this->mAction->getUrl(array('op'=>'delete',$objectKey=>$key));
             $item['linktitle'] = 'Delete this record';
             $item['value'] = $element['ext']['caption'];
             $item['align'] = 'center';

@@ -69,6 +69,7 @@ if (!class_exists('NBFrameLanguage')) {
             if ($inAdmin) {
                 $this->loadModuleLanguageFile('modinfo.php');
                 $this->loadModuleLanguageFile('admin.php');
+                $this->loadModuleLanguageFile('main.php');
             }
         }
 

@@ -294,15 +294,7 @@ if (!class_exists('NBFrameInstallHelper')) {
             } else {
                 contiue;
             }
-/*
-            if (!empty($tableDef['usesys'])) {
-                if ($tableDef['usesys'] == true) {
-                    foreach ($this->mSysFieldsArray as $name=>$sysField) {
-                        $createSQL .= $comma. $this->_createFieldPart($name, $sysField);
-                    }
-                }
-            }
-*/
+
             if (!empty($tableDef['primary'])) {
                 $createSQL .= $comma. 'PRIMARY KEY ('.$tableDef['primary']. ')';
             }
@@ -441,19 +433,6 @@ if (!class_exists('NBFrameInstallHelper')) {
             }
             $this->addMsg('NBFrame Duplicatable Template Definition ends...');
         }
-/*
-        function setModuleTemplateforDuplicate($tplName) {
-            $template = array();
-            $template['file'] = $this->mDirName.'_'.$tplName;
-            return $template;
-        }
-
-        function setBlockTemplateforDuplicate($tplName) {
-            $template = array();
-            $template['template'] = $this->mDirName.'_'.$tplName;
-            return $template;
-        }
-*/
         // Method for Keep Block options
         function preBlockUpdateProcess($moduleInfo) {
             $moduleInfo = $this->_getModuleInfo($moduleInfo);

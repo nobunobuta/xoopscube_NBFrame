@@ -1,0 +1,34 @@
+<h3><{$modulename}></h3>
+<h4><{$title}></h4>
+<div align="left">
+<table cellspacing="3" class="outer"><tr class="head"><td>
+<a href="<{$newlink}>" title="Create new record" ><{$lang.new}></a>
+</td></tr></table>
+</div>
+<br />
+<div align="left">
+<table cellspacing="1" class="outer">
+<tr class="head" align="center">
+<{foreach item=header from=$headers}>
+<{if $header.link }>
+<th width="<{$header.width}>px"><a href="<{$header.link}>" title="<{$header.linktitle}>" <{$header.style}>><{$header.caption}></a></th>
+<{else}>
+<th width="<{$header.width}>px"><{$header.caption}></th>
+<{/if}>
+<{/foreach}>
+</tr>
+<{foreach item=record from=$records}>
+<tr class="<{cycle values="odd,even"}>">
+<{foreach item=item from=$record.items}>
+<{if $item.link }>
+<td align="<{$item.align}>"><a href="<{$item.link}>" title="<{$item.linktitle}>"><{$item.value}></a></td>
+<{else}>
+<td align="<{$item.align}>"><{$item.value}></td>
+<{/if}>
+<{/foreach}>
+</tr>
+<{/foreach}>
+</table>
+<{$pagenav}>
+</div>
+<{$extrahtml}>
