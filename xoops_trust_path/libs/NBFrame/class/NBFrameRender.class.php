@@ -35,6 +35,7 @@ if (!class_exists('NBFrameRender')) {
             $this->mXoopsTpl->register_modifier('NBFramePage', array(&$this,'_Smarty_NBFramePage'));
             $this->mXoopsTpl->register_compiler_function('__l', array(&$this,'__l_s'));
             $this->mXoopsTpl->register_compiler_function('__e', array(&$this,'__e_s'));
+            $this->mXoopsTpl->assign_by_ref('NBEnvrionment',$this->mAction->mEnvironment);
         }
 
         function _Smarty_NBFrameAction() {

@@ -72,6 +72,18 @@ if (!class_exists('NBFrameEnvironment')) {
         function prefix($basename) {
             return $this->mDirName.'_'.$basename;
         }
+
+        function __l($msg) {
+            $language =& $this->getLanguageManager();
+            $args = func_get_args();
+            return $language->__l($msg, $language->_getParams($args));
+        }
+
+        function __e($msg) {
+            $language =& $this->getLanguageManager();
+            $args = func_get_args();
+            return $language->__e($msg, $language->_getParams($args));
+        }
         
     }
 }
