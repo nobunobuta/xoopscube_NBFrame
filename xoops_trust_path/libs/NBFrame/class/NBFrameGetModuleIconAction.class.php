@@ -27,6 +27,9 @@ if (!class_exists('NBFrameGetModuleIconAction')) {
                     $fileName = NBFrame::findFile('logo.png', $this->mEnvironment, 'images');
                     if (!empty($fileName)) {
                         $mimeType = 'image/png';
+                    } else {
+                        $fileName = NBFRAME_BASE_DIR.'/images/logo.png';
+                        $mimeType = 'image/png';
                     }
                 }
             }
