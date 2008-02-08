@@ -187,7 +187,7 @@ if (!class_exists('NBFrameAction')) {
         }
 
         function executeActionError() {
-            NBFrame::redirect($this->mEnvironment, '', 2, $this-mErrorMsg);
+            NBFrame::redirect($this->mEnvironment, '', 2, $this->mErrorMsg);
         }
 
         function __l($msg) {
