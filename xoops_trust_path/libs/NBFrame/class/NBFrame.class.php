@@ -501,6 +501,55 @@ if (!class_exists('NBFrame')) {
             }
             return strtotime($timeStr) + $timeoffset * 3600;
         }
+        
+        function toShow($text) {
+            if (isset($GLOBALS['NBFrameTextFilter'])) {
+                return $GLOBALS['NBFrameTextFilter']->toShow($text);
+            } else if (isset($GLOBALS['NBFrameTextSanitizer'])){
+                $str = $GLOBALS['NBFrameTextSanitizer']->htmlSpecialChars($text);
+                return $str;
+            } else if (class_exists('XCube_Root')) {
+                $root = XCube_Root::getSingleton();
+                $GLOBALS['NBFrameTextFilter'] =& $root->getTextFilter();
+                return $GLOBALS['NBFrameTextFilter']->toShow($text);
+            } else {
+                $GLOBALS['NBFrameTextSanitizer'] =& MyTextSanitizer::getInstance();
+                $str = $GLOBALS['NBFrameTextSanitizer']->htmlSpecialChars($text);
+                return $str;
+            }
+        }
+        function toEdit($text) {
+            if (isset($GLOBALS['NBFrameTextFilter'])) {
+                return $GLOBALS['NBFrameTextFilter']->toEdit($text);
+            } else if (isset($GLOBALS['NBFrameTextSanitizer'])){
+                $str = $GLOBALS['NBFrameTextSanitizer']->htmlSpecialChars($text);
+                return $str;
+            } else if (class_exists('XCube_Root')) {
+                $root = XCube_Root::getSingleton();
+                $GLOBALS['NBFrameTextFilter'] =& $root->getTextFilter();
+                return $GLOBALS['NBFrameTextFilter']->toEdit($text);
+            } else {
+                $GLOBALS['NBFrameTextSanitizer'] =& MyTextSanitizer::getInstance();
+                $str = $GLOBALS['NBFrameTextSanitizer']->htmlSpecialChars($text);
+                return $str;
+            }
+        }
+        function toShowTarea($text, $html = 0, $smiley = 1, $xcode = 1, $image = 1, $br = 1) {
+            if (isset($GLOBALS['NBFrameTextFilter'])) {
+                return $GLOBALS['NBFrameTextFilter']->toShowTarea($text, $html, $smiley, $xcode, $image, $br);
+            } else if (isset($GLOBALS['NBFrameTextSanitizer'])){
+                $str = $GLOBALS['NBFrameTextSanitizer']->displayTarea($text, $html, $smiley, $xcode, $image, $br);
+                return $str;
+            } else if (class_exists('XCube_Root')) {
+                $root = XCube_Root::getSingleton();
+                $GLOBALS['NBFrameTextFilter'] =& $root->getTextFilter();
+                return $GLOBALS['NBFrameTextFilter']->toShowTarea($text, $html, $smiley, $xcode, $image, $br);
+            } else {
+                $GLOBALS['NBFrameTextSanitizer'] =& MyTextSanitizer::getInstance();
+                $str = $GLOBALS['NBFrameTextSanitizer']->displayTarea($text, $html, $smiley, $xcode, $image, $br);
+                return $str;
+            }
+        }
     }
 }
 ?>
