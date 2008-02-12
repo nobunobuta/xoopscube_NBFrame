@@ -28,7 +28,7 @@ if (!class_exists('NBFrameRedirectAction')) {
                     $paramArray[$key]=$param;
                 }
             }
-            header('Location: '.NBFrame::getActionUrl($this->mEnvironment, $action, $paramArray, '',false, false));
+            header('Location: '.$this->mEnvironment->getActionUrl($action, $paramArray, '',false, false));
             exit();
         }
     }
