@@ -149,7 +149,7 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
         }
 
         function executeCloneOp() {
-            if (isset($_GET[$this->mObjectKeyField])) {                $old_object =& $this->mObjectHandler->get(intval($_GET[$this->mObjectKeyField]));
+            if (isset($_GET['bid'])) {                $old_object =& $this->mObjectHandler->get(intval($_GET['bid']));
                 $object =& $this->mObjectHandler->create();
                 $object->setVars($old_object->getVarArray('n'));
                 return $this->_showForm($object, $this->__l('Clone'));
@@ -160,7 +160,7 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
         }
 
         function executeInsertOp() {
-            $old_object =& $this->mObjectHandler->get(intval($_POST[$this->mObjectKeyField]));
+            $old_object =& $this->mObjectHandler->get(intval($_POST['bid']));
             $block_type = $old_object->get('block_type') ;
             if( $block_type != 'C' && $block_type != 'M' && $block_type != 'D' ) {
                 $this->mErrorMsg = $this->__e('Invalid block');

@@ -84,7 +84,6 @@ if (!class_exists('NBFrameRequest')) {
 
             if ($param['mustExist'] && !$paraFound) {
                 $result['ErrorMsg'] = new NBFrameRequestErr('Required parameter['.$name.'] should not be empty.');
-                return $result;
             }
 
             if (!$paraFound) {
