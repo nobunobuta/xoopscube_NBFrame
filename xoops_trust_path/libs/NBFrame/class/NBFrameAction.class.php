@@ -40,10 +40,9 @@ if (!class_exists('NBFrameAction')) {
 
         function NBFrameAction(&$environment) {
             $this->mEnvironment = $environment;
-            $this->mDirName = $environment->mDirName;
-            if (!empty($environment->mOrigDirName)) {
-                $this->mOrigDirName = $environment->mOrigDirName;
-            } else {
+            $this->mDirName = $environment->getDirName();
+                $this->mOrigDirName = $environment->getOrigDirName();
+            if (empty($this->mOrigDirName)) {
                 $this->mOrigDirName = $this->mDirName;
             }
             $this->mUrl = XOOPS_URL.xoops_getenv('PHP_SELF');
@@ -78,7 +77,7 @@ if (!class_exists('NBFrameAction')) {
         }
         
         function getUrl($paramArray=array()) {
-            return NBFrame::getActionURL($this->mEnvironment, $this->mActionName, $paramArray);
+            return $this->mEnvironment->getActionURL($this->mActionName, $paramArray);
         }
         
         function addUrlParam($str) {
@@ -133,6 +132,10 @@ if (!class_exists('NBFrameAction')) {
                         $this->$viewMethod();
                     }
                     $this->endRender();
+                    $postViewMethod = 'postView'.ucfirst($this->mOp).'Op';
+                    if (method_exists($this, $postViewMethod)) {
+                        $this->$postViewMethod();
+                    }
                     break;
                 case NBFRAME_ACTION_VIEW_EXTRA:
                     $preViewExtraMethod = 'preView'.$this->mExtraShowMethod;
@@ -145,6 +148,10 @@ if (!class_exists('NBFrameAction')) {
                         $this->$extraMethod();
                     }
                     $this->endRender();
+                    $postViewExtraMethod = 'postView'.$this->mExtraShowMethod;
+                    if (method_exists($this, $postViewExtraMethod)) {
+                        $this->$postViewExtraMethod();
+                    }
                     break;
                 case NBFRAME_ACTION_SUCCESS:
                     $this->executeActionSuccess();
@@ -183,11 +190,11 @@ if (!class_exists('NBFrameAction')) {
         }
 
         function executeActionSuccess() {
-            NBFrame::redirect($this->mEnvironment, $this->mActionName, 2, $this->__l('Action Success'));
+            $this->mEnvironment->redirect($this->mActionName, 2, $this->__l('Action Success'));
         }
 
         function executeActionError() {
-            NBFrame::redirect($this->mEnvironment, '', 2, $this->mErrorMsg);
+            $this->mEnvironment->redirect('', 2, $this->mErrorMsg);
         }
 
         function __l($msg) {

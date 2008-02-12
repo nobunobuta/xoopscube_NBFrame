@@ -19,7 +19,7 @@ if (!class_exists('NBFrameGetPageAction')) {
             } else {
                 return;
             }
-            $fileName = NBFrame::findFile($fileBaseName, $this->mEnvironment, 'pages');
+            $fileName = $this->mEnvironment->findFile($fileBaseName, '/contents', false, '=');
             if (!empty($fileName) && preg_match('/\.(html|htm)$/', strtolower($fileBaseName), $match)) {
                 $this->mFileName = $fileName;
             } else {
@@ -33,7 +33,7 @@ if (!class_exists('NBFrameGetPageAction')) {
             }
         }
 
-        function getParamString(&$environment, $paramArray) {  
+        function getParamString($environmentArr, $paramArray) {  
             if (isset($paramArray['NBContentFile'])) {
                 return 'contents/'.rawurlencode($paramArray['NBContentFile']);
             }
