@@ -28,7 +28,7 @@ if (!class_exists('NBFrameAdminTpl')) {
 
         function fetch($tplfile, $cache_id = null, $compile_id = null, $display = false)
         {
-            $filename = NBFrame::findFile($tplfile, $this->mEnvironment, '/templates', false, $this->mDirName);
+            $filename = $this->mEnvironment->findFile($tplfile, '/templates');
             if (empty($filename)) {
                 $this->template_dir = NBFRAME_BASE_DIR . '/templates';
             } else {

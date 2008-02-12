@@ -19,13 +19,9 @@ if (!class_exists('NBFrameLanguage')) {
         var $mCachePath ;
         var $mMyLangPath;
 
-        function NBFrameLanguage($target, &$environment) {
-            if (!empty($target)) {
-                if ($environment == null) {
-                    $this->mEnvironment =& NBFrame::getEnvironments($target);
-                } else {
-                    $this->mEnvironment =& $environment;
-                }
+        function NBFrameLanguage(&$environment) {
+            if (!empty($environment)) {
+                $this->mEnvironment =& $environment;
                 $this->mDirName = $this->mEnvironment->mDirName;
                 $this->mSalt = substr( md5( XOOPS_ROOT_PATH . XOOPS_DB_USER . XOOPS_DB_PREFIX ) , 0 , 6 );
                 if (defined('XOOPS_TRUST_PATH') && file_exists(XOOPS_TRUST_PATH.'/cache')) {
@@ -43,7 +39,7 @@ if (!class_exists('NBFrameLanguage')) {
                 } else {
                     $this->mOrigDirName = $this->mDirName;
                 }
-                switch ($target) {
+                switch ($environment->mTarget) {
                     case NBFRAME_TARGET_MAIN:
                         $this->loadModuleLanguageFile('main.php');
                         break;
@@ -57,7 +53,6 @@ if (!class_exists('NBFrameLanguage')) {
                     default:
                         break;
                 }
-//                $this->setInAdmin($inAdmin);
             }
             if (defined('NBFRAME_BASE_DIR') && file_exists(NBFRAME_BASE_DIR.'/language/'.$GLOBALS['xoopsConfig']['language'].'/NBFrameCommon.php')) {
                 require NBFRAME_BASE_DIR.'/language/'.$GLOBALS['xoopsConfig']['language'].'/NBFrameCommon.php';

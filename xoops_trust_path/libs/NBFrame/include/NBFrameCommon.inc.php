@@ -17,13 +17,12 @@ if(!defined('NBFRAME_COMMON_FUNCTION_INCLUDED')){
     } else {
         include_once (dirname(__FILE__).'/NBFramePHP5.inc.php');
     }
-    require_once NBFRAME_BASE_DIR.'/class/NBFrameBase.class.php';
     require_once NBFRAME_BASE_DIR.'/class/NBFrame.class.php';
 }
 $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_LOADER, '', true);
 $environment->setDirBase($_NBFrame_moduleBaseDir);
 require $_NBFrame_moduleBaseDir.'/mytrustdirname.php';
 $environment->setOrigDirName($mytrustdirname);
-if ($fname = NBFrame::findFile('module_settings.php', $environment, '/')) @include $fname;
-if ($fname = NBFrame::findFile('custom_settings.php', $environment, '/')) @include $fname;
+if ($fname = $environment->findFile('module_settings.php', '/', false, '=')) @include $fname;
+if ($fname = $environment->findFile('custom_settings.php', '/', false, '=')) @include $fname;
 ?>

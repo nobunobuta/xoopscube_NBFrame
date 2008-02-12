@@ -53,17 +53,17 @@ if (!class_exists('NBFrameRender')) {
                     }
                 }
             }
-            return NBFrame::getActionURL($environment, $action, $paramArray);
+            return $environment->getActionURL($action, $paramArray);
         }
 
         function _Smarty_NBFrameImage($file) {
             $environment =& $this->mAction->mEnvironment;
-            return NBFrame::getImageURL($environment, $file);
+            return $environment->getImageURL($file);
         }
 
         function _Smarty_NBFramePage($file) {
             $environment =& $this->mAction->mEnvironment;
-            return NBFrame::getPageURL($environment, $file);
+            return $environment->getPageURL($file);
         }
 
         function __l($msg) {

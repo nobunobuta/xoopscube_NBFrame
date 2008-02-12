@@ -16,15 +16,15 @@ if (!class_exists('NBFrameGetModuleIconAction')) {
             error_reporting(E_ERROR);
             if (!empty($_GET['file'])) {
                 $fileBaseName = basename($_GET['file']);
-                $fileName = NBFrame::findFile($fileBaseName, $this->mEnvironment, 'images');
+                $fileName = $this->mEnvironment->findFile($fileBaseName, '/images', false, '=');
                 if (preg_match('/\.png$/i', $fileBaseName)) $mimeType = 'image/png';
                 if (preg_match('/\.gif$/i', $fileBaseName)) $mimeType = 'image/gif';
             } else {
-                $fileName = NBFrame::findFile('logo.gif', $this->mEnvironment, 'images');
+                $fileName = $this->mEnvironment->findFile('logo.gif', '/images', false, '=');
                 if (!empty($fileName)) {
                     $mimeType = 'image/gif';
                 } else {
-                    $fileName = NBFrame::findFile('logo.png', $this->mEnvironment, 'images');
+                    $fileName = $this->mEnvironment->findFile('logo.png', '/images', false, '=');
                     if (!empty($fileName)) {
                         $mimeType = 'image/png';
                     } else {

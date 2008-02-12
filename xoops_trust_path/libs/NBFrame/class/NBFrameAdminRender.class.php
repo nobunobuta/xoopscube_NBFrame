@@ -37,13 +37,13 @@ if (!class_exists('NBFrameAdminRender')) {
 
         function renderMyMenu() {
             $adminmenu = array();
-            include NBFrame::findFile('NBFrameAdminMenu.inc.php', $this->mAction->mEnvironment, 'include');
+            include $this->mAction->mEnvironment->findFile('NBFrameAdminMenu.inc.php', 'include');
             $module =& $GLOBALS['xoopsModule'];
             if( $module->getVar('hasconfig') ){
-                if (NBFrameBase::checkAltSys(false) && $this->mAction->mEnvironment->getAttribute('UseAltSys')) {
+                if (NBFrame::checkAltSys(false) && $this->mAction->mEnvironment->getAttribute('UseAltSys')) {
                     array_push($adminmenu,
                                  array( 'title' => _PREFERENCES ,
-                                        'link'  => NBFrame::getActionUrl($this->mAction->mEnvironment, 'NBFrame.admin.AltSys', array('page'=>'mypreferences'), 'html', true),
+                                        'link'  => $this->mAction->mEnvironment->getActionUrl('NBFrame.admin.AltSys', array('page'=>'mypreferences'), 'html', true),
                                  )
                                );
                 } else if (class_exists('XCube_Root')) {

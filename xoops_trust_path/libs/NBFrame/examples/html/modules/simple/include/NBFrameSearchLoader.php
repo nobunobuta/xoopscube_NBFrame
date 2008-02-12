@@ -9,6 +9,6 @@
  *
  */
 include dirname(dirname(__FILE__)).'/include/NBFrameLoader.inc.php';
-$environment =& NBFrameBase::prepare(NBFRAME_TARGET_BLOCK);
-NBFrameBase::prepareSearchFunction($environment);
+$environment =& NBFrame::prepare(NBFRAME_TARGET_BLOCK);
+$environment->prepareSearchFunction();
 ?>

@@ -21,7 +21,7 @@ if (!class_exists('NBFrameGetImageAction')) {
             } else {
                 return;
             }
-            $fileName = NBFrame::findFile($fileBaseName, $this->mEnvironment, 'images');
+            $fileName =  $this->mEnvironment->findFile($fileBaseName, '/images', false, '=');
             if (!empty($fileName) && preg_match('/\.(jpeg|jpg|gif|png|swf)$/', strtolower($fileBaseName), $match)) {
                 $fileExt = $match[1];
                 if ($fileExt =='jpeg' || $fileExt =='jpg') {
@@ -40,7 +40,7 @@ if (!class_exists('NBFrameGetImageAction')) {
             }
         }
         
-        function getParamString(&$environment, $paramArray) {  
+        function getParamString($environmentArr, $paramArray) {  
             if (isset($paramArray['NBImgFile'])) {
                 return 'images/'.rawurlencode($paramArray['NBImgFile']);
             }

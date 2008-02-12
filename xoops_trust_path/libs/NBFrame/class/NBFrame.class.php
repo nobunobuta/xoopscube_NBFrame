@@ -49,10 +49,9 @@ if (!class_exists('NBFrame')) {
                 }
             } else {
                 if ($noCustom) {
-                    $fileName = NBFrame::findFile($className.'.class.php', $environment, $classType.$classOffset, true);
+                    $fileName = $environment->findFile($className.'.class.php', $classType.$classOffset, true, '+');
                 } else {
-                    $dirName = $environment->mDirName;
-                    $fileName = NBFrame::findFile($className.'.class.php', $environment, $classType.$classOffset, true, $dirName.'_');
+                    $fileName = $environment->findFile($className.'.class.php', $classType.$classOffset);
                 }
                 if ($fileName) require_once $fileName;
             }
@@ -91,128 +90,6 @@ if (!class_exists('NBFrame')) {
         }
 
         /**
-         * Action Executer
-         *  (This is a Main Process of NBFrame)
-         *
-         * @param NBFrameEnvironment &$environment
-         * @param string $defaultAction
-         * @param string $allowedAction[]
-         * @param string $dialogAction[]
-         *
-         */
-        function executeAction(&$environment, $defaultAction='', $allowedAction=array(), $dialogAction=array()) {
-            // Setup Default Action Array
-            if (empty($defaultAction)) {
-                $defaultAction = $environment->getAttribute('ModueleMainAction');
-            }
-
-            // Setup Allowed Action Names
-            if (empty($allowedAction)) {
-                $allowedAction = $environment->getAttribute('AllowedAction');
-                if (empty($allowedAction)) $allowedAction = array();
-            }
-            if (!empty($allowedAction)) {
-                if ($environment->getAttribute('UseAltSys')) {
-                    $allowedAction[] = 'NBFrame.admin.AltSys';
-                }
-                if ($environment->getAttribute('UseBlockAdmin')) {
-                    $allowedAction[] = 'NBFrame.admin.BlocksAdmin';
-                }
-                $allowedAction[] = 'NBFrame.GetModuleIcon';
-                $allowedAction[] = 'NBFrame.GetImage';
-                $allowedAction[] = 'NBFrame.Redirect';
-            }
-
-            // Setup Dialog Action Names
-            if (empty($dialogAction)) {
-                $dialogAction = $environment->getAttribute('DialogAction');
-                if (empty($dialogAction)) $dialogAction = array();
-            }
-            
-            // Parse Requested URL
-            NBFrameBase::parseURL($environment);
-
-            // Check Requested Action Name
-            if (!empty($_REQUEST['action'])) {
-                $requestAction = basename($_REQUEST['action']);
-                if ($allowedAction && in_array($requestAction, $allowedAction)) {
-                    $className = $requestAction;
-                } else {
-                    $className = '';   //@ToDo
-                }
-            } else {
-                $requestAction = '';
-                $className = $defaultAction;
-            }
-
-            // Special Check for AltSys Admin Screen Request
-            if (NBFrameBase::checkAltSys() && 
-                isset($_GET['lib']) && ($_GET['lib']=='altsys') && 
-                isset($_GET['page'])) {
-                $className = 'NBFrame.admin.AltSys';
-            }
-
-            // Call Custom URL Parser in a specified Action
-            if ($rawParm = $environment->getAttribute('RawParam')) {
-                NBFrame::using($className.'Action', $environment);
-                if (class_exists($className.'Action') && is_callable(array($className.'Action','parseURL'),false)) {
-                    $className = call_user_func(array($className.'Action','parseURL'), array(&$environment), $rawParm);
-                }
-            }
-
-            // Execute Automatic Module Update Sequence
-            if (($environment->getAttribute('AutoUpdateMode')===true) &&
-                !NBFrameBase::isNoCommonAction($className, $environment)) {
-                $info = $GLOBALS['xoopsModule']->getInfo();
-                $installHelper =& NBFrameBase::getInstallHelper($environment);
-                $installHelper->postUpdateProcessforDuplicate(true);
-            }
-            
-            // Generage an Action class and Execute
-            if ($action =& NBFrame::getInstance($className, $environment, 'Action')) {
-                $action->mActionName = $requestAction;
-                if (in_array($className, $dialogAction)) {
-                    $action->mDialogMode = true;
-                }
-                $action->prepare();
-                $action->execute();
-            }
-        }
-
-        /**
-         * NBFrame Class instance generator
-         *
-         * @param string $className
-         * @param NBFrameEnvironment &$environment
-         * @param string $suffix
-         * @return object
-         */
-        function &getInstance($className, &$environment, $suffix='') {
-            $className = $className.$suffix;
-            $classNamePath = str_replace('.', '/', basename($className));
-            $classBaseName = basename($classNamePath);
-            if (preg_match('/^NBFrame\.(.*)/',$className, $match)) {
-                $className = $match[1];
-                NBFrame::using($className);
-                $classBaseName = 'NBFrame'.$classBaseName;
-            } else {
-                NBFrame::using($className, $environment);
-            }
-            $dirName = $environment->mDirName;
-            
-            $instance = null;
-
-            if (class_exists($dirName.'_'.$classBaseName)) {
-                // This class may be Module Custom Class
-                $classBaseName = $dirName.'_'.$classBaseName;
-                $instance =& new $classBaseName($environment);
-            } else if (class_exists($classBaseName)) {
-                $instance =& new $classBaseName($environment);
-            }
-            return $instance;
-        }
-
-        /**
          * Get NBFrameObjectHandler Children Class Singleton Instance
          *
          * @param string $className
@@ -221,7 +98,8 @@ if (!class_exists('NBFrame')) {
          * @return NBFrameObjectHandler
          */
         function &getHandler($className, &$environment) {
-            static $mHandlerArr;
+            static $sHandlerArr;
+            static $sNullLanguageManager = null;
             $ret = false;
             $dirName = '';
 
@@ -234,15 +112,15 @@ if (!class_exists('NBFrame')) {
             if (preg_match('/^NBFrame\.(.*)/', $className, $match)) {
                 $key = $className;
             } else if (!empty($environment)) {
-                $dirName = $environment->mDirName;
-                $key = $dirName.'_'.$className;
+                $dirName = $environment->getDirName();
+                $key = $environment->prefix($className);
             } else {
                 $key = $className;
             }
 
             $handlerClassName = $classBaseName.'Handler';
 
-            if (!isset($mHandlerArr[$key])) {
+            if (!isset($sHandlerArr[$key])) {
                 if (preg_match('/^NBFrame\.(.*)/', $className, $match)) {
                     NBFrame::using('Object');
                     NBFrame::using('ObjectHandler');
@@ -253,42 +131,68 @@ if (!class_exists('NBFrame')) {
                 } else if (!empty($environment) && !class_exists($handlerClassName)) {
                     NBFrame::using('Object');
                     NBFrame::using('ObjectHandler');
-                    $fileName = NBFrame::findFile($className.'.class.php', $environment, 'class' , true, $dirName.'_');
+                    $fileName = $environment->findFile($className.'.class.php', 'class');
                     if ($fileName) require_once $fileName;
                 }
                 if (class_exists($dirName.'_'.$handlerClassName)) {
                     // This handler may be Module custom handler
-                    $mHandlerArr[$key] =& new $dirName.'_'.$handlerClassName($GLOBALS['xoopsDB']);
-                    $ret =& $mHandlerArr[$key];
+                    $sHandlerArr[$key] =& new $dirName.'_'.$handlerClassName($GLOBALS['xoopsDB']);
+                    $handler =& $sHandlerArr[$key];
                 } else if (class_exists($handlerClassName)) {
-                    $mHandlerArr[$key] =& new $handlerClassName($GLOBALS['xoopsDB']);
-                    $ret =& $mHandlerArr[$key];
+                    $sHandlerArr[$key] =& new $handlerClassName($GLOBALS['xoopsDB']);
+                    $handler =& $sHandlerArr[$key];
                 } else if (preg_match('/^realname\.(\w+)/i', $className, $match)) {
                     // Automatic Creating Handler Class with Table Names
                     $handlerClassName = 'NBFrameRealTable'.$handlerClassName;
                     $entityClassName = 'NBFrameRealTable'.$classBaseName;
-                    $mHandlerArr[$key] =& new NBFrameObjectHandler($GLOBALS['xoopsDB']);
-                    $ret =& $mHandlerArr[$key];
-                    $ret->setTableBaseName($match[1]);
-                    $ret->mUseModuleTablePrefix = false;
-                    $ret->mClassName = $handlerClassName;
-                    $ret->mEntityClassName = $entityClassName;
+                    $sHandlerArr[$key] =& new NBFrameObjectHandler($GLOBALS['xoopsDB']);
+                    $handler =& $sHandlerArr[$key];
+                    $handler->setTableBaseName($match[1]);
+                    $handler->mUseModuleTablePrefix = false;
+                    $handler->mClassName = $handlerClassName;
+                    $handler->mEntityClassName = $entityClassName;
                 }
                 
-                if ($ret && !empty($environment) && $ret->mUseModuleTablePrefix) {
-                    $ret->setTableBaseName($dirName.'_'.$ret->getTableBaseName());
-                }
-                if ($ret && !empty($environment)) {
-                    $ret->mEnvironment =& NBFrame::makeClone($environment);
-                    $target = $ret->mEnvironment->mTarget;
+                if ($handler && !empty($environment)) {
+                    if ($handler->mUseModuleTablePrefix) {
+                        $handler->setTableBaseName($dirName.'_'.$handler->getTableBaseName());
+                    }
+                    $handler->mEnvironment =& NBFrame::makeClone($environment);
+                    $handler->mLanguage =& $handler->mEnvironment->getLanguageManager();
                 } else {
-                    $target = 0;
+                    if (empty($sNullLanguageManager)) {
+                        NBFrame::using('Language');
+                        $sNullLanguageManager =& new NBFrameLanguage(NBFrame::null());
+                    }
+                    $handler->mLanguage =& $sNullLanguageManager;
                 }
-                $ret->mLanguage =& NBFrameBase::getLanguageManager($ret->mEnvironment);
             } else {
-                $ret =& $mHandlerArr[$key];
+                $handler =& $sHandlerArr[$key];
             }
-            return $ret;
+            return $handler;
+        }
+
+        /**
+         * Preparing Target Environment
+         *
+         * @param string $origDirName
+         * @param int    $target
+         *
+         */
+        function &prepare($target=NBFRAME_TARGET_MAIN) {
+            $envtemp =& NBFrame::getEnvironments(NBFRAME_TARGET_LOADER);
+            if (!empty($envtemp)) {
+                $environment =& NBFrame::getEnvironments($target, $envtemp->getDirName(), true);
+                $environment->setOrigDirName($envtemp->getOrigDirName());
+                $environment->setDirBase($envtemp->getDirBase());
+                $environment->mAttributeArr = $envtemp->mAttributeArr;
+                if ($target != NBFRAME_TARGET_MAIN) {
+                    $environment->getLanguageManager();
+                }
+            } else {
+                $environment = null;
+            }
+            return $environment;
         }
 
         // Utilitiy Functions
@@ -327,34 +231,6 @@ if (!class_exists('NBFrame')) {
             }
         }
 
-        function findFile($name, $environment, $offset='', $searchCurrent=true, $customPrefix='') {
-            static $fileNames;
-            $origDirName = $environment->mOrigDirName;
-            $dirName = $environment->mDirName;
-            $key = md5($dirName.$origDirName.$offset.$name);
-            if (isset($fileNames[$key])) {
-                return $fileNames[$key];
-            }
-            
-            if (!empty($offset)) {
-                $offset = preg_replace('/^\//','',trim($offset));
-                $offset = preg_replace('/\/$/','',$offset);
-                if ($offset != '') {
-                    $offset.='/';
-                }
-            }
-            $fileName = '';
-            if (!empty($customPrefix) && file_exists(XOOPS_ROOT_PATH.'/modules/'.$dirName.'/'.$offset.$customPrefix.$name)){
-                $fileName = XOOPS_ROOT_PATH.'/modules/'.$dirName.'/'.$offset.$customPrefix.$name;
-            } else if (defined('XOOPS_TRUST_PATH') && file_exists(XOOPS_TRUST_PATH.'/modules/'.$origDirName.'/'.$offset.$name)){
-                $fileName = XOOPS_TRUST_PATH.'/modules/'.$origDirName.'/'.$offset.$name;
-            } else if ($searchCurrent && file_exists(XOOPS_ROOT_PATH.'/modules/'.$dirName.'/'.$offset.$name)){
-                $fileName = XOOPS_ROOT_PATH.'/modules/'.$dirName.'/'.$offset.$name;
-            }
-            $fileNames[$offset][$name] = $fileName;
-            return $fileName;
-        }
-        
         function checkRight($gperm_name, $gperm_itemid=1, $bypassAdminCheck = false) {
             if (is_object($GLOBALS['xoopsUser'])) {
                 $groups = $GLOBALS['xoopsUser']->getGroups();
@@ -378,114 +254,27 @@ if (!class_exists('NBFrame')) {
             return $result;
         }
         
-        function redirect(&$environment, $actionName='', $time, $msg, $paramArray=array(), $ext='html') {
-            if (!empty($paramArray) && isset($paramArray['op'])) {
-                $paramArray['NBFrameNextOp'] = $paramArray['op'];
-                unset($paramArray['op']);
-            }
-            $paramArray['NBFrameNextAction'] = $actionName;
-            redirect_header(NBFrame::getActionURL(&$environment, 'NBFrame.Redirect',$paramArray, $ext), $time, $msg);
-        }
-        function getActionURL(&$environment, $actionName='', $paramArray=array(), $ext='html', $ommitBase=false, $escape=true) {
-            if ($ommitBase) {
-                $str = '';
-            } else {
-                if (empty($GLOBALS['NBFrameURLShotened'])) {
-                    $str = $environment->mUrlBase.'/';
-                } else {
-                    $str = XOOPS_URL.'/'.$environment->mDirName.'/';
-                }
-            }
-            $suffix = '.'.$ext;
-            if ($environment->getAttribute('StaticUrlMode')) {
-                $delim = '';
-                if ($environment->getAttribute('ModRewirteOff') && empty($GLOBALS['NBFrameURLShotened'])) {
-                    $str .= 'page/';
-                }
-                if (!empty($actionName)) {
-                    $className = $actionName.'Action';
-                } else {
-                    $className = $environment->getAttribute('ModueleMainAction');
-                }
-                NBFrame::using($className, $environment);
-                if (class_exists($className) && is_callable(array($className,'getParamString'),false)) {
-                    $str .= call_user_func(array($className,'getParamString'), $environment, $paramArray);
-                } else {
-                    if (!empty($actionName) && ($actionName != $environment->getAttribute('ModueleMainAction'))) {
-                        if (preg_match('/^(NBFrame\.)?(admin\.)?([A-Za-z0-9\._]+)/', $actionName, $matches)) {
-                            if ($matches[1]) {
-                                $str .= 'NBFrame/';
-                            }
-                            if ($matches[2]) {
-                                $str .= 'admin/';
-                            }
+        function checkAltSys($dirOnly=true) {
+            if (defined('XOOPS_TRUST_PATH')) {
+                if (is_dir(XOOPS_TRUST_PATH.'/libs/altsys')) {
+                    if ($dirOnly) {
+                        return true;
+                    } else {
+                        $moduleHandler =& NBFrame::getHandler('NBFrame.xoops.Module', NBFrame::null());
+                        if ($moduleHandler->getByDirname('altsys')) {
+                            return true;
                         }
-                        $str .= $matches[3].'Action/';
-                    }
-                    if (!empty($paramArray)) {
-                        foreach ($paramArray as $key=>$value) {
-                            if (substr($key,0,2) == '__') {
-                                $suffix = $delim.$key.'__'.rawurlencode($value);
-                            } else {
-                                $str .= $delim.$key.'__'.rawurlencode($value);
-                                $delim = '/';
-                            }
-                        }
-                        $str .= $suffix;
-                    }
-                }
-            } else {
-                $delim = '?';
-                if (!empty($actionName) && ($actionName != $environment->getAttribute('ModueleMainAction'))) {
-                    $str .= $delim.'action='.$actionName;
-                    $delim = ($escape ? '&amp;' : '&');
-                }
-                if (!empty($paramArray)) {
-                    foreach ($paramArray as $key=>$value) {
-                        if (substr($key,0,2) == '__') {
-                            $key = substr($key,2);
-                        }
-                        $str .= $delim.$key.'='.rawurlencode($value);
-                        $delim = ($escape ? '&amp;' : '&');
                     }
                 }
             }
-            return $str;
+            return false;
         }
-        
-        function getImageURL(&$environment, $fileName) {
-            if ($environment->getAttribute('StaticUrlMode')) {
-                $str = $environment->mUrlBase.'/images/'.rawurlencode($fileName);
-            } else {
-                $str = $environment->mUrlBase.'/?action=NBFrame.GetImage&amp;NBImgFile='.rawurlencode($fileName);
-            }
-            return $str;
-        }
-        
-        function getPageURL(&$environment, $fileName) {
-            if ($environment->getAttribute('StaticUrlMode')) {
-                $str = $environment->mUrlBase.'/contents/'.rawurlencode($fileName);
-            } else {
-                $str = $environment->mUrlBase.'/?action=NBFrame.GetPage&amp;NBPageFile='.rawurlencode($fileName);
-            }
-            return $str;
-        }
-        
+
         function display404Page() {
             header('HTTP/1.0 404 Not Found');
             header('Content-Type: text/html; charset=iso-8859-1');
             include NBFRAME_BASE_DIR.'/templates/NBFramePage404.tpl.php';
             exit();
-        }
-        
-        function getModuleCookiePath(&$environment) {
-                $pathArray = explode($_SERVER['HTTP_HOST'], XOOPS_URL);
-                if (empty($GLOBALS['NBFrameURLShotened'])) {
-                    $cookiePath = $pathArray[1].'/modules/'.$environment->mDirName;
-                } else {
-                    $cookiePath = $pathArray[1].'/'.$environment->mDirName;
-                }
-                return $cookiePath;
         }
         
         function getClock() {

@@ -51,11 +51,12 @@ if (!class_exists('NBFrameAdminMaintAction')) {
         }
 
         function executeActionSuccess() {
-            NBFrame::redirect($this->mEnvironment, $this->mActionName, 2, $this->__l('Action Success'));
+            $this->mEnvironment->redirect($this->mActionName, 2, $this->__l('Action Success'));
         }
 
         function executeActionError() {
-            NBFrame::redirect($this->mEnvironment, '', 2, $this-mErrorMsg);
+            $action = $this->mEnvironment->getAttribute('AdminMainAction');
+            $this->mEnvironment->redirect($action, 2, $this->mErrorMsg);
         }
     }
 }

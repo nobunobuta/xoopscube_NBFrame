@@ -13,7 +13,7 @@ if (!class_exists('NBFrameAdminIndexAction')) {
     
     class NBFrameAdminIndexAction extends NBFrameAdminAction {
         function executeDefaultOp() {
-           header('Location:'.NBFrame::getActionUrl($this->mEnvironment, $this->mEnvironment->getAttribute('AdminMainAction')));
+           header('Location: '.$this->mEnvironment->getActionUrl($this->mEnvironment->getAttribute('AdminMainAction')));
         }
     }
 }
