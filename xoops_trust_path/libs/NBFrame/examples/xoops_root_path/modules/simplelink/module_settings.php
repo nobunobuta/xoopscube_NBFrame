@@ -11,6 +11,8 @@
 if (class_exists('NBFrame')) {
     $environment->setAttribute('ModueleMainAction','SimpleLinkDefault');
     $environment->setAttribute('AdminMainAction',  'admin.SimpleLinkLinkAdmin');
+//  $environment->setAttribute('MainMenu',  'SimpleLinkMainMenu');
+    $environment->setAttribute('AdminMenu',  'admin.SimpleLinkAdminMenu');
 
     $environment->setAttribute('AllowedAction', array('SimpleLinkDefault',
                                                       'admin.SimpleLinkLinkAdmin',
