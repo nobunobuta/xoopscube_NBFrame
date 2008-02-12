@@ -22,6 +22,7 @@ if (!class_exists('NBFrameObjectHandler')) {
         var $mEntityClassName;
 
         var $mKeys = null;
+        var $mKeyAttrib = null;
         var $mAutoIncrement = null;
         var $mNameField = null;
 
@@ -75,8 +76,17 @@ if (!class_exists('NBFrameObjectHandler')) {
             }
         }
 
-        function setKeyFields($keys) {
+        function setKeyFields($keys, $keyAttrib=null) {
             $this->mKeys = $keys;
+            $this->mKeyAttrib = $keyAttrib;
+        }
+
+        function getKeyAttrib($name) {
+            if (isset($this->mKeyAttrib[$name])) {
+                return $this->mKeyAttrib[$name];
+            } else {
+                return XOBJ_DTYPE_INT;
+            }
         }
 
         function getKeyFields() {
@@ -329,9 +339,9 @@ if (!class_exists('NBFrameObjectHandler')) {
                     $fieldList .= $delim ."`_NBsys_update_user`";
                     $valueList .= $delim . $uid;
                     $fieldList .= $delim ."`_NBsys_create_time`";
-                    $valueList .= $delim . 'NOW()';
+                    $valueList .= $delim . time();
                     $fieldList .= $delim ."`_NBsys_update_time`";
-                    $valueList .= $delim . 'NOW()';
+                    $valueList .= $delim . time();
                 }
                 $fieldList .= ")";
                 $valueList .= ")";
@@ -374,8 +384,8 @@ if (!class_exists('NBFrameObjectHandler')) {
                     } else {
                         $uid = 0;
                     }
-                    $setList .= $setDelim ."`_NBsys_update_user`=$uid";
-                    $setList .= $setDelim ."`_NBsys_update_time`=NOW()";
+                    $setList .= $setDelim ."`_NBsys_update_user`=".$uid;
+                    $setList .= $setDelim ."`_NBsys_update_time`=".time();
                     $setList .= $setDelim ."`_NBsys_update_count`=`_NBsys_update_count`+1";
                     $setDelim = ", ";
                     foreach ($record->mVerifier as $key=>$value) {

@@ -148,12 +148,18 @@ if(!class_exists('NBFrameObject')) {
             return serialize($cacheKey);
         }
 
-        function getKey($format = 's') {
+        function getKey($format = 's', $forceArray=false) {
             $recordKeys = $this->mHandler->getKeyFields();
             if (!array($recordKeys)) {
                 return false;
+            } else if (count($recordKeys) == 1 && !$forceArray) {
+                return $this->getVar($recordKeys[0], $format);
             } else {
-                return $this->getVar($recordKeys[0], $format);;
+                $ret = array();
+                foreach($recordKeys as $key) {
+                    $ret[$key] = $this->getVar($key, $format);
+                }
+                return $ret;
             }
         }
 

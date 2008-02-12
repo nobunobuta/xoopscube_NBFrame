@@ -21,6 +21,7 @@
         function setHandlerProperty(&$handler) {
             $name = false;
             $parent = false;
+            $keyAttrib = array();
             
             foreach($this->mFields as $field) {
                 $key = $field['Field'];
@@ -43,12 +44,15 @@
                             $handler->setAutoIncrementField($key);
                         }
                     }
+                    if (in_array($key, $this->mPrimaryKeys)) {
+                        $keyAttrib[$key] = $type;
+                    }
                 }
             }
             if ($handler) {
                 $wk = $handler->getKeyFields();
                 if (empty($wk)) {
-                    $handler->setKeyFields($this->mPrimaryKeys);
+                    $handler->setKeyFields($this->mPrimaryKeys, $keyAttrib);
                 }
                 if ($name) {
                     $wk = $handler->getNameField();
