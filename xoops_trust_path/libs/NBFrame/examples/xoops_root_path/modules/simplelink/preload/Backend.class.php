@@ -26,8 +26,8 @@ if (!class_exists('Simplelink_Base_Backend')) {
             foreach ($linkObjects as $linkObject) {
                 $item = array (
                     'title'       => $linkObject->getVar('link_name'),
-                    'link'        => $this->mEnvironment->mUrlBase,
-                    'guid'        => $this->mEnvironment->mUrlBase,
+                    'link'        => $this->mEnvironment->getUrlBase(),
+                    'guid'        => $this->mEnvironment->getUrlBase(),
                 );
                 $items[] = $item;
             }

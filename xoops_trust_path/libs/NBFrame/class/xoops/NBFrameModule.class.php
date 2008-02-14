@@ -25,7 +25,7 @@ if(!class_exists('NBFrameModuleHandler')) {
         }
 
         function &getByEnvironment(&$environment) {
-            if (is_object($environment) && ($dirName = $environment->mDirName)) {
+            if (is_object($environment) && ($dirName = $environment->getDirName())) {
                 $object =& $this->getByDirname($dirName);
             } else {
                 $object = null;

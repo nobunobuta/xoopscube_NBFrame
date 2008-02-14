@@ -100,7 +100,10 @@ if (!class_exists('NBFrameAdminRender')) {
                    $xoopsModuleUpdate, $xoopsUser, $xoopsUserIsAdmin, $xoopsTheme, $xoopsAction,
                    $xoopsConfig, $xoopsOption, $xoopsCachedTemplate, $xoopsLogger, $xoopsDebugger;
             if ($this->mAction->mLoadCommon) {
+                $pwd = getcwd();
+                chdir(XOOPS_ROOT_PATH. '/modules/'. $this->mAction->mEnvironment->getDirName().'/admin');
                 require_once XOOPS_ROOT_PATH.'/include/cp_header.php';
+                chdir($pwd);
             }
         }
     }

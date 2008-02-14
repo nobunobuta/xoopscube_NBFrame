@@ -38,8 +38,8 @@ if (!class_exists('NBFrameInstallHelper')) {
 
         function NBFrameInstallHelper(&$environment) {
             $this->mEnvironment = $environment;
-            $this->mOrigDirName = $environment->mOrigDirName;
-            $this->mDirName = $environment->mDirName;
+            $this->mOrigDirName = $environment->getOrigDirName();
+            $this->mDirName = $environment->getDirName();
             if( defined('XOOPS_CUBE_LEGACY')) {
                 $root =& XCube_Root::getSingleton();
                 $root->mDelegateManager->add('Legacy.Admin.Event.ModuleInstall.'.ucfirst($this->mDirName).'.Success', array(&$this, 'putCubeMsg'));

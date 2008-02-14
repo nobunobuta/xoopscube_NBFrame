@@ -8,7 +8,7 @@
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
  *
  */
-$environment =& NBFrame::getEnvironments(NBFRAME_TARGET_LOADER);
+$environment =& NBFrame::getEnvironment(NBFRAME_TARGET_LOADER);
 $noCommonActions = $environment->getAttribute('NoCommonAction');
 if (!is_array($noCommonActions)) {
     $noCommonActions = array();

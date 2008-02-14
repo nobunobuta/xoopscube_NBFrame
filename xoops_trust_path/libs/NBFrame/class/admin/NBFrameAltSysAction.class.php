@@ -30,10 +30,10 @@ if (!class_exists('NBFrameAltSysAction')) {
             $GLOBALS['db'] =& Database::getInstance();
             $lib = 'altsys';
             $page = preg_replace( '[^a-zA-Z0-9_-]' , '' , @$_GET['page'] ) ;
-            $mydirname = $this->mEnvironment->mDirName;
-            $mydirpath = $this->mEnvironment->mDirBase;
-            if (!defined('XOOPS_TRUST_PATH') && is_dir(XOOPS_TRUST_PATH. '/modules/'.$this->mEnvironment->mOrigDirName)) {
-                $mytrustdirpath = XOOPS_TRUST_PATH. '/modules/'.$this->mEnvironment->mOrigDirName;
+            $mydirname = $this->mEnvironment->getDirName();
+            $mydirpath = $this->mEnvironment->getDirBase();
+            if (defined('XOOPS_TRUST_PATH') && is_dir(XOOPS_TRUST_PATH. '/modules/'.$this->mEnvironment->getOrigDirName())) {
+                $mytrustdirpath = XOOPS_TRUST_PATH. '/modules/'.$this->mEnvironment->getOrigDirName();
             }
             $_REQUEST['op'] = $this->mRequestedOp;
             $_GET['op'] = $this->mRequestedOp;

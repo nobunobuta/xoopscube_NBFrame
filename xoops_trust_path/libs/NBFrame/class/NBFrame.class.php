@@ -64,7 +64,7 @@ if (!class_exists('NBFrame')) {
          * @param boolean $force (True: create a new environment if not exists)
          *
          */
-        function &getEnvironments($target=NBFRAME_TARGET_MAIN, $dirName = '', $forceCreate=false) {
+        function &getEnvironment($target=NBFRAME_TARGET_MAIN, $dirName = '', $forceCreate=false) {
             static $mEnvironmentArr;
             if ($target == NBFRAME_TARGET_SYS) {
                 $ret = null;
@@ -73,7 +73,7 @@ if (!class_exists('NBFrame')) {
                     unset($mEnvironmentArr[$target]);
                     NBFrame::using('Environment');
                     $mEnvironmentArr[$target] =& new NBFrameEnvironment();
-                    $mEnvironmentArr[$target]->mTarget = $target;
+                    $mEnvironmentArr[$target]->setTarget($target);
                 }
                 $ret =& $mEnvironmentArr[$target];
             } else if (isset($mEnvironmentArr[$target][$dirName])) {
@@ -81,7 +81,7 @@ if (!class_exists('NBFrame')) {
             } else if ($forceCreate) {
                 NBFrame::using('Environment');
                 $mEnvironmentArr[$target][$dirName] = new NBFrameEnvironment();
-                $mEnvironmentArr[$target][$dirName]->mTarget = $target;
+                $mEnvironmentArr[$target][$dirName]->setTarget($target);
                 $ret =& $mEnvironmentArr[$target][$dirName];
             } else {
                 $ret = null;
@@ -180,9 +180,9 @@ if (!class_exists('NBFrame')) {
          *
          */
         function &prepare($target=NBFRAME_TARGET_MAIN) {
-            $envtemp =& NBFrame::getEnvironments(NBFRAME_TARGET_LOADER);
+            $envtemp =& NBFrame::getEnvironment(NBFRAME_TARGET_LOADER);
             if (!empty($envtemp)) {
-                $environment =& NBFrame::getEnvironments($target, $envtemp->getDirName(), true);
+                $environment =& NBFrame::getEnvironment($target, $envtemp->getDirName(), true);
                 $environment->setOrigDirName($envtemp->getOrigDirName());
                 $environment->setDirBase($envtemp->getDirBase());
                 $environment->mAttributeArr = $envtemp->mAttributeArr;
@@ -199,9 +199,9 @@ if (!class_exists('NBFrame')) {
 
         function langConstPrefix($prefix='', $dirname, $target=NBFRAME_TARGET_MAIN) {
             if (empty($dirname) && $target==NBFRAME_TARGET_LOADER) {
-                $environment =& NBFrame::getEnvironments(NBFRAME_TARGET_LOADER);
+                $environment =& NBFrame::getEnvironment(NBFRAME_TARGET_LOADER);
                 if ($environment) {
-                    $dirname = $environment->mDirName;
+                    $dirname = $environment->getDirName();
                 } else if (!empty($GLOBALS['xoopsModule']) && $GLOBALS['xoopsModule']->getVar('dirname')=='altsys' && !empty($_GET['dirname'])) {
                     $dirname = htmlspecialchars($_GET['dirname'], ENT_QUOTES);
                 }

@@ -40,8 +40,8 @@ if (!class_exists('NBFrameGetModuleIconAction')) {
 
         function putIcon($fileName, $contentType) {
             error_reporting(E_ERROR);
-            $dirName = $this->mEnvironment->mDirName;
-            $origDirName = $this->mEnvironment->mOrigDirName;
+            $dirName = $this->mEnvironment->getDirName();
+            $origDirName = $this->mEnvironment->getOrigDirName();
             if (file_exists($fileName)) {
                 header('Content-Type: '.$contentType);
                 NBFrame::using('HTTPOutput');

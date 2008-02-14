@@ -9,6 +9,6 @@
  *
  */
 include dirname(__FILE__).'/NBFrameLoader.inc.php';
-$environment =& NBFrame::getEnvironments(NBFRAME_TARGET_LOADER);
+$environment =& NBFrame::getEnvironment(NBFRAME_TARGET_LOADER);
 $adminmenu = $environment->getAdminMenu();
 ?>

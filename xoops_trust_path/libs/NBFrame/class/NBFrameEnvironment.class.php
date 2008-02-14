@@ -75,6 +75,14 @@ if (!class_exists('NBFrameEnvironment')) {
             }
         }
 
+        function getTarget() {
+            return $this->mTarget;
+        }
+
+        function setTarget($target) {
+            $this->mTarget = $target;
+        }
+
         function isD3() {
             return $this->mIsD3;
         }
@@ -190,7 +198,6 @@ if (!class_exists('NBFrameEnvironment')) {
 
             // Execute Automatic Module Update Sequence
             if (($this->getAttribute('AutoUpdateMode')===true) && !($this->isNoCommonAction($className))) {
-                $info = $GLOBALS['xoopsModule']->getInfo();
                 $installHelper =& $this->getInstallHelper();
                 $installHelper->postUpdateProcessforDuplicate(true);
             }
@@ -531,7 +538,7 @@ if (!class_exists('NBFrameEnvironment')) {
             if ($fname = $this->findFile('tabledef.inc.php', '/include', false, '=')) {
                 include $fname;
                 $modversion['tables'] = array();
-                foreach($tableDef[$this->mOrigDirName] as $key =>$value) {
+                foreach($tableDef[$this->getOrigDirName()] as $key =>$value) {
                     $modversion['tables'][] = $this->prefix($key);
                 }
             }
