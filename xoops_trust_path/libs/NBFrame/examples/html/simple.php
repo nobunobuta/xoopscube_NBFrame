@@ -84,16 +84,45 @@ if (!class_exists('NBFrameHTTPOutputSubset')) {
         function putFile($fileName, $contentType) {
             error_reporting(E_ERROR);
             if (file_exists($fileName)) {
+                $fileSize = filesize($fileName);
                 header('Content-Type: '.$contentType);
+                header('Accept-Ranges: bytes');
+                if (isset($_SERVER['HTTP_RANGE'])) {
+                    list($dummy, $start, $end) = preg_split("/[=\-]/", $_SERVER["HTTP_RANGE"]);
+                    $start = intval($start);
+                    if (trim($end)=='') {
+                        $end = $fileSize-1;
+                    } else {
+                        $end = intval($end);
+                    }
+                } else {
+                    $start = 0;
+                    $end = $fileSize-1;
+                }
+                $partial = 0;
+                if (($start != 0) || ($end != ($fileSize-1))) {
+                    header('HTTP/1.1 206 Partial Content');
+                    header('Status: 206 Partial Content');
+                    header('Content-Range: bytes '.$start."-".$end.'/'.$fileSize);
+                    $partial = 1;
+                }
+                if ($partial == 1) {
+                    $size = $end-$start+1;
+                } else {
+                    $size = $fileSize;
+                }
                 header('Content-Disposition: inline; filename="'.basename($fileName).'"');
                 NBFrameHTTPOutputSubset::staticContentHeader(filemtime($fileName), $fileName);
                 $handle = fopen($fileName,'rb');
+                fseek($handle, $start);
+                $block = 16384;
                 $content = '';
                 while (!feof($handle)) {
-                      $content .= fread($handle, 16384);
+                    ob_start();
+                    print(fread($handle, $block));
+                    flush();
+                    ob_flush();
                 }
-                header('Content-Length: '.strlen($content));
-                echo $content;
                 exit();
             }
         }
@@ -123,9 +152,8 @@ if (!class_exists('NBFrameHTTPOutputSubset')) {
     }
 }
 
-if (!function_exists('__NBFrameShortURLFrontEnd__')) {
+if (!function_exists('__NBFrameShorURLParser__')) {
     function __NBFrameShorURLParser__($confArray) {
-
         $denyDirPattern = '/^(';
         $delim = '';
         foreach ($confArray['denyDirArray'] as $denyDir) {
@@ -140,7 +168,7 @@ if (!function_exists('__NBFrameShortURLFrontEnd__')) {
                 exit('404 Not Found');
             }
             // Force redirect URL eg. http://for/simple to http://for/simple/
-            if (!preg_match('/^(.*\/)?'.preg_quote('/'.$confArray['dirname'],'/').'(\.php)?\//',$_SERVER['REQUEST_URI'])) {
+            if (!preg_match('/^(\/.*)?'.preg_quote('/'.$confArray['dirname'],'/').'(\.php)?\//',$_SERVER['REQUEST_URI'])) {
                 $uri = preg_replace('/^(.*\/)?('.preg_quote('/'.$confArray['dirname'],'/').')(\.php)?/','\\1\\2\\3/', $_SERVER['REQUEST_URI']);
                 header('Location:'. $uri);
             }
@@ -148,7 +176,7 @@ if (!function_exists('__NBFrameShortURLFrontEnd__')) {
             // Rewrite Some Server Variables.
             $origRequestUri = $_SERVER['REQUEST_URI'];
             list ($_SERVER['REQUEST_URI'], $_SERVER['PHP_SELF'], $_SERVER['HTTP_REFERER']) =
-                preg_replace('/^(.*\/)?'.preg_quote('/'.$confArray['dirname'],'/').'(\.php)?/','\\1/modules/'.$confArray['dirname'], 
+                preg_replace('/^(\/.*)?'.preg_quote('/'.$confArray['dirname'],'/').'(\.php)?/','\\1/modules/'.$confArray['dirname'], 
                              array($_SERVER['REQUEST_URI'], $_SERVER['PHP_SELF'], $_SERVER['HTTP_REFERER']));
 
         }
@@ -163,10 +191,12 @@ if (!function_exists('__NBFrameShortURLFrontEnd__')) {
                 break;
             }
         }
-        $status = '200';
-        $includeFile = '';
         $pathArray = array_slice($pathArray,$i+1);
+
+        $status = '200';
+
         $pathStr = implode('/',$pathArray);
+        $includeFile = '';
         if (preg_match($denyDirPattern, $pathStr)) {
             $status = '403';
         } else if (preg_match('/\.\./', $pathStr)) {
@@ -215,7 +245,6 @@ if (!function_exists('__NBFrameShortURLFrontEnd__')) {
         return array($includeFile, $status, $ext);
     }
 }
-
 list($_NBFrontIncludeFile, $_NBFrontStatus, $_NBFrontExt) = __NBFrameShorURLParser__($NBFrameFrontendConf);
 
 if ($_NBFrontIncludeFile && $_NBFrontStatus == '200') {
