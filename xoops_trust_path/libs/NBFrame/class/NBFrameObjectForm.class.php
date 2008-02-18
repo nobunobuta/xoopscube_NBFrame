@@ -81,7 +81,19 @@ if (!class_exists('NBFrameObjectForm')) {
             NBFrame::using('XoopsForm');
             $formEdit =& new NBFrameXoopsForm($this->mCaption, $this->mName, $this->mFormAction);
             foreach ($this->mElements as $key=>$formElement) {
-                if (method_exists($formElement, 'setValue')) {
+                if (is_a($formElement, 'XoopsFormDateTime')) {
+                    $value = intval($object->getVar($key));
+                    foreach($formElement->getElements() as $subElement) {
+                        if (is_a($subElement, 'XoopsFormTextDateSelect')) {
+                            $subElement->setValue($value);
+                        } else {
+                            $datetime = getdate($value);
+                            $timevalue=$datetime['hours'] * 3600 + 600 * ceil($datetime['minutes'] / 10);
+                            $subElement->_value = array();
+                            $subElement->setValue($timevalue);
+                        }
+                    }
+                } else if (method_exists($formElement, 'setValue')) {
                     $formElement->setValue($object->getVar($key,'e'));
                 } else if (is_a($formElement, 'XoopsFormLabel')) {
                     $formElement->_value = $object->getVar($key,'s');
@@ -115,7 +127,17 @@ if (!class_exists('NBFrameObjectForm')) {
             foreach(array_keys($this->mElements) as $name) {
                 if (in_array($name, $verifyFieldNames)) $name = $this->mVerifyFields[$name];
                 if (!$this->mAction->mRequest->defined($name)) {
-                    $this->mAction->mRequest->defParam($name, $reqTypes, 'raw');
+                    if (isset($this->mElements[$name])) {
+                        if (is_a($this->mElements[$name], 'XoopsFormDateTime')) {
+                            $this->defParam($name, 'array-datetime');
+                        } else if (is_a($this->mElements[$name], 'XoopsFormSelectGroup') && $this->mElements[$name]->isMultiple()) {
+                            $this->defParam($name, 'array-int',  array());
+                        } else {
+                            $this->defParam($name, 'raw');
+                        }
+                    } else {
+                        $this->defParam($name, 'raw');
+                    }
                 }
             }
         }
