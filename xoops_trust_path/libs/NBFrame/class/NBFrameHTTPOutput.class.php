@@ -11,26 +11,65 @@
 if (!class_exists('NBFrame')) exit();
 if (!class_exists('NBFrameHTTPOutput')) {
     class NBFrameHTTPOutput {
-        function putFile($fileName, $contentType, $static=true, $expires=-1, $do_exit=true) {
+        function putFile($fileName, $contentType, $static=true, $expires=-1, $do_exit=true, $unit=0) {
             error_reporting(E_ERROR);
             if (file_exists($fileName)) {
+                $fileSize = filesize($fileName);
                 header('Content-Type: '.$contentType);
+                header('Accept-Ranges: bytes');
+                if (isset($_SERVER['HTTP_RANGE'])) {
+                    list($dummy, $start, $end) = preg_split("/[=\-]/", $_SERVER["HTTP_RANGE"]);
+                    $start = intval($start);
+                    if (trim($end)=='') {
+                        $end = $fileSize-1;
+                    } else {
+                        $end = intval($end);
+                    }
+                } else {
+                    $start = 0;
+                    $end = $fileSize-1;
+                }
+                if (!empty($unit)) {
+                    if (($start+$unit-1) < $end) {
+                        $end = $start+$unit-1;
+                    }
+                }
+                $partial = 0;
+                if (($start != 0) || ($end != ($fileSize-1))) {
+                    header('HTTP/1.1 206 Partial Content');
+                    header('Status: 206 Partial Content');
+                    header('Content-Range: bytes '.$start."-".$end.'/'.$fileSize);
+                    $partial = 1;
+                }
+                if ($partial == 1) {
+                    $size = $end-$start+1;
+                } else {
+                    $size = $fileSize;
+                }
+                header('Content-Length: '.$size);
                 if ($static) {
                     header('Content-Disposition: inline; filename="'.basename($fileName).'"');
                     NBFrameHTTPOutput::staticContentHeader(filemtime($fileName), $fileName, $expires);
                 } else {
                     header('Pragma: no-cache');
-                    header('Cache-Control: private, no-store, no-cache, must-revalidate,post-check=0, pre-check=0');
+                    header('Cache-Control: no-store, no-cache, must-revalidate,post-check=0, pre-check=0');
                     header('Expires: '.gmdate('D, d M Y H:i:s', time()-60).' GMT');
                     header('Content-Disposition: inline; filename="'.basename($fileName).'"');
                 }
                 $handle = fopen($fileName,'rb');
-                $content = '';
+                fseek($handle, $start);
+                $pos = 0;
+                $block = 16384;
                 while (!feof($handle)) {
-                      $content .= fread($handle, 16384);
+                      if (($byte+$block) > $size) {
+                        $block = $size - $pos;
+                      }
+                      $pos += $block;
+                      ob_start();
+                      print(fread($handle, $block));
+                      flush();
+                      ob_flush();
                 }
-                header('Content-Length: '.strlen($content));
-                echo $content;
                 if ($do_exit) exit();
             }
         }
