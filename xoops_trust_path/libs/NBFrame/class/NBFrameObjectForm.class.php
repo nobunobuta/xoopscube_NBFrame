@@ -37,7 +37,7 @@ if (!class_exists('NBFrameObjectForm')) {
         function bindAction(&$action, $token=0) {
             $this->mAction =& $action;
             $this->mName = $action->mName;
-            $this->mFormAction = $action->mUrl;
+            $this->mFormAction = $action->getUrl();
             $this->mDirName = $action->mDirName;
             $this->mCaption = $action->mCaption;
             $this->mToken = $token;

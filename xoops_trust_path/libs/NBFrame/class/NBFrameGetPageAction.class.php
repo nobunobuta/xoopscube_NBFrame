@@ -33,7 +33,7 @@ if (!class_exists('NBFrameGetPageAction')) {
             }
         }
 
-        function getParamString($environmentArr, $paramArray) {  
+        function getParamString(&$environment, $paramArray) {  
             if (isset($paramArray['NBContentFile'])) {
                 return 'contents/'.rawurlencode($paramArray['NBContentFile']);
             }

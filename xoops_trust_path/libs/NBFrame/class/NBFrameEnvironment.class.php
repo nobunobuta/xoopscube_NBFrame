@@ -192,7 +192,7 @@ if (!class_exists('NBFrameEnvironment')) {
             if ($rawParm = $this->getAttribute('RawParam')) {
                 NBFrame::using($className.'Action', $this);
                 if (class_exists($className.'Action') && is_callable(array($className.'Action','parseURL'),false)) {
-                    $className = call_user_func(array($className.'Action','parseURL'), array(&$this), $rawParm);
+                    $className = call_user_func_array(array($className.'Action','parseURL'), array(&$this, $rawParm));
                 }
             }
 
@@ -267,7 +267,7 @@ if (!class_exists('NBFrameEnvironment')) {
                 }
                 NBFrame::using($className, $this);
                 if (class_exists($className) && is_callable(array($className,'getParamString'),false)) {
-                    $str .= call_user_func(array($className,'getParamString'), array(&$this), $paramArray);
+                    $str .= call_user_func_array(array($className,'getParamString'), array(&$this, $paramArray));
                 } else {
                     if (!empty($actionName) && ($actionName != $this->getAttribute('ModueleMainAction'))) {
                         if (preg_match('/^(NBFrame\.)?(admin\.)?([A-Za-z0-9\._]+)/', $actionName, $matches)) {

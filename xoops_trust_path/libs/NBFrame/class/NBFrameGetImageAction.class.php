@@ -40,7 +40,7 @@ if (!class_exists('NBFrameGetImageAction')) {
             }
         }
         
-        function getParamString($environmentArr, $paramArray) {  
+        function getParamString(&$environment, $paramArray) {  
             if (isset($paramArray['NBImgFile'])) {
                 return 'images/'.rawurlencode($paramArray['NBImgFile']);
             }

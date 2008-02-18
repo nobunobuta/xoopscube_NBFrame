@@ -45,7 +45,6 @@ if (!class_exists('NBFrameAction')) {
             if (empty($this->mOrigDirName)) {
                 $this->mOrigDirName = $this->mDirName;
             }
-            $this->mUrl = XOOPS_URL.xoops_getenv('PHP_SELF');
             $this->mLanguage =& $environment->getLanguageManager();
             $this->mLanguage->loadModuleLanguageFile('main.php');
             NBFrame::using('ModuleRender');
@@ -55,9 +54,6 @@ if (!class_exists('NBFrameAction')) {
         }
 
         function prepare() {
-            if (!empty($this->mActionName)) {
-                $this->mUrl .= '?action='.$this->mActionName;
-            }
         }
 
         function setTemplate($template) {
@@ -80,14 +76,6 @@ if (!class_exists('NBFrameAction')) {
             return $this->mEnvironment->getActionURL($this->mActionName, $paramArray);
         }
         
-        function addUrlParam($str) {
-            if (!empty($this->mActionName)) {
-                return $this->mUrl. '&'. $str;
-            } else {
-                return $this->mUrl. '?'. $str;
-            }
-        }
-
         function _actionDispatch() {
             if (!empty($this->mExecutePermission) && !NBFrame::checkRight($this->mExecutePermission)) {
                 $this->mErrorMsg = $this->__e('Permission Error');
