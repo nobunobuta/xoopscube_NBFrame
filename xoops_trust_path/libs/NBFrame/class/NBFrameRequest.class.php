@@ -129,10 +129,14 @@ if (!class_exists('NBFrameRequest')) {
                             array_walk($paraValue, array(&$this,'_array_int_callback'));
                             break;
                         case 'array-datetime':
-                            if(isset($paraValue['date']) && isset($paraValue['time'])) {
-                                $tmp=explode('-',$paraValue['date']);
-                                $paraValue = mktime(0,0,0,$tmp[1],$tmp[2],$tmp[0])+$paraValue['time'];
-                            } else {
+                            if (is_array($paraValue)) {
+                                if(isset($paraValue['date']) && isset($paraValue['time'])) {
+                                    $tmp=explode('-',$paraValue['date']);
+                                    $paraValue = mktime(0,0,0,$tmp[1],$tmp[2],$tmp[0])+$paraValue['time'];
+                                } else {
+                                    $paraValue = 0;
+                                }
+                            } else if ($paraValue != $param['defaultValue']) {
                                 $paraValue = 0;
                             }
                             break;
