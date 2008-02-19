@@ -1,11 +1,11 @@
 <?php
-if( ! class_exists( 'NBFrameMenu' ) ) {
-    class NBFrameMenu
-    {
-        var $mEnvironment;
-
+if (!class_exists('NBFrame')) exit();
+if (!class_exists('NBFrameMenu')) {
+    NBFrame::using('Base');
+    class NBFrameMenu extends NBFrameBase {
         function NBFrameMenu(&$environment) {
-            $this->mEnvironment =& $environment;
+            parent::NBFrameBase($environment);
         }
     }
 }
+?>

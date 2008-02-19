@@ -10,8 +10,8 @@
  */
 if (!class_exists('NBFrame')) exit();
 if (!class_exists('NBFrameObjectForm')) {
-    class NBFrameObjectForm {
-        var $mEnvironment;
+    NBFrame::using('Base');
+    class NBFrameObjectForm extends NBFrameBase {
         var $mAction;
         var $mElements;
         var $mName;
@@ -19,16 +19,15 @@ if (!class_exists('NBFrameObjectForm')) {
         var $mFormAction;
         var $mToken = 0;
         var $mDirName = '';
-        var $mLanguage;
         var $mReqType = 'POST';
         var $mEnableVerify = true;
         var $mVerifyFields = array();
         
-        function NBFrameObjectForm($environment) {
+        function NBFrameObjectForm(&$environment) {
+            parent::NBFrameBase($environment);
+
             include_once XOOPS_ROOT_PATH.'/class/xoopsformloader.php';
             $this->mElements = array();
-            $this->mEnvironment = $environment;
-            $this->mLanguage =& $environment->getLanguageManager();
         }
         
         function prepare() {
@@ -56,6 +55,11 @@ if (!class_exists('NBFrameObjectForm')) {
             if (method_exists($this->mElements[$name], 'addOptionArray')) {
                 $this->mElements[$name]->addOptionArray($options);
             }
+        }
+
+        function addObjectOptionArray($name, $objectClass) {
+            $objectHandler =& NBFrame::getHandler($objectClass, $this->mEnvironment);
+            $this->addOptionArray($name, $objectHandler->getSelectOptionArray());
         }
 
         function addVerifyFields($name, $fieldName='') {
@@ -151,17 +155,6 @@ if (!class_exists('NBFrameObjectForm')) {
             $str = $formEdit->render();
             return $str;
         }
-
-        function __l($msg) {
-            $args = func_get_args();
-            return $this->mLanguage->__l($msg, $this->mLanguage->_getParams($args));
-        }
-
-        function __e($msg) {
-            $args = func_get_args();
-            return $this->mLanguage->__e($msg, $this->mLanguage->_getParams($args));
-        }
-
     }
 }
 ?>

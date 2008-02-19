@@ -72,7 +72,7 @@ if (!class_exists('NBFrame')) {
                 if (!isset($mEnvironmentArr[$target]) || $forceCreate) {
                     unset($mEnvironmentArr[$target]);
                     NBFrame::using('Environment');
-                    $mEnvironmentArr[$target] =& new NBFrameEnvironment();
+                    $mEnvironmentArr[$target] = new NBFrameEnvironment();
                     $mEnvironmentArr[$target]->setTarget($target);
                 }
                 $ret =& $mEnvironmentArr[$target];

@@ -10,18 +10,17 @@
  */
 if (!class_exists('NBFrame')) exit();
 if (!class_exists('NBFrameObjectList')) {
-    class NBFrameObjectList {
-        var $mEnvironment;
+
+    NBFrame::using('Base');
+    class NBFrameObjectList extends NBFrameBase {
         var $mAction;
         var $mElements;
         var $mDirName;
-        var $mLanguage;
         var $mListHeaders;
         var $mListRecords;
 
-        function NBFrameObjectList($environment) {
-            $this->mLanguage =& $environment->getLanguageManager();
-            $this->mEnvironment = $environment;
+        function NBFrameObjectList(&$environment) {
+            parent::NBFrameBase($environment);
         }
         
         function prepare() {
@@ -142,17 +141,6 @@ if (!class_exists('NBFrameObjectList')) {
             $item['align'] = 'center';
             return $item;
         }
-        
-        function __l($msg) {
-            $args = func_get_args();
-            return $this->mLanguage->__l($msg, $this->mLanguage->_getParams($args));
-        }
-
-        function __e($msg) {
-            $args = func_get_args();
-            return $this->mLanguage->__e($msg, $this->mLanguage->_getParams($args));
-        }
-
     }
 }
 ?>

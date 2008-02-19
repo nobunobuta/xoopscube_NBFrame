@@ -16,8 +16,8 @@ if (!class_exists('NBFrameAction')) {
     define('NBFRAME_ACTION_VIEW_EXTRA', '90');
     define('NBFRAME_ACTION_VIEW_NONE', '99');
 
-    class NBFrameAction {
-        var $mEnvironment;
+    NBFrame::using('Base');
+    class NBFrameAction extends NBFrameBase {
         var $mActionName = '';
         var $mDirName;
         var $mOrigDirName;
@@ -31,7 +31,6 @@ if (!class_exists('NBFrameAction')) {
         var $mExtraTemplate;
         var $mExtraShowMethod;
         var $mExecutePermission = '';
-        var $mLanguage;
         var $mLoadCommon = true;
         var $mDialogMode = false;
         var $mRequest;
@@ -39,13 +38,13 @@ if (!class_exists('NBFrameAction')) {
         var $mElapsedTime;
 
         function NBFrameAction(&$environment) {
-            $this->mEnvironment = $environment;
+            parent::NBFrameBase($environment);
+
             $this->mDirName = $environment->getDirName();
-                $this->mOrigDirName = $environment->getOrigDirName();
+            $this->mOrigDirName = $environment->getOrigDirName();
             if (empty($this->mOrigDirName)) {
                 $this->mOrigDirName = $this->mDirName;
             }
-            $this->mLanguage =& $environment->getLanguageManager();
             $this->mLanguage->loadModuleLanguageFile('main.php');
             NBFrame::using('ModuleRender');
             $this->mRender =& new NBFrameModuleRender($this);
@@ -183,30 +182,6 @@ if (!class_exists('NBFrameAction')) {
 
         function executeActionError() {
             $this->mEnvironment->redirect('', 2, $this->mErrorMsg);
-        }
-
-        function __l($msg) {
-            $args = func_get_args();
-            return $this->mLanguage->__l($msg, $this->mLanguage->_getParams($args));
-        }
-
-        function __e($msg) {
-            $args = func_get_args();
-            return $this->mLanguage->__e($msg, $this->mLanguage->_getParams($args));
-        }
-
-        function __l_s($str, &$smarty) {
-            if (preg_match('/["\'](\w*)["\']/',$str,$match)) {
-                $str = $match[1];
-                return $this->mLanguage->__l_s($str);
-            }
-        }
-
-        function __e_s($str, &$smarty) {
-            if (preg_match('/["\'](\w*)["\']/',$str,$match)) {
-                $str = $match[1];
-                return $this->mLanguage->__e_s($str);
-            }
         }
     }
 }
