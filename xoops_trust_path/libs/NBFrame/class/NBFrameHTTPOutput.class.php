@@ -56,24 +56,29 @@ if (!class_exists('NBFrameHTTPOutput')) {
                     header('Expires: '.gmdate('D, d M Y H:i:s', time()-60).' GMT');
                     header('Content-Disposition: inline; filename="'.basename($fileName).'"');
                 }
+                while (ob_get_level()) {
+                    ob_end_clean();
+                }
+                ob_implicit_flush(true);
+
                 $handle = fopen($fileName,'rb');
                 fseek($handle, $start);
                 $pos = 0;
                 $block = 16384;
-                while (!feof($handle)) {
-                      if (($byte+$block) > $size) {
+                while ($pos < $size) {
+                      if (($pos + $block) > $size) {
                         $block = $size - $pos;
                       }
                       $pos += $block;
-                      ob_start();
-                      print(fread($handle, $block));
+                      echo fread($handle, $block);
                       flush();
-                      ob_flush();
                 }
+                fclose($handle);unset($handle);
+
                 if ($do_exit) exit();
             }
         }
-        
+
         function staticContentHeader($mod_timestamp, $etag_base='', $expires=-1) {
             if (!empty($mod_timestamp)) {
                 $etag = md5($_SERVER["REQUEST_URI"] . $mod_timestamp . $etag_base);
