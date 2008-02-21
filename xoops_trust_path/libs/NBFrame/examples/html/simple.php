@@ -14,11 +14,12 @@
 //
 // This file and 'preload/ShortURL.class.php' is delivered with NBFrame sample source files,
 // but these files ara independent from any other NBFrame libraries,
-// so you can use thease two files with any other XOOPS Cube Module. 
-// Only you need is rename this file to your module name and put it into XOOPS_ROOT_PATH.
+// so you can use thease two files with any other XOOPS Cube Module.
+// Only you need is, renaming this file to your module name and putting it into XOOPS_ROOT_PATH directory
+// and then put ShortURL.class.php into XOOPS_ROOT_PATH/preload directory.
 //
 // You can use this file under Apache HTTP Server environment, with 'AcceptPathInfo On' Directive setting
-// and 'Options +MultiViews'.
+// and 'Options +MultiViews' being specified with XOOPS Enviroment directory.
 //
 // If you can't set 'AcceptPathInfo On' in you Apache environment, you can not use this file.
 //
@@ -27,16 +28,17 @@
 // (But,with most of Apache Server environments, you can set this option via .htaccess file at XOOPS_ROOT_PATH)
 //
 // I did not test so much, so it is a just a sample of my idea.
-
-//*******************************************************
+//
+//***********************************************************************************************************
 // Configuration (Maybe, you may not edit this for trial)
-//*******************************************************
+//  or you can override this settings with config file XOOPS_ROOT_PATH/settings/ShortURL_XXXXXX.inc.php
+//***********************************************************************************************************
 
 // You can set Dirname directly like following line
 //  $NBFrameFrontendConf['dirname']='simple';
 $NBFrameFrontendConf['dirname'] = preg_replace('/(.*)(\.php)/','\\1', basename(__FILE__));
 
-// Following module Directory Should not Access via HTTP request.
+// Following module Directories should not access via HTTP request.
 // These HTTP Stream will send as a static content
 $NBFrameFrontendConf['denyDirArray'] = array(
     'action/',
@@ -59,7 +61,17 @@ $NBFrameFrontendConf['denyDirArray'] = array(
     'xoops_version.php',
 );
 
-//Follwing extention file will send out via NBFrameHTTPOutput Class
+// Any HTML or PHP files in following module directories will be wrapped with XOOPS Theme
+$NBFrameFrontendConf['wrapDirArray'] = array(
+    'contents/',
+);
+$NBFrameFrontendConf['wrapExtArray'] = array(
+    'html',
+    'htm',
+    'php',
+);
+
+//Follwing extention files will send out via NBFrameHTTPOutput Class
 // (Accessing to other extension file cause HTTP redirect);
 $NBFrameFrontendConf['mimeArray'] = array(
     'jpeg' => 'image/jpeg',
@@ -67,7 +79,7 @@ $NBFrameFrontendConf['mimeArray'] = array(
     'gif' => 'image/gif',
     'png' => 'image/png',
     'swf' => 'application/x-shockwave-flash',
-    'html' =>'text/html',
+//  'html' =>'text/html',
     'js'   =>'application/x-javascript',
     'css'  =>'text/css',
 );
@@ -75,6 +87,12 @@ $NBFrameFrontendConf['mimeArray'] = array(
 //If you are in Apache MultiViews environment, you can set this to true
 //to avoid HTTP access to this file with php file extension.
 $NBFrameFrontendConf['disallowWithPhpExt'] = false;
+
+
+//If you want to try execute module frontend controller when URL status is 404,
+//you can specify PHP file name of this frontend controller (eg. index.php)
+$NBFrameFrontendConf['failOver'] = null;
+
 
 // Class definition of NBFrameHTTPOutputSubset
 // This class delived from NBFrame Class Libraries
@@ -113,20 +131,20 @@ if (!class_exists('NBFrameHTTPOutputSubset')) {
                 }
                 header('Content-Disposition: inline; filename="'.basename($fileName).'"');
                 NBFrameHTTPOutputSubset::staticContentHeader(filemtime($fileName), $fileName);
+                while (ob_get_level()) {ob_end_clean();}
+                ob_implicit_flush(true);
                 $handle = fopen($fileName,'rb');
                 fseek($handle, $start);
                 $block = 16384;
                 $content = '';
                 while (!feof($handle)) {
-                    ob_start();
                     print(fread($handle, $block));
                     flush();
-                    ob_flush();
                 }
                 exit();
             }
         }
-        
+
         function staticContentHeader($mod_timestamp, $etag_base='') {
             if (!empty($mod_timestamp)) {
                 $etag = md5($_SERVER["REQUEST_URI"] . $mod_timestamp . $etag_base);
@@ -154,14 +172,6 @@ if (!class_exists('NBFrameHTTPOutputSubset')) {
 
 if (!function_exists('__NBFrameShorURLParser__')) {
     function __NBFrameShorURLParser__($confArray) {
-        $denyDirPattern = '/^(';
-        $delim = '';
-        foreach ($confArray['denyDirArray'] as $denyDir) {
-            $denyDirPattern .= $delim.preg_quote($denyDir,'/');
-            $delim = '|';
-        }
-        $denyDirPattern .= ')/';
-
         if (isset($_SERVER['REQUEST_URI'])) {
             if ($confArray['disallowWithPhpExt'] && preg_match('/^'.preg_quote('/'.basename(__FILE__),'/').'/',$_SERVER['REQUEST_URI'])) {
                 header('HTTP/1.0 404 Not Found');
@@ -169,7 +179,7 @@ if (!function_exists('__NBFrameShorURLParser__')) {
             }
             // Force redirect URL eg. http://for/simple to http://for/simple/
             if (!preg_match('/^(\/.*)?'.preg_quote('/'.$confArray['dirname'],'/').'(\.php)?\//',$_SERVER['REQUEST_URI'])) {
-                $uri = preg_replace('/^(.*\/)?('.preg_quote('/'.$confArray['dirname'],'/').')(\.php)?/','\\1\\2\\3/', $_SERVER['REQUEST_URI']);
+                $uri = preg_replace('/^(\/.*)?('.preg_quote('/'.$confArray['dirname'],'/').')(\.php)?/','\\1\\2\\3/', $_SERVER['REQUEST_URI']);
                 header('Location:'. $uri);
             }
             
@@ -180,7 +190,7 @@ if (!function_exists('__NBFrameShorURLParser__')) {
                              array($_SERVER['REQUEST_URI'], $_SERVER['PHP_SELF'], $_SERVER['HTTP_REFERER']));
 
         }
-        
+
         $queryArray = preg_split('/[?#]/', $origRequestUri);
         $pathArray = array_slice(explode('/', $queryArray[0]),1);
         $i = 0;
@@ -191,12 +201,13 @@ if (!function_exists('__NBFrameShorURLParser__')) {
                 break;
             }
         }
+
         $pathArray = array_slice($pathArray,$i+1);
-
         $status = '200';
-
         $pathStr = implode('/',$pathArray);
         $includeFile = '';
+        $denyDirPattern = '/^'.__NBFramePregConcat__($confArray['denyDirArray']).'/';
+
         if (preg_match($denyDirPattern, $pathStr)) {
             $status = '403';
         } else if (preg_match('/\.\./', $pathStr)) {
@@ -244,15 +255,43 @@ if (!function_exists('__NBFrameShorURLParser__')) {
         $ext = preg_replace('/.*\.([a-zA-Z0-9]+)$/', '\\1', $includeFile);
         return array($includeFile, $status, $ext);
     }
+
+    function __NBFramePregConcat__($strArray) {
+        $result = '(';
+        $delim = '';
+        foreach ($strArray as $str) {
+            $result .= $delim.preg_quote($str,'/');
+            $delim = '|';
+        }
+        $result .= ')';
+        return $result;
+    }
 }
+if (file_exists(dirname(__FILE__).'/settings/ShortURL_'.$NBFrameFrontendConf['dirname'].'.inc.php')) {
+    include_once dirname(__FILE__).'/settings/ShortURL_'.$NBFrameFrontendConf['dirname'].'.inc.php';
+}
+
 list($_NBFrontIncludeFile, $_NBFrontStatus, $_NBFrontExt) = __NBFrameShorURLParser__($NBFrameFrontendConf);
 
+$_SERVER['SCRIPT_FILENAME'] = $_NBFrontIncludeFile;
+$_SERVER['SCRIPT_NAME'] = basename($_NBFrontIncludeFile);
+$_SERVER['PATH_TRANSLATED'] = $_NBFrontIncludeFile;
+
+$_NBFrontWrapDirPattern = '/^'.preg_quote(dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname'].'/','/');
+$_NBFrontWrapDirPattern .= __NBFramePregConcat__($NBFrameFrontendConf['wrapDirArray']);
+$_NBFrontWrapDirPattern .= '.*'. __NBFramePregConcat__($NBFrameFrontendConf['wrapExtArray']).'$/';
+
 if ($_NBFrontIncludeFile && $_NBFrontStatus == '200') {
-    if ($_NBFrontExt == 'php') {
-        $_SERVER['SCRIPT_FILENAME'] = $_NBFrontIncludeFile;
-        $_SERVER['SCRIPT_NAME'] = basename($_NBFrontIncludeFile);
+    if (preg_match($_NBFrontWrapDirPattern, $_NBFrontIncludeFile)) {
+        // Wrapping a specified HTML or PHP file with XOOPS Theme
+        chdir(dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname']);
+        require_once '../../mainfile.php';
+        require_once XOOPS_ROOT_PATH.'/header.php';
+        require_once $_NBFrontIncludeFile;
+        require_once XOOPS_ROOT_PATH.'/footer.php';
+    } else if ($_NBFrontExt == 'php') {
         chdir(dirname($_NBFrontIncludeFile));
-        include $_NBFrontIncludeFile;
+        require_once $_NBFrontIncludeFile;
         exit();
     } else if (array_key_exists($_NBFrontExt, $NBFrameFrontendConf['mimeArray'])) {
         NBFrameHTTPOutputSubset::putFile($_NBFrontIncludeFile, $NBFrameFrontendConf['mimeArray'][$_NBFrontExt]);
@@ -263,11 +302,16 @@ if ($_NBFrontIncludeFile && $_NBFrontStatus == '200') {
     header('HTTP/1.0 403 Forbidden');
     exit('403 Forbidden');
 } else if ($_NBFrontStatus == '404') {
-    if (file_exists(dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname'].'/include/NBFrameLoader.inc.php')) {
+    if (!empty($NBFrameFrontendConf['failOver']) 
+        && file_exists(dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname'].$NBFrameFrontendConf['failOver'])) {
+        $_NBFrontIncludeFile = dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname'].$NBFrameFrontendConf['failOver'];
+        chdir(dirname($_NBFrontIncludeFile));
+        include $_NBFrontIncludeFile;
+        exit();
+    } else if (file_exists(dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname'].'/include/NBFrameLoader.inc.php')) {
         // If NBFrame based Module, try for executing module front controller (index.php)
         $_NBFrontIncludeFile = dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname'].'/index.php';
-        $_SERVER['SCRIPT_FILENAME'] = $_NBFrontIncludeFile;
-        $_SERVER['SCRIPT_NAME'] = basename($_NBFrontIncludeFile);
+        chdir(dirname($_NBFrontIncludeFile));
         include $_NBFrontIncludeFile;
         exit();
     } else {
