@@ -20,6 +20,7 @@ if (!class_exists('NBFrameEnvironment')) {
         var $mModule = null;
         var $mLanguageManager = null;
         var $mModuleInfo = array();
+        var $mFakeUrlBase;
         
         var $mIsD3 = false;
         
@@ -63,8 +64,27 @@ if (!class_exists('NBFrameEnvironment')) {
             return $this->mDirBase;
         }
         
-        function getUrlBase () {
-            return $this->mUrlBase;
+        function getUrlBase($fake=false) {
+            if ($fake) {
+                if (empty($this->mFakeUrlBase)) {
+                    $this->mFakeUrlBase = $this->mUrlBase;
+                    if ($this->getAttribute('StaticUrlMode') && $this->getAttribute('ModRewriteOff')) {
+                        $this->mFakeUrlBase .= '/page';
+                    }
+                    if (file_exists(XOOPS_ROOT_PATH.'/'.$this->mDirName.'.php')) {
+                        $sigFunc = 'NBFrameShortURL_sig_'.$this->mDirName;
+                        if (!function_exists($sigFunc)) {
+                            include XOOPS_ROOT_PATH.'/'.$this->mDirName.'.php';
+                        }
+                        if (function_exists($sigFunc) && $sigFunc() == $this->mDirName) {
+                            $this->mFakeUrlBase = XOOPS_URL.'/'.$this->mDirName;
+                        }
+                    }
+                }
+                return $this->mFakeUrlBase;
+            } else {
+                return $this->mUrlBase;
+            }
         }
 
         function getOrigDirBase() {
@@ -109,6 +129,11 @@ if (!class_exists('NBFrameEnvironment')) {
             return $this->mModule;
         }
         
+        function getMid() {
+            $moduleObject =& $this->getModule();
+            return intval($moduleObject->get('mid'));
+        }
+
         function &getLanguageManager() {
             if (!is_object($this->mLanguageManager)) {
                 NBFrame::using('Language');
@@ -155,6 +180,7 @@ if (!class_exists('NBFrameEnvironment')) {
                 $allowedAction[] = 'NBFrame.GetModuleIcon';
                 $allowedAction[] = 'NBFrame.GetImage';
                 $allowedAction[] = 'NBFrame.Redirect';
+                $allowedAction[] = 'NBFrame.LoadCalendarJS';
             }
 
             // Setup Dialog Action Names
@@ -177,7 +203,7 @@ if (!class_exists('NBFrameEnvironment')) {
                     $className = '';   //@ToDo
                 }
             } else {
-                $requestAction = '';
+                $requestAction = $defaultAction;
                 $className = $defaultAction;
             }
 
@@ -244,22 +270,18 @@ if (!class_exists('NBFrameEnvironment')) {
             return $instance;
         }
 
-        function getActionURL($actionName='', $paramArray=array(), $ext='html', $ommitBase=false, $escape=true) {
+        function getActionUrl($actionName='', $paramArray=array(), $ext='html', $ommitBase=false, $escape=true) {
             if ($ommitBase) {
                 $str = '';
-            } else {
-                if (empty($GLOBALS['NBFrameURLShotened'])) {
-                    $str = $this->mUrlBase.'/';
-                } else {
-                    $str = XOOPS_URL.'/'.$this->mDirName.'/';
+                if ($this->getAttribute('StaticUrlMode') && $this->getAttribute('ModRewriteOff')) {
+                    $str .= 'page/';
                 }
+            } else {
+                $str = $this->getUrlBase(true).'/';
             }
             $suffix = '.'.$ext;
             if ($this->getAttribute('StaticUrlMode')) {
                 $delim = '';
-                if ($this->getAttribute('ModRewirteOff') && empty($GLOBALS['NBFrameURLShotened'])) {
-                    $str .= 'page/';
-                }
                 if (!empty($actionName)) {
                     $className = $actionName.'Action';
                 } else {
@@ -282,11 +304,14 @@ if (!class_exists('NBFrameEnvironment')) {
                     }
                     if (!empty($paramArray)) {
                         foreach ($paramArray as $key=>$value) {
-                            if (substr($key,0,2) == '__') {
-                                $suffix = $delim.$key.'__'.rawurlencode($value);
-                            } else {
-                                $str .= $delim.$key.'__'.rawurlencode($value);
-                                $delim = '/';
+                            if ($key == 'action') continue;
+                            if (trim($value)!='') {
+                                if (substr($key,0,2) == '__') {
+                                    $suffix = $delim.$key.'__'.rawurlencode(trim($value));
+                                } else {
+                                    $str .= $delim.$key.'__'.rawurlencode(trim($value));
+                                    $delim = '/';
+                                }
                             }
                         }
                         $str .= $suffix;
@@ -300,11 +325,14 @@ if (!class_exists('NBFrameEnvironment')) {
                 }
                 if (!empty($paramArray)) {
                     foreach ($paramArray as $key=>$value) {
+                        if ($key == 'action') continue;
                         if (substr($key,0,2) == '__') {
                             $key = substr($key,2);
                         }
-                        $str .= $delim.$key.'='.rawurlencode($value);
-                        $delim = ($escape ? '&amp;' : '&');
+                        if (trim($value)!='') {
+                            $str .= $delim.$key.'='.rawurlencode(trim($value));
+                            $delim = ($escape ? '&amp;' : '&');
+                        }
                     }
                 }
             }
@@ -317,23 +345,23 @@ if (!class_exists('NBFrameEnvironment')) {
                 unset($paramArray['op']);
             }
             $paramArray['NBFrameNextAction'] = $actionName;
-            redirect_header($this->getActionURL('NBFrame.Redirect',$paramArray, $ext), $time, $msg);
+            redirect_header($this->getActionUrl('NBFrame.Redirect',$paramArray, $ext), $time, $msg);
         }
 
         function getImageURL($fileName) {
             if ($this->getAttribute('StaticUrlMode')) {
-                $str = $this->mUrlBase.'/images/'.rawurlencode($fileName);
+                $str = $this->getUrlBase(true).'/images/'.rawurlencode($fileName);
             } else {
-                $str = $this->mUrlBase.'/?action=NBFrame.GetImage&amp;NBImgFile='.rawurlencode($fileName);
+                $str = $this->getUrlBase(true).'/?action=NBFrame.GetImage&amp;NBImgFile='.rawurlencode($fileName);
             }
             return $str;
         }
         
         function getPageURL($fileName) {
             if ($this->getAttribute('StaticUrlMode')) {
-                $str = $this->mUrlBase.'/contents/'.rawurlencode($fileName);
+                $str = $this->getUrlBase(true).'/contents/'.rawurlencode($fileName);
             } else {
-                $str = $this->mUrlBase.'/?action=NBFrame.GetPage&amp;NBPageFile='.rawurlencode($fileName);
+                $str = $this->getUrlBase(true).'/?action=NBFrame.GetPage&amp;NBPageFile='.rawurlencode($fileName);
             }
             return $str;
         }
@@ -341,8 +369,8 @@ if (!class_exists('NBFrameEnvironment')) {
         function parseURL() {
             if (isset($_SERVER['REQUEST_URI'])) {
                 $paramPath = '';
-                $hostName = preg_replace('!(^https?\:[\d]*//[^/]+).*$!','\\1',XOOPS_URL);
-                if (preg_match('/^'.preg_quote($this->mUrlBase, '/').'\/(?:(?:index|page)(?:\.php)?\/)?(.*)$/', $hostName.$_SERVER['REQUEST_URI'], $matches)) {
+                $hostName = preg_replace('!(^https?\://[^/]+).*$!','\\1',XOOPS_URL);
+                if (preg_match('/^'.preg_quote($this->getUrlBase(), '/').'\/(?:(?:index|page)(?:\.php)?\/)?(.*)$/', $hostName.$_SERVER['REQUEST_URI'], $matches)) {
                     $moduleRequest = $matches[1];
                     if (preg_match('!^images/([\w_]*?\.(gif|jpeg|jpg|png|swf))([?#].*)?$!', $moduleRequest, $matches)) {
                         $_GET['action'] = 'NBFrame.GetImage';
@@ -405,13 +433,8 @@ if (!class_exists('NBFrameEnvironment')) {
         }
 
         function getModuleCookiePath() {
-                $pathArray = explode($_SERVER['HTTP_HOST'], XOOPS_URL);
-                if (empty($GLOBALS['NBFrameURLShotened'])) {
-                    $cookiePath = $pathArray[1].'/modules/'.$this->mDirName;
-                } else {
-                    $cookiePath = $pathArray[1].'/'.$this->mDirName;
-                }
-                return $cookiePath;
+            $pathArray = parse_url($this->getUrlBase(true));
+            return $pathArray['path'].'/';
         }
         
         function findFile($name, $offset='', $searchCurrent=true, $customPrefix='') {
@@ -450,12 +473,14 @@ if (!class_exists('NBFrameEnvironment')) {
                 $blockFuncInfoArr = $GLOBALS['_NBBlockFuncInfo'][$this->mDirName];
                 foreach ($blockFuncInfoArr as $funcName =>$blockFuncInfo) {
                     NBFrame::using('blocks.'.$blockFuncInfo['class'], $this);
-                    $envStr = serialize($this);
-                    $str = 'if (!function_exists("'.$funcName.'")) {'."\n";
-                    $str .= 'function '.$funcName.'($option) {'."\n";
-                    $str .= '  $environment = unserialize(\''.$envStr.'\');'."\n";
-                    $str .= 'return '.$blockFuncInfo['class'].'::'.$blockFuncInfo['method'].'($environment, $option); }}';
-                    eval($str);
+                    if (class_exists($blockFuncInfo['class'])) {
+                        $envStr = serialize($this);
+                        $str = 'if (!function_exists("'.$funcName.'")) {'."\n";
+                        $str .= 'function '.$funcName.'($option) {'."\n";
+                        $str .= '  $environment = unserialize(\''.$envStr.'\');'."\n";
+                        $str .= 'return '.$blockFuncInfo['class'].'::'.$blockFuncInfo['method'].'($environment, $option); }}';
+                        eval($str);
+                    }
                 }
             }
         }
@@ -467,13 +492,14 @@ if (!class_exists('NBFrameEnvironment')) {
                 $method = $GLOBALS['_NBSearchFuncInfo'][$this->mDirName]['method'];
                 $funcName = $this->prefix($class.'_'.$method);
                 NBFrame::using($class, $this);
-
-                $envStr = serialize($this);
-                $str = 'if (!function_exists("'.$funcName.'")) {'."\n";
-                $str .= 'function '.$funcName.'($queryarray, $andor, $limit, $offset, $userid) {'."\n";
-                $str .= '  $environment = unserialize(\''.$envStr.'\');'."\n";
-                $str .= 'return '.$class.'::'.$method.'($environment, $queryarray, $andor, $limit, $offset, $userid); }}';
-                eval($str);
+                if (class_exists($class)) {
+                    $envStr = serialize($this);
+                    $str = 'if (!function_exists("'.$funcName.'")) {'."\n";
+                    $str .= 'function '.$funcName.'($queryarray, $andor, $limit, $offset, $userid) {'."\n";
+                    $str .= '  $environment = unserialize(\''.$envStr.'\');'."\n";
+                    $str .= 'return '.$class.'::'.$method.'($environment, $queryarray, $andor, $limit, $offset, $userid); }}';
+                    eval($str);
+                }
             }
         }
 
@@ -492,7 +518,7 @@ if (!class_exists('NBFrameEnvironment')) {
                 include $fname;
             }
             if ($this->getAttribute('UseBlockAdmin')) {
-                $adminmenu[] = array('title' => $languageManager->__l('Block Admin'),
+                $adminmenu[] = array('title' => $languageManager->__l('Block/Perm Admin'),
                                      'link'  => $this->getActionUrl('NBFrame.admin.BlocksAdmin', array(), 'html', true, false));
             }
             if (NBFrame::checkAltSys(false)&&$this->getAttribute('UseAltSys')) {
