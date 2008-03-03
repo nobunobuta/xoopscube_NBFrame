@@ -161,25 +161,43 @@ if(!class_exists('NBFrameGroupPermHandler')) {
          *
          * @return  CriteiaCompo
          */
-        function &getCriteria($gpermName, $gpermItemId, $gpermGroupId, $gpermModuleId)
+        function &getCriteria($gpermName, $gpermItemId, $gpermGroupId, $gpermModuleId, $alias='')
         {
-            $criteria = new CriteriaCompo(new Criteria('gperm_modid', intval($gpermModuleId)));
-            $criteria->add(new Criteria('gperm_name', $gpermName));
+            if ($alias) {
+                $prefix = $alias.'.';
+            } else {
+                $prefix = '';
+            }
+            $criteria = new CriteriaCompo(new Criteria($prefix.'gperm_modid', intval($gpermModuleId)));
+            $criteria->add(new Criteria($prefix.'gperm_name', $gpermName));
             $gpermItemId = intval($gpermItemId);
             if ($gpermItemId > 0) {
-                $criteria->add(new Criteria('gperm_itemid', $gpermItemId));
+                $criteria->add(new Criteria($prefix.'gperm_itemid', $gpermItemId));
             }
             if (is_array($gpermGroupId)) {
                 if (count($gpermGroupId) > 0) {
-                    $criteria2 = new CriteriaCompo();
+                    $delim = '';
+                    $inStr = '(';
                     foreach ($gpermGroupId as $gid) {
-                        $criteria2->add(new Criteria('gperm_groupid', intval($gid)), 'OR');
+                        $inStr .= $delim. intval($gid);
+                        $delim = ',';
                     }
-                    $criteria->add($criteria2);
+                    $inStr .= ')';
+                    $criteria->add(new Criteria($prefix.'gperm_groupid', $inStr, 'IN'));
                 }
             } else if (intval($gpermGroupId) > 0) {
-                $criteria->add(new Criteria('gperm_groupid', intval($gpermGroupId)));
+                $criteria->add(new Criteria($prefix.'gperm_groupid', intval($gpermGroupId)));
             }
+            return $criteria;
+        }
+
+        function &getCriteriaForJoin($moduleID, $gpermName, $alias='G') {
+            if (is_object($GLOBALS['xoopsUser'])) {
+                $groupId = $GLOBALS['xoopsUser']->getGroups();
+            } else {
+                $groupId = XOOPS_GROUP_ANONYMOUS;
+            }
+            $criteria =& $this->getCriteria($gpermName, 0, $groupId, $moduleID, $alias);
             return $criteria;
         }
 
@@ -250,6 +268,12 @@ if(!class_exists('NBFrameGroupPermHandler')) {
             $moduleID = $moduleObject->get('mid');
             $result = $this->getGroupIds($gpermName, $gpermObject->getKey(), $moduleID);
             return $result;
+        }
+
+        function &getRelatedJoinCriteria($key, $join_type='LEFT', $table_alias="") {
+            $tableKeys = $this->getKeyFields();
+            $joinCriteria =& new NBFrameJoinCriteria($this->mTableName, $key, 'gperm_itemid', $join_type, $table_alias);
+            return $joinCriteria;
         }
     }
 }
