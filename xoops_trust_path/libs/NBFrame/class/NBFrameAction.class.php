@@ -72,7 +72,7 @@ if (!class_exists('NBFrameAction')) {
         }
         
         function getUrl($paramArray=array()) {
-            return $this->mEnvironment->getActionURL($this->mActionName, $paramArray);
+            return $this->mEnvironment->getActionUrl($this->mActionName, $paramArray);
         }
         
         function _actionDispatch() {
