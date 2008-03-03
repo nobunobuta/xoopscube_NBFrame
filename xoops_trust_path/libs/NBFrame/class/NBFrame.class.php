@@ -158,13 +158,13 @@ if (!class_exists('NBFrame')) {
                         $handler->setTableBaseName($dirName.'_'.$handler->getTableBaseName());
                     }
                     $handler->mEnvironment =& NBFrame::makeClone($environment);
-                    $handler->mLanguage =& $handler->mEnvironment->getLanguageManager();
+                    $handler->mLanguageManager =& $handler->mEnvironment->getLanguageManager();
                 } else {
                     if (empty($sNullLanguageManager)) {
                         NBFrame::using('Language');
                         $sNullLanguageManager =& new NBFrameLanguage(NBFrame::null());
                     }
-                    $handler->mLanguage =& $sNullLanguageManager;
+                    $handler->mLanguageManager =& $sNullLanguageManager;
                 }
             } else {
                 $handler =& $sHandlerArr[$key];
@@ -338,6 +338,58 @@ if (!class_exists('NBFrame')) {
                 $str = $GLOBALS['NBFrameTextSanitizer']->displayTarea($text, $html, $smiley, $xcode, $image, $br);
                 return $str;
             }
+        }
+        
+        function getLocalTimeZone() {
+            if (is_object($GLOBALS['xoopsUser'])) {
+                $localTZ = $GLOBALS['xoopsUser']->getVar('timezone_offset');
+            } else {
+                $localTZ = $GLOBALS['xoopsConfig']['default_TZ'];
+            }
+            return $localTZ;
+        }
+        
+        function convLocalToServerTime($timestamp) {
+            $timestamp -= (NBFrame::getLocalTimeZone() -  $GLOBALS['xoopsConfig']['server_TZ'])*3600;
+            return $timestamp;
+        }
+
+        function convServerToLocalTime($timestamp) {
+            $timestamp += (NBFrame::getLocalTimeZone() -  $GLOBALS['xoopsConfig']['server_TZ'])*3600;
+            return $timestamp;
+        }
+        
+        function getCurrentURL() {
+            $parseArray = parse_url(XOOPS_URL);
+            $path = @$parseArray['path'];
+            $offset = preg_replace('/^'.preg_quote($path,'/').'/', '', $_SERVER['REQUEST_URI']);
+            return XOOPS_URL.$offset;
+        }
+
+        function addQueryArgs($url, $queryArray) {
+            $parseArray = parse_url($url);
+            $prefix = (isset($parseArray['query'])) ? '&' : '?';
+            foreach($queryArray as $key=>$value) {
+                $url .= $prefix.$key.'='.rawurlencode($value);
+                $prefix = '&';
+            }
+            return $url;
+        }
+
+        function removeQueryArgs($url, $querykeyArray) {
+            foreach($querykeyArray as $key) {
+                $url = preg_replace(
+                            array('/([?&])'.preg_quote($key,'/').'\=(.*?)(&|$)/',
+                                  '/([?&])&/',
+                                  '/[?&]$/' 
+                            ),
+                            array('\\1\\3',
+                                  '\\1',
+                                  ''
+                            ),
+                            $url);
+            }
+            return $url;
         }
     }
 }
