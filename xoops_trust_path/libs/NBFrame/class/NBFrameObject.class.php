@@ -61,8 +61,8 @@ if(!class_exists('NBFrameObject')) {
             }
         }
 
-        function setGroupPermAttrib($perm, $prefix='perm_') {
-            $this->setAttribute($prefix.$perm, array(), XOBJ_DTYPE_CUSTOM);
+        function setGroupPermAttrib($perm, $default=array(), $prefix='perm_') {
+            $this->setAttribute($prefix.$perm, $default, XOBJ_DTYPE_CUSTOM);
             $this->mGroupPermAttrib[$prefix.$perm] = $perm;
         }
 
@@ -299,19 +299,75 @@ if(!class_exists('NBFrameObject')) {
         }
 
         function cleanVars() {
-            $iret =parent::cleanVars();
             foreach ($this->vars as $k => $v) {
                 $cleanv = $v['value'];
-                if (!$v['changed']) {
+                if (isset($v['func'])) {
+                    $this->cleanVars[$k] =& $cleanv;
                 } else {
-                    $cleanv = is_string($cleanv) ? trim($cleanv) : $cleanv;
-                    if (isset($v['func'])) {
-                        $this->cleanVars[$k] =& $cleanv;
+                    if (!$v['changed']) {
                     } else {
+                        $cleanv = is_string($cleanv) ? trim($cleanv) : $cleanv;
                         switch ($v['data_type']) {
+                            case XOBJ_DTYPE_TXTBOX:
+                                if ($v['required'] && $cleanv != '0' && $cleanv == '') {
+                                    $this->setErrors($this->__e('%s is required.', $k));
+                                    continue;
+                                }
+                                if (isset($v['maxlength']) && strlen($cleanv) > intval($v['maxlength'])) {
+                                    $this->setErrors($this->__e('%s must be shorter than %d characters.',$k, intval($v['maxlength'])));
+                                    continue;
+                                }
+                                break;
+
+                            case XOBJ_DTYPE_TXTAREA:
+                                if ($v['required'] && $cleanv != '0' && $cleanv == '') {
+                                    $this->setErrors($this->__e('%s is required.', $k));
+                                    continue;
+                                }
+                                break;
+
+                            case XOBJ_DTYPE_SOURCE:
+                                $cleanv = $cleanv;
+                                break;
+
+                            case XOBJ_DTYPE_INT:
+                                $cleanv = intval($cleanv);
+                                break;
+
                             case XOBJ_DTYPE_FLOAT:
-                                $cleanv = (float)($cleanv);
-                                $this->cleanVars[$k] =& $cleanv;
+                                $cleanv = floatval($cleanv);
+                                break;
+
+                            case XOBJ_DTYPE_BOOL:
+                                $cleanv = $cleanv ? 1 : 0;
+                                break;
+
+                            case XOBJ_DTYPE_EMAIL:
+                                if ($v['required'] && $cleanv == '') {
+                                    $this->setErrors($this->__e('%s is required.', $k));
+                                    continue;
+                                }
+                                if ($cleanv != '' && !preg_match("/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+([\.][a-z0-9-]+)+$/i",$cleanv)) {
+                                    $this->setErrors($this->__e('Invalid Email address format'));
+                                    continue;
+                                }
+                                break;
+                            case XOBJ_DTYPE_URL:
+                                if ($v['required'] && $cleanv == '') {
+                                    $this->setErrors($this->__e('%s is required.', $k));
+                                    continue;
+                                }
+                                if ($cleanv != '' && !preg_match("/^http[s]*:\/\//i", $cleanv)) {
+                                    $cleanv = 'http://' . $cleanv;
+                                }
+                                break;
+                            case XOBJ_DTYPE_ARRAY:
+                                $cleanv = serialize($cleanv);
+                                break;
+                            case XOBJ_DTYPE_STIME:
+                            case XOBJ_DTYPE_MTIME:
+                            case XOBJ_DTYPE_LTIME:
+                                $cleanv = !is_string($cleanv) ? intval($cleanv) : strtotime($cleanv);
                                 break;
                             default:
                                 break;
@@ -320,8 +376,13 @@ if(!class_exists('NBFrameObject')) {
                         $checkMethod = 'checkVar_'.$k;
                         if(method_exists($this, $checkMethod)) {
                             $this->$checkMethod($cleanv);
+                            //メソッド内でcleanVarsを書き換えた場合への対応
+                            if (isset($this->cleanVars[$k])) {
+                                $cleanv = $this->cleanVars[$k];
+                            }
                         }
                     }
+                    $this->cleanVars[$k] =& $cleanv;
                 }
                 unset($cleanv);
             }
@@ -355,7 +416,7 @@ if(!class_exists('NBFrameObject')) {
 		}
 	
 		function get($key) {
-			return $this->vars[$key]['value'];
+			return $this->getVar($key, 'n');
 		}
 
         function &exportObject() {
@@ -373,6 +434,16 @@ if(!class_exists('NBFrameObject')) {
             foreach ($this->vars as $k => $v) {
                 $this->setVar($k, $wp_object->$k, true);
             }
+        }
+
+        function __l($msg) {
+            $args = func_get_args();
+            return $this->mHandler->mLanguageManager->__l($msg, $this->mHandler->mLanguageManager->_getParams($args));
+        }
+
+        function __e($msg) {
+            $args = func_get_args();
+            return $this->mHandler->mLanguageManager->__e($msg, $this->mHandler->mLanguageManager->_getParams($args));
         }
     }
 }
