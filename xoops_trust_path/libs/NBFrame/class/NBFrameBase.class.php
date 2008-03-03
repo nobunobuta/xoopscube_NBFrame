@@ -6,7 +6,7 @@ if (!class_exists('NBFrameBase')) {
         var $mLanguage;
 
         function NBFrameBase(&$environment) {
-            $this->mEnvironment =& $environment;
+            $this->mEnvironment =& NBFrame::makeClone($environment);
             $this->mLanguage =& $environment->getLanguageManager();
         }
 

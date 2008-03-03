@@ -31,6 +31,13 @@ if (!class_exists('NBFrameAdminMaintAction')) {
             $this->setObjectList('admin.'.$name.'Admin');
             $this->mBypassAdminCheck = false; // Administrator Group members can edit everything in admin screen
         }
+
+        function &getListObjects($criteria)
+        {
+            $objects =& $this->mObjectHandler->getObjects($criteria);
+            return $objects;
+        }
+
         function viewFormOp() {
             parent::viewFormOp();
             $this->mXoopsTpl->assign('modulename', $GLOBALS['xoopsModule']->getVar('name'));

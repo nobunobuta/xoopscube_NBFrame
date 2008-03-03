@@ -49,11 +49,13 @@ if (!class_exists('NBFrameRender')) {
                     for ($i=1; $i < count($args); $i=$i+2) {
                         $paramKey = trim($args[$i]);
                         $paramValue = trim($args[$i+1]);
-                        $paramArray[$paramKey] = $paramValue;
+                        if ($paramValue != '') {
+                            $paramArray[$paramKey] = $paramValue;
+                        }
                     }
                 }
             }
-            return $environment->getActionURL($action, $paramArray);
+            return $environment->getActionUrl($action, $paramArray);
         }
 
         function _Smarty_NBFrameImage($file) {

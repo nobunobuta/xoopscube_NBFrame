@@ -42,6 +42,7 @@ if (!class_exists('NBFrameLanguage')) {
                         break;
                     case NBFRAME_TARGET_BLOCK:
                         $this->loadModuleLanguageFile('blocks.php');
+                        $this->loadModuleLanguageFile('main.php');
                         break;
                     case NBFRAME_TARGET_INSTALLER:
                     case NBFRAME_TARGET_LOADER:
@@ -124,6 +125,10 @@ if (!class_exists('NBFrameLanguage')) {
             $msgKey = preg_replace('/[^A-Z0-9_]/','', $msgKey);
             if ($this->mInAdmin) {
                 $msgConstPrefix = 'AD_';
+            } else if ($this->mEnvironment && $this->mEnvironment->getTarget() == NBFRAME_TARGET_INSTALLER) {
+                $msgConstPrefix = 'MI_';
+            } else if ($this->mEnvironment && $this->mEnvironment->getTarget() == NBFRAME_TARGET_BLOCK) {
+                $msgConstPrefix = 'MB_';
             } else {
                 $msgConstPrefix = '';
             }

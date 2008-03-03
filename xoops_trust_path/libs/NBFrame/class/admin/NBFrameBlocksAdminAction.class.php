@@ -104,9 +104,8 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
         }
 
         function viewListOp() {
-            if(!empty($this->mObjects)) {
-                $this->_listblocks() ;
-            }
+            $this->mXoopsTpl->assign('modulename', $GLOBALS['xoopsModule']->getVar( 'name' ));
+            $this->_listblocks() ;
             $this->_listgperm();
         }
 
@@ -177,7 +176,6 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
 
         function _listBlocks()
         {
-            $this->mXoopsTpl->assign('modulename', $GLOBALS['xoopsModule']->getVar( 'name' ));
             $this->mXoopsTpl->assign('title', $this->__l('Blocks Admin'));
             $this->mXoopsTpl->assign('cachetimes', $this->mObjectHandler->getBlockCacheTimeListArray());
             $this->mXoopsTpl->assign('modulelist', $this->mObjectHandler->getModuleListArray());
@@ -192,6 +190,7 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
                           'none'=>-1);
             $this->mXoopsTpl->assign('side_array', $side_array);
 
+            $blocks = array();
             // blocks displaying loop
             foreach( array_keys( $this->mObjects ) as $i ) {
                 $block = array();

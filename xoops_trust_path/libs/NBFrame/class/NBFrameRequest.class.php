@@ -94,7 +94,7 @@ if (!class_exists('NBFrameRequest')) {
                 } elseif ($param['valType'] == 'check-01') {
                     $paraValue = '0';
                 } elseif ($param['valType'] == 'array-int') {
-                    $paraValue == array();
+                    $paraValue = array();
                 }
             }
 
@@ -133,6 +133,7 @@ if (!class_exists('NBFrameRequest')) {
                                 if(isset($paraValue['date']) && isset($paraValue['time'])) {
                                     $tmp=explode('-',$paraValue['date']);
                                     $paraValue = mktime(0,0,0,$tmp[1],$tmp[2],$tmp[0])+$paraValue['time'];
+                                    $paraValue = NBFrame::convLocalToServerTime($paraValue);
                                 } else {
                                     $paraValue = 0;
                                 }
