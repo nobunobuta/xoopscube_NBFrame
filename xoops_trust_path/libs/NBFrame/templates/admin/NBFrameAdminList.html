@@ -1,12 +1,19 @@
 <h3><{$modulename}></h3>
 <h4><{$title}></h4>
 <div align="left">
+<{php}>if (class_exists('XCube_Root')) {<{/php}>
+<ul class="toptab">
+  <li><a href="<{$newlink}>" title="<{"Create new record"|__l}>" ><{$lang.new}></a></li>
+</ul>
+<{php}>} else {<{/php}>
 <table cellspacing="3" class="outer"><tr class="head"><td>
 <a href="<{$newlink}>" title="Create new record" ><{$lang.new}></a>
 </td></tr></table>
+<{php}>}<{/php}>
 </div>
 <br />
 <div align="left">
+<{$pagenav}>
 <table cellspacing="1" class="outer">
 <tr class="head" align="center">
 <{foreach item=header from=$headers}>

@@ -1,4 +1,5 @@
 <h3><{$modulename}></h3>
+<{if $blocks}>
 <h4><{"Block Admin"|__l}></h4>
 <form action="?action=NBFrame.admin.BlocksAdmin" name="blockadmin" method="post">
   <table width="95%" class="outer" cellpadding="4" cellspacing="1">
@@ -68,6 +69,7 @@
     </tr>
   </table>
 </form>
+<{/if}>
 <h4><{"GroupPerm Admin"|__l}></h4>
 <form action="?action=NBFrame.admin.BlocksAdmin" name="blockadmin" method="post">
   <table width="95%" class="outer" cellpadding="4" cellspacing="1">

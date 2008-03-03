@@ -1,4 +1,4 @@
-<?php ini_set('short_open_tag', 'On');?>
+<?php $NBFrame_ini_short_open_tag = ini_set('short_open_tag', 'On');?>
 <table cellspacing="1" class="outer">
 <tr class="head" align="center">
 <?php foreach($headers as $header) {?>
@@ -23,3 +23,4 @@
 <?php } ?>
 </table>
 <?=$pagenav ?>
+<?php ini_set('short_open_tag', $NBFrame_ini_short_open_tag);?>
