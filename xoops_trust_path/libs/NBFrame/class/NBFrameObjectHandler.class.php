@@ -30,7 +30,7 @@ if (!class_exists('NBFrameObjectHandler')) {
         var $mSql;
         var $mEnvironment = null;
         var $mUseModuleTablePrefix = true;
-        var $mLanguage;
+        var $mLanguageManager = null;
         var $mObjectCache = null;
         var $mLogQueryError = true;
     
@@ -276,7 +276,7 @@ if (!class_exists('NBFrameObjectHandler')) {
          *
          * @return  bool    成功の時は TRUE
          */
-        function insert(&$record,$force=false,$updateOnlyChanged=false) {
+        function insert(&$record,$force=false,$updateOnlyChanged=false, $withoutSys=false) {
             if (is_a($record, 'NBFrameObject') && $record->mClassName != $this->mEntityClassName ) {
                 return false;
             }
@@ -378,7 +378,7 @@ if (!class_exists('NBFrameObjectHandler')) {
                         $setDelim = ", ";
                     }
                 }
-                if ($record->mUseSystemField == true) {
+                if (!$withoutSys && $record->mUseSystemField == true) {
                     if (isset($GLOBALS['xoopsUser']) && is_object($GLOBALS['xoopsUser'])) {
                         $uid = intval($GLOBALS['xoopsUser']->getVar('uid'));
                     } else {
@@ -389,7 +389,9 @@ if (!class_exists('NBFrameObjectHandler')) {
                     $setList .= $setDelim ."`_NBsys_update_count`=`_NBsys_update_count`+1";
                     $setDelim = ", ";
                     foreach ($record->mVerifier as $key=>$value) {
-                        $whereList .= $whereDelim . '`'.$key.'` = '. $record->cleanVars[$value];
+                        if (isset($record->cleanVars[$value])) {
+                            $whereList .= $whereDelim . '`'.$key.'` = '. $record->cleanVars[$value];
+                        }
                     }
                 }
                 if (!$setList) {
@@ -482,7 +484,7 @@ if (!class_exists('NBFrameObjectHandler')) {
          *
          * @return  mixed Array         検索結果レコードの配列
          */
-        function &getObjects($criteria = null, $id_as_key = false, $fieldlist="", $distinct = false, $joindef = false, $having="")
+        function &getObjects($criteria = null, $id_as_key = false, $fieldlist="", $distinct = false, $joindef = false, $having="", $gperm_mode='', $bypassAdminCheck=false)
         {
             $records = array();
 
@@ -490,6 +492,10 @@ if (!class_exists('NBFrameObjectHandler')) {
                 while ($myrow = $this->db->fetchArray($result)) {
                     $record =& $this->create(false);
                     $record->assignVars($myrow);
+                    if (!empty($gperm_mode) && !$record->checkGroupPerm($gperm_mode, $bypassAdminCheck)) {
+                        unset($record);
+                        continue;
+                    }
                     if (!$id_as_key) {
                         $records[] =& $record;
                     } else {
@@ -605,11 +611,54 @@ if (!class_exists('NBFrameObjectHandler')) {
          *
          * @return  integer                 検索結果レコードの件数
          */
-        function getCount($criteria = null)
+        function getCount($criteria = null, $distinct = false, $joindef = false, $having="")
         {
-            $sql = 'SELECT COUNT(*) FROM '.$this->mTableName;
+            $whereStr = '';
+            $orderStr = '';
+            if ($distinct) {
+                $distinct = "DISTINCT ";
+            } else {
+                $distinct = "";
+            }
+            $delim = '';
+            $fields = '';
+            if ($this->getAlias()) {
+                $prefix = $this->getAlias().'.';
+            } else {
+                $prefix = '';
+            }
+            $fields = array();
+            foreach ($this->getKeyFields() as $key) {
+                $fields[] = $prefix.$key;
+            }
+            if ($joindef) {
+                $count = 'COUNT(DISTINCT '.implode(',',$fields).')';
+            } else {
+                $count = 'COUNT(*)';
+            }
+            if ($this->getAlias() != '') {
+                $sql = 'SELECT '.$distinct.$count.' FROM '.$this->mTableName.' AS '.$this->getAlias();
+            } else {
+                $sql = 'SELECT '.$distinct.$count.' FROM '.$this->mTableName;
+            }
+            if ($joindef) {
+                if ($this->getAlias() != '') {
+                    $sql .= $joindef->render($this->getAlias());
+                } else {
+                    $sql .= $joindef->render($this->mTableName);
+                }
+            }
             if (isset($criteria) && is_subclass_of($criteria, 'criteriaelement')) {
-                $sql .= ' '.$this->_renderWhere($criteria);
+                $whereStr = $this->_renderWhere($criteria);
+                $sql .= ' '.$whereStr;
+            }
+            if (isset($criteria) && (is_subclass_of($criteria, 'criteriaelement')||get_class($criteria)=='criteriaelement')) {
+                if ($criteria->getGroupby() != ' GROUP BY ') {
+                    $sql .= ' '.$criteria->getGroupby();
+                    if(strlen($having) > 0){
+                        $sql .= ' HAVING '.$having;
+                    }
+                }
             }
             $result =& $this->query($sql);
             if (!$result) {
@@ -704,7 +753,7 @@ if (!class_exists('NBFrameObjectHandler')) {
             }
         }
 
-        function &getSelectOptionArray($criteria=null, $gperm_mode='', $bypassAdminCheck=false) {
+        function getSelectOptionArray($criteria=null, $gperm_mode='', $bypassAdminCheck=false) {
             $resultSet =& $this->open($criteria);
             $optionArray = array();
             while($object =& $this->getNext($resultSet)) {
@@ -755,6 +804,12 @@ if (!class_exists('NBFrameObjectHandler')) {
             $whereStr = $this->_makeCriteria4sql($criteria);
             if ($whereStr) return 'WHERE '.$whereStr;
             return '';
+        }
+
+        function &getRelatedJoinCriteria($key, $join_type='LEFT', $table_alias="") {
+            $tableKeys = $this->getKeyFields();
+            $joinCriteria =& new NBFrameJoinCriteria($this->mTableName, $key, $tableKeys[0], $join_type, $table_alias);
+            return $joinCriteria;
         }
 
         function _makeCriteria4sql($criteria)
@@ -824,6 +879,11 @@ if (!class_exists('NBFrameObjectHandler')) {
                                 return null;
                             }
                         }
+                        if ($this->getAlias() != '') {
+                            if (!preg_match('/.+\..+/',$name)) {
+                                $name = $this->getAlias().'.'.$name;
+                            }
+                        }
                         return $name . " " . $operator . " " . $value;
                     } else {
                         return null;
@@ -855,6 +915,7 @@ if (!class_exists('NBFrameObjectHandler')) {
                 case XOBJ_DTYPE_EMAIL:
                 case XOBJ_DTYPE_SOURCE:
                 case XOBJ_DTYPE_OTHER:
+                case XOBJ_DTYPE_CUSTOM:
                     $value = $this->db->quoteString($value);
                     break;
                 default:
@@ -905,12 +966,12 @@ if (!class_exists('NBFrameObjectHandler')) {
 
         function __l($msg) {
             $args = func_get_args();
-            return $this->mLanguage->__l($msg, $this->mLanguage->_getParams($args));
+            return $this->mLanguageManager->__l($msg, $this->mLanguageManager->_getParams($args));
         }
 
         function __e($msg) {
             $args = func_get_args();
-            return $this->mLanguage->__e($msg, $this->mLanguage->_getParams($args));
+            return $this->mLanguageManager->__e($msg, $this->mLanguageManager->_getParams($args));
         }
     }
 
