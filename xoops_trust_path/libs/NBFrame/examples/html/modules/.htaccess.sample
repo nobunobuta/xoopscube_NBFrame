@@ -1,0 +1,10 @@
+RewriteEngine On
+RewriteBase /modules
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !modules/([a-zA-Z0-9_]+)\/index.php$
+RewriteRule ^([a-zA-Z0-9_]+)\/(.*)$ $1/index.php [QSA]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ /404.php [L]

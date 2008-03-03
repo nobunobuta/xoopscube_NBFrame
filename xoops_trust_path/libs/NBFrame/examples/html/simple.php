@@ -36,8 +36,8 @@
 
 // You can set Dirname directly like following line
 //  $NBFrameFrontendConf['dirname']='simple';
-$NBFrameFrontendConf['dirname'] = preg_replace('/(.*)(\.php)/','\\1', basename(__FILE__));
-
+$NBFrameFrontendConf['thisname'] = preg_replace('/(.*)(\.php)/','\\1', basename(__FILE__));
+$NBFrameFrontendConf['dirname'] = $NBFrameFrontendConf['thisname'];
 // Following module Directories should not access via HTTP request.
 // These HTTP Stream will send as a static content
 $NBFrameFrontendConf['denyDirArray'] = array(
@@ -93,230 +93,237 @@ $NBFrameFrontendConf['disallowWithPhpExt'] = false;
 //you can specify PHP file name of this frontend controller (eg. index.php)
 $NBFrameFrontendConf['failOver'] = null;
 
+if (file_exists(dirname(__FILE__).'/settings/ShortURL_'.$NBFrameFrontendConf['thisname'].'.inc.php')) {
+    include dirname(__FILE__).'/settings/ShortURL_'.$NBFrameFrontendConf['thisname'].'.inc.php';
+}
 
-// Class definition of NBFrameHTTPOutputSubset
-// This class delived from NBFrame Class Libraries
-// But it's independent form any other NBFrame Classes
-if (!class_exists('NBFrameHTTPOutputSubset')) {
-    class NBFrameHTTPOutputSubset {
-        function putFile($fileName, $contentType) {
-            error_reporting(E_ERROR);
-            if (file_exists($fileName)) {
-                $fileSize = filesize($fileName);
-                header('Content-Type: '.$contentType);
-                header('Accept-Ranges: bytes');
-                if (isset($_SERVER['HTTP_RANGE'])) {
-                    list($dummy, $start, $end) = preg_split("/[=\-]/", $_SERVER["HTTP_RANGE"]);
-                    $start = intval($start);
-                    if (trim($end)=='') {
-                        $end = $fileSize-1;
+if (!defined('XOOPS_ROOT_PATH')) {
+    // Class definition of NBFrameHTTPOutputSubset
+    // This class delived from NBFrame Class Libraries
+    // But it's independent form any other NBFrame Classes
+    if (!class_exists('NBFrameHTTPOutputSubset')) {
+        class NBFrameHTTPOutputSubset {
+            function putFile($fileName, $contentType) {
+                error_reporting(E_ERROR);
+                if (file_exists($fileName)) {
+                    $fileSize = filesize($fileName);
+                    header('Content-Type: '.$contentType);
+                    header('Accept-Ranges: bytes');
+                    if (isset($_SERVER['HTTP_RANGE'])) {
+                        list($dummy, $start, $end) = preg_split("/[=\-]/", $_SERVER["HTTP_RANGE"]);
+                        $start = intval($start);
+                        if (trim($end)=='') {
+                            $end = $fileSize-1;
+                        } else {
+                            $end = intval($end);
+                        }
                     } else {
-                        $end = intval($end);
+                        $start = 0;
+                        $end = $fileSize-1;
                     }
-                } else {
-                    $start = 0;
-                    $end = $fileSize-1;
-                }
-                $partial = 0;
-                if (($start != 0) || ($end != ($fileSize-1))) {
-                    header('HTTP/1.1 206 Partial Content');
-                    header('Status: 206 Partial Content');
-                    header('Content-Range: bytes '.$start."-".$end.'/'.$fileSize);
-                    $partial = 1;
-                }
-                if ($partial == 1) {
-                    $size = $end-$start+1;
-                } else {
-                    $size = $fileSize;
-                }
-                header('Content-Disposition: inline; filename="'.basename($fileName).'"');
-                NBFrameHTTPOutputSubset::staticContentHeader(filemtime($fileName), $fileName);
-                while (ob_get_level()) {ob_end_clean();}
-                ob_implicit_flush(true);
-                $handle = fopen($fileName,'rb');
-                fseek($handle, $start);
-                $block = 16384;
-                $content = '';
-                while (!feof($handle)) {
-                    print(fread($handle, $block));
-                    flush();
-                }
-                exit();
-            }
-        }
-
-        function staticContentHeader($mod_timestamp, $etag_base='') {
-            if (!empty($mod_timestamp)) {
-                $etag = md5($_SERVER["REQUEST_URI"] . $mod_timestamp . $etag_base);
-                header('Pragma:');
-                header('Etag: "'.$etag.'"' );
-                header('Cache-Control:');
-                header('Expires:');
-                header('Last-Modified: '.gmdate('D, d M Y H:i:s', $mod_timestamp).' GMT');
-                if((!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && ($mod_timestamp==NBFrameHTTPOutputSubset::_str2Time($_SERVER['HTTP_IF_MODIFIED_SINCE'])))||
-                   (!empty($_SERVER['HTTP_IF_NONE_MATCH']) && ($etag==$_SERVER['HTTP_IF_NONE_MATCH']))){
-                    header('HTTP/1.1 304 Not Modified');
+                    $partial = 0;
+                    if (($start != 0) || ($end != ($fileSize-1))) {
+                        header('HTTP/1.1 206 Partial Content');
+                        header('Status: 206 Partial Content');
+                        header('Content-Range: bytes '.$start."-".$end.'/'.$fileSize);
+                        $partial = 1;
+                    }
+                    if ($partial == 1) {
+                        $size = $end-$start+1;
+                    } else {
+                        $size = $fileSize;
+                    }
+                    header('Content-Disposition: inline; filename="'.basename($fileName).'"');
+                    NBFrameHTTPOutputSubset::staticContentHeader(filemtime($fileName), $fileName);
+                    while (ob_get_level()) {ob_end_clean();}
+                    ob_implicit_flush(true);
+                    $handle = fopen($fileName,'rb');
+                    fseek($handle, $start);
+                    $block = 16384;
+                    $content = '';
+                    while (!feof($handle)) {
+                        print(fread($handle, $block));
+                        flush();
+                    }
                     exit();
                 }
             }
-        }
 
-        function _str2Time( $str ) {
-            $str = preg_replace( '/;.*$/', '', $str );
-            if ( strpos( $str, ',' ) === false )
-                $str .= ' GMT';
-            return strtotime( $str );
-        }
-    }
-}
-
-if (!function_exists('__NBFrameShorURLParser__')) {
-    function __NBFrameShorURLParser__($confArray) {
-        if (isset($_SERVER['REQUEST_URI'])) {
-            if ($confArray['disallowWithPhpExt'] && preg_match('/^'.preg_quote('/'.basename(__FILE__),'/').'/',$_SERVER['REQUEST_URI'])) {
-                header('HTTP/1.0 404 Not Found');
-                exit('404 Not Found');
-            }
-            // Force redirect URL eg. http://for/simple to http://for/simple/
-            if (!preg_match('/^(\/.*)?'.preg_quote('/'.$confArray['dirname'],'/').'(\.php)?\//',$_SERVER['REQUEST_URI'])) {
-                $uri = preg_replace('/^(\/.*)?('.preg_quote('/'.$confArray['dirname'],'/').')(\.php)?/','\\1\\2\\3/', $_SERVER['REQUEST_URI']);
-                header('Location:'. $uri);
-            }
-            
-            // Rewrite Some Server Variables.
-            $origRequestUri = $_SERVER['REQUEST_URI'];
-            list ($_SERVER['REQUEST_URI'], $_SERVER['PHP_SELF'], $_SERVER['HTTP_REFERER']) =
-                preg_replace('/^(\/.*)?'.preg_quote('/'.$confArray['dirname'],'/').'(\.php)?/','\\1/modules/'.$confArray['dirname'], 
-                             array($_SERVER['REQUEST_URI'], $_SERVER['PHP_SELF'], $_SERVER['HTTP_REFERER']));
-
-        }
-
-        $queryArray = preg_split('/[?#]/', $origRequestUri);
-        $pathArray = array_slice(explode('/', $queryArray[0]),1);
-        $i = 0;
-        foreach($pathArray as $path) {
-            if ($path != $confArray['dirname']) {
-                $i++;
-            } else {
-                break;
-            }
-        }
-
-        $pathArray = array_slice($pathArray,$i+1);
-        $status = '200';
-        $pathStr = implode('/',$pathArray);
-        $includeFile = '';
-        $denyDirPattern = '/^'.__NBFramePregConcat__($confArray['denyDirArray']).'/';
-
-        if (preg_match($denyDirPattern, $pathStr)) {
-            $status = '403';
-        } else if (preg_match('/\.\./', $pathStr)) {
-            $status = '403';
-        } else {
-           $path = dirname(__FILE__).'/modules/'.$confArray['dirname'];
-            if (file_exists($path . '/index.html')) {
-                $includeFile = $path . '/index.html';
-                $status = '200';
-            } else if (file_exists($path . '/index.php')) {
-                $includeFile = $path . '/index.php';
-                $status = '200';
-            } else {
-                $includeFile = '';
-                $status = '403';
-            }
-            for ($i = 0; $i < count($pathArray); $i++) {
-                if ($pathArray[$i]) {
-                    $path .= '/'. $pathArray[$i];
-                    if (is_dir($path)) {
-                        if (file_exists($path . '/index.html')) {
-                            $includeFile = $path . '/index.html';
-                            $status = '200';
-                        } else if (file_exists($path . '/index.php')) {
-                            $includeFile = $path . '/index.php';
-                            $status = '200';
-                        } else {
-                            $status = '403';
-                        }
-                    } else if (file_exists($path)) {
-                        $includeFile = $path;
-                        $status = '200';
-                    } else if (file_exists($path.'.php')) {
-                        $includeFile = $path.'.php';
-                        $status = '200';
-                        break;
-                    } else {
-                        $includeFile = '';
-                        $status = '404';
+            function staticContentHeader($mod_timestamp, $etag_base='') {
+                if (!empty($mod_timestamp)) {
+                    $etag = md5($_SERVER["REQUEST_URI"] . $mod_timestamp . $etag_base);
+                    header('Pragma:');
+                    header('Etag: "'.$etag.'"' );
+                    header('Cache-Control:');
+                    header('Expires:');
+                    header('Last-Modified: '.gmdate('D, d M Y H:i:s', $mod_timestamp).' GMT');
+                    if((!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && ($mod_timestamp==NBFrameHTTPOutputSubset::_str2Time($_SERVER['HTTP_IF_MODIFIED_SINCE'])))||
+                       (!empty($_SERVER['HTTP_IF_NONE_MATCH']) && ($etag==$_SERVER['HTTP_IF_NONE_MATCH']))){
+                        header('HTTP/1.1 304 Not Modified');
+                        exit();
                     }
                 }
             }
+
+            function _str2Time( $str ) {
+                $str = preg_replace( '/;.*$/', '', $str );
+                if ( strpos( $str, ',' ) === false )
+                    $str .= ' GMT';
+                return strtotime( $str );
+            }
         }
-        $GLOBALS['NBFrameURLShotened'] = true;
-        $ext = preg_replace('/.*\.([a-zA-Z0-9]+)$/', '\\1', $includeFile);
-        return array($includeFile, $status, $ext);
     }
 
-    function __NBFramePregConcat__($strArray) {
-        $result = '(';
-        $delim = '';
-        foreach ($strArray as $str) {
-            $result .= $delim.preg_quote($str,'/');
-            $delim = '|';
+    if (!function_exists('__NBFrameShorURLParser__')) {
+        function __NBFrameShorURLParser__($confArray) {
+            if (isset($_SERVER['REQUEST_URI'])) {
+                if ($confArray['disallowWithPhpExt'] && preg_match('/^'.preg_quote('/'.basename(__FILE__),'/').'/',$_SERVER['REQUEST_URI'])) {
+                    header('HTTP/1.0 404 Not Found');
+                    exit('404 Not Found');
+                }
+                // Force redirect URL eg. http://for/simple to http://for/simple/
+            if (!preg_match('/^(\/.*)?'.preg_quote('/'.$confArray['thisname'],'/').'(\.php)?\//',$_SERVER['REQUEST_URI'])) {
+                $uri = preg_replace('/^(\/.*)?('.preg_quote('/'.$confArray['thisname'],'/').')(\.php)?/','\\1\\2\\3/', $_SERVER['REQUEST_URI']);
+                    header('Location:'. $uri);
+                }
+                
+                // Rewrite Some Server Variables.
+                $origRequestUri = $_SERVER['REQUEST_URI'];
+                list ($_SERVER['REQUEST_URI'], $_SERVER['PHP_SELF'], $_SERVER['HTTP_REFERER']) =
+                preg_replace('/^(\/.*)?'.preg_quote('/'.$confArray['thisname'],'/').'(\.php)?/','\\1/modules/'.$confArray['dirname'], 
+                                 array($_SERVER['REQUEST_URI'], $_SERVER['PHP_SELF'], $_SERVER['HTTP_REFERER']));
+
+            }
+
+            $queryArray = preg_split('/[?#]/', $origRequestUri);
+            $pathArray = array_slice(explode('/', $queryArray[0]),1);
+            $i = 0;
+            foreach($pathArray as $path) {
+                if ($path != $confArray['thisname']) {
+                    $i++;
+                } else {
+                    break;
+                }
+            }
+
+            $pathArray = array_slice($pathArray,$i+1);
+            $status = '200';
+            $pathStr = implode('/',$pathArray);
+            $includeFile = '';
+            $denyDirPattern = '/^'.__NBFramePregConcat__($confArray['denyDirArray']).'/';
+
+            if (preg_match($denyDirPattern, $pathStr)) {
+                $status = '403';
+            } else if (preg_match('/\.\./', $pathStr)) {
+                $status = '403';
+            } else {
+               $path = dirname(__FILE__).'/modules/'.$confArray['dirname'];
+                if (file_exists($path . '/index.html')) {
+                    $includeFile = $path . '/index.html';
+                    $status = '200';
+                } else if (file_exists($path . '/index.php')) {
+                    $includeFile = $path . '/index.php';
+                    $status = '200';
+                } else {
+                    $includeFile = '';
+                    $status = '403';
+                }
+                for ($i = 0; $i < count($pathArray); $i++) {
+                    if ($pathArray[$i]) {
+                        $path .= '/'. $pathArray[$i];
+                        if (is_dir($path)) {
+                            if (file_exists($path . '/index.html')) {
+                                $includeFile = $path . '/index.html';
+                                $status = '200';
+                            } else if (file_exists($path . '/index.php')) {
+                                $includeFile = $path . '/index.php';
+                                $status = '200';
+                            } else {
+                                $status = '403';
+                            }
+                        } else if (file_exists($path)) {
+                            $includeFile = $path;
+                            $status = '200';
+                        } else if (file_exists($path.'.php')) {
+                            $includeFile = $path.'.php';
+                            $status = '200';
+                            break;
+                        } else {
+                            $includeFile = '';
+                            $status = '404';
+                        }
+                    }
+                }
+            }
+            $GLOBALS['NBFrameURLShotened'] = true;
+            $ext = preg_replace('/.*\.([a-zA-Z0-9]+)$/', '\\1', $includeFile);
+            return array($includeFile, $status, $ext);
         }
-        $result .= ')';
-        return $result;
+
+        function __NBFramePregConcat__($strArray) {
+            $result = '(';
+            $delim = '';
+            foreach ($strArray as $str) {
+                $result .= $delim.preg_quote($str,'/');
+                $delim = '|';
+            }
+            $result .= ')';
+            return $result;
+        }
     }
-}
-if (file_exists(dirname(__FILE__).'/settings/ShortURL_'.$NBFrameFrontendConf['dirname'].'.inc.php')) {
-    include_once dirname(__FILE__).'/settings/ShortURL_'.$NBFrameFrontendConf['dirname'].'.inc.php';
-}
 
-list($_NBFrontIncludeFile, $_NBFrontStatus, $_NBFrontExt) = __NBFrameShorURLParser__($NBFrameFrontendConf);
+    list($_NBFrontIncludeFile, $_NBFrontStatus, $_NBFrontExt) = __NBFrameShorURLParser__($NBFrameFrontendConf);
 
-$_SERVER['SCRIPT_FILENAME'] = $_NBFrontIncludeFile;
-$_SERVER['SCRIPT_NAME'] = basename($_NBFrontIncludeFile);
-$_SERVER['PATH_TRANSLATED'] = $_NBFrontIncludeFile;
+    $_SERVER['SCRIPT_FILENAME'] = $_NBFrontIncludeFile;
+    $_SERVER['SCRIPT_NAME'] = basename($_NBFrontIncludeFile);
+    $_SERVER['PATH_TRANSLATED'] = $_NBFrontIncludeFile;
 
-$_NBFrontWrapDirPattern = '/^'.preg_quote(dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname'].'/','/');
-$_NBFrontWrapDirPattern .= __NBFramePregConcat__($NBFrameFrontendConf['wrapDirArray']);
-$_NBFrontWrapDirPattern .= '.*'. __NBFramePregConcat__($NBFrameFrontendConf['wrapExtArray']).'$/';
+    $_NBFrontWrapDirPattern = '/^'.preg_quote(dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname'].'/','/');
+    $_NBFrontWrapDirPattern .= __NBFramePregConcat__($NBFrameFrontendConf['wrapDirArray']);
+    $_NBFrontWrapDirPattern .= '.*'. __NBFramePregConcat__($NBFrameFrontendConf['wrapExtArray']).'$/';
 
-if ($_NBFrontIncludeFile && $_NBFrontStatus == '200') {
-    if (preg_match($_NBFrontWrapDirPattern, $_NBFrontIncludeFile)) {
-        // Wrapping a specified HTML or PHP file with XOOPS Theme
-        chdir(dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname']);
-        require_once '../../mainfile.php';
-        require_once XOOPS_ROOT_PATH.'/header.php';
-        require_once $_NBFrontIncludeFile;
-        require_once XOOPS_ROOT_PATH.'/footer.php';
-    } else if ($_NBFrontExt == 'php') {
-        chdir(dirname($_NBFrontIncludeFile));
-        require_once $_NBFrontIncludeFile;
-        exit();
-    } else if (array_key_exists($_NBFrontExt, $NBFrameFrontendConf['mimeArray'])) {
-        NBFrameHTTPOutputSubset::putFile($_NBFrontIncludeFile, $NBFrameFrontendConf['mimeArray'][$_NBFrontExt]);
-    } else {
-        header('Location: '.$_SERVER['REQUEST_URI']);
+    if ($_NBFrontIncludeFile && $_NBFrontStatus == '200') {
+        if (preg_match($_NBFrontWrapDirPattern, $_NBFrontIncludeFile)) {
+            // Wrap a specified HTML file with XOOPS Theme
+            chdir(dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname']);
+            require_once '../../mainfile.php';
+            require_once XOOPS_ROOT_PATH.'/header.php';
+            require_once $_NBFrontIncludeFile;
+            require_once XOOPS_ROOT_PATH.'/footer.php';
+        } else if ($_NBFrontExt == 'php') {
+            chdir(dirname($_NBFrontIncludeFile));
+            require_once $_NBFrontIncludeFile;
+            exit();
+        } else if (array_key_exists($_NBFrontExt, $NBFrameFrontendConf['mimeArray'])) {
+            NBFrameHTTPOutputSubset::putFile($_NBFrontIncludeFile, $NBFrameFrontendConf['mimeArray'][$_NBFrontExt]);
+        } else {
+            header('Location: '.$_SERVER['REQUEST_URI']);
+        }
+    } else if ($_NBFrontStatus == '403') {
+        header('HTTP/1.0 403 Forbidden');
+        exit('403 Forbidden');
+    } else if ($_NBFrontStatus == '404') {
+        if (!empty($NBFrameFrontendConf['failOver']) 
+            && file_exists(dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname'].$NBFrameFrontendConf['failOver'])) {
+            $_NBFrontIncludeFile = dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname'].$NBFrameFrontendConf['failOver'];
+            chdir(dirname($_NBFrontIncludeFile));
+            include $_NBFrontIncludeFile;
+            exit();
+        } else if (file_exists(dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname'].'/include/NBFrameLoader.inc.php')) {
+            // If NBFrame based Module, try for executing module front controller (index.php)
+            $_NBFrontIncludeFile = dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname'].'/index.php';
+            chdir(dirname($_NBFrontIncludeFile));
+            include $_NBFrontIncludeFile;
+            exit();
+        } else {
+            header('HTTP/1.0 404 Not Found');
+            exit('404 Not Found');
+        }
     }
-} else if ($_NBFrontStatus == '403') {
-    header('HTTP/1.0 403 Forbidden');
-    exit('403 Forbidden');
-} else if ($_NBFrontStatus == '404') {
-    if (!empty($NBFrameFrontendConf['failOver']) 
-        && file_exists(dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname'].$NBFrameFrontendConf['failOver'])) {
-        $_NBFrontIncludeFile = dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname'].$NBFrameFrontendConf['failOver'];
-        chdir(dirname($_NBFrontIncludeFile));
-        include $_NBFrontIncludeFile;
-        exit();
-    } else if (file_exists(dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname'].'/include/NBFrameLoader.inc.php')) {
-        // If NBFrame based Module, try for executing module front controller (index.php)
-        $_NBFrontIncludeFile = dirname(__FILE__).'/modules/'.$NBFrameFrontendConf['dirname'].'/index.php';
-        chdir(dirname($_NBFrontIncludeFile));
-        include $_NBFrontIncludeFile;
-        exit();
-    } else {
-        header('HTTP/1.0 404 Not Found');
-        exit('404 Not Found');
+} else { //Not for Frontend execution (definition of check function whether this file is ShortURL frontend)
+    if (!function_exists('NBFrameShortURL_sig_'.$NBFrameFrontendConf['thisname'])) {
+        $sig_func = 'function NBFrameShortURL_sig_'.$NBFrameFrontendConf['thisname'].'() { return "'.$NBFrameFrontendConf['dirname'].'";}';
+        eval($sig_func);
     }
 }
 ?>
