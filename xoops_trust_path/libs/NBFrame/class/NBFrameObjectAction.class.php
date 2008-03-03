@@ -37,6 +37,8 @@ if (!class_exists('NBFrameObjectAction')) {
          * @var Criteria
          */
         var $mListFilterCriteria = null;
+        var $mListFilterJoinDef = false;
+        var $mListFilterHaving = '';
         /**
          * @var NBFrameObject
          */
@@ -62,7 +64,8 @@ if (!class_exists('NBFrameObjectAction')) {
         /**
          * @var int
          */
-        var $mListPerPage = 30;
+        var $mListPerPageDefault = 20;
+        var $mListPerPage;
         /**
          * @var int
          */
@@ -70,10 +73,12 @@ if (!class_exists('NBFrameObjectAction')) {
         /**
          * @var string
          */
+        var $mListSortDefault = null;
         var $mListSort;
         /**
          * @var string
          */
+        var $mListOrderDefault = null;
         var $mListOrder;
         /**
          * @var string
@@ -91,6 +96,10 @@ if (!class_exists('NBFrameObjectAction')) {
         
         var $mBypassAdminCheck = true;
         
+        var $mListNaviExtra = array();
+        
+        var $mConfirmParam = array();
+        
         function prepare($classprefix, $name, $caption) {
             parent::prepare();
             $this->mDefaultOp = 'edit';
@@ -102,6 +111,9 @@ if (!class_exists('NBFrameObjectAction')) {
                 $this->mObjectHandler =& NBFrame::getHandler($classprefix, $this->mEnvironment);
             }
             $this->setObjectKeyField();
+
+            if (empty($this->mListSortDefault)) $this->mListSortDefault = $this->mObjectKeyFields[0];
+            if (empty($this->mListOrderDefault)) $this->mListOrderDefault = 'asc';
         }
 
         function setObjectKeyField() {
@@ -140,7 +152,7 @@ if (!class_exists('NBFrameObjectAction')) {
             if (is_object($this->mObjectForm)) {
                 $this->mObjectForm->bindAction($this, 1);
                 $this->mObjectForm->prepare();
-                $this->mObjectForm->setupRequests('');
+                $this->mObjectForm->setupRequests('', false);
             }
             $object =& $this->mObjectHandler->create();
             if (is_object($this->mObjectForm) && $this->mObjectForm->canVerify()) {
@@ -231,23 +243,24 @@ if (!class_exists('NBFrameObjectAction')) {
                 return NBFRAME_ACTION_ERROR;
             }
         }
-        
+
         function executeDeleteOp() {
             if (!($keys = $this->_requestKeyValue('GET'))) {
                 $this->mErrorMsg =  $this->__e('Invalid Request');
                 return NBFRAME_ACTION_ERROR;
             }
             $object =& $this->mObjectHandler->get($keys);
+            if (!is_object($object)) {
+                $this->mErrorMsg = $this->__e('No Record is found');
+                return NBFRAME_ACTION_ERROR;
+            }
             if (!$object->checkGroupPerm('write', $this->mBypassAdminCheck)) {
                 $this->mErrorMsg = $this->__e('Permission Error');
                 return NBFRAME_ACTION_ERROR;
             }
-            if (is_object($object)) {
-                $this->mObject =& $object;
-                return NBFRAME_ACTION_VIEW_DEFAULT;
-            }
-            $this->mErrorMsg = $this->__e('No Record is found');
-            return NBFRAME_ACTION_ERROR;
+            $this->mObject =& $object;
+            $this->mConfirmParam = $this->mObject->getKey('s', true);
+            return NBFRAME_ACTION_VIEW_DEFAULT;
         }
 
         function executeDeleteokOp() {
@@ -260,26 +273,30 @@ if (!class_exists('NBFrameObjectAction')) {
                 return NBFRAME_ACTION_ERROR;
             }
             $object =& $this->mObjectHandler->get($keys);
-            if (is_object($object)) {                if (!$object->checkGroupPerm('write', $this->mBypassAdminCheck)) {
-                    $this->mErrorMsg = $this->__e('Permission Error');
-                    return NBFRAME_ACTION_ERROR;
-                }
-                if ($this->mObjectHandler->delete($object)) {
-                    return NBFRAME_ACTION_SUCCESS;
-                } else {
-                    $this->mErrorMsg = $this->__e('Record Delete Error');
-                    return NBFRAME_ACTION_ERROR;
-                }
+            if (!is_object($object)) {                $this->mErrorMsg = $this->__e('No Record is found');
+                return NBFRAME_ACTION_ERROR;
             }
-            $this->mErrorMsg = $this->__e('No Record is found');
-            return NBFRAME_ACTION_ERROR;
+            if (!$object->checkGroupPerm('write', $this->mBypassAdminCheck)) {
+                $this->mErrorMsg = $this->__e('Permission Error');
+                return NBFRAME_ACTION_ERROR;
+            }
+            if ($this->mObjectHandler->delete($object)) {
+                return NBFRAME_ACTION_SUCCESS;
+            } else {
+                $this->mErrorMsg = $this->__e('Record Delete Error');
+                return NBFRAME_ACTION_ERROR;
+            }
         }
 
         function executeListOp() {
             $start = isset($_GET['list_start']) ? intval($_GET['list_start']) : 0;
-            $order = (isset($_GET['list_order'])&& $_GET['list_order']=='desc') ? 'desc' : 'asc';
-            $sort = isset($_GET['list_sort']) ? htmlspecialchars($_GET['list_sort'],ENT_QUOTES) : $this->mObjectKeyFields[0];
-            $perpage = (!empty($_GET['list_perpage'])) ? intval($_GET['list_perpage']) : $this->mListPerPage;
+            if (strtolower($this->mListOrderDefault) == 'asc') {
+                $order = (isset($_GET['list_order'])&& $_GET['list_order']=='desc') ? 'desc' : 'asc';
+            } else {
+                $order = (isset($_GET['list_order'])&& $_GET['list_order']=='asc') ? 'asc' : 'desc';
+            }
+            $sort = isset($_GET['list_sort']) ? htmlspecialchars($_GET['list_sort'],ENT_QUOTES) : $this->mListSortDefault;
+            $perpage = (!empty($_GET['list_perpage'])) ? intval($_GET['list_perpage']) : $this->mListPerPageDefault;
             if ($this->mListFilterCriteria) {
                 $criteria =& $this->mListFilterCriteria;
             } else {
@@ -295,16 +312,30 @@ if (!class_exists('NBFrameObjectAction')) {
             $this->mListOrder = $order;
             $this->mListPerPage = $perpage;
             
-            $this->mObjectArr =& $this->getListObjects($criteria);
-            $this->mObjectAllCount = $this->mObjectHandler->getCount($criteria);
+            $this->mObjectArr =& $this->getListObjects($criteria, $this->mListFilterJoinDef, $this->mListFilterHaving);
+//            echo $this->mObjectHandler->getLastSQL()."<br>";
+            $this->mObjectAllCount = $this->getListCount($criteria, $this->mListFilterJoinDef, $this->mListFilterHaving);
+//            echo $this->mObjectHandler->getLastSQL()."<br>"; echo $this->mObjectAllCount;
             return NBFRAME_ACTION_VIEW_DEFAULT;
             break;
         }
 
-        function &getListObjects($criteria)
-        {
-            $objects =& $this->mObjectHandler->getObjects($criteria);
+        function &getListObjects($criteria, $joindef=false, $having='') {
+            if ($joindef) {
+                $this->mObjectHandler->setAlias('main');
+                $objects =& $this->mObjectHandler->getObjects($criteria, false, 'main.*', true, $joindef, $having);
+            } else {
+                $objects =& $this->mObjectHandler->getObjects($criteria, false, '*', true, $joindef, $having);
+            }
             return $objects;
+        }
+
+        function &getListCount($criteria, $joindef=false, $having='') {
+            if ($joindef) {
+                $this->mObjectHandler->setAlias('main');
+            }
+            $count = $this->mObjectHandler->getCount($criteria, true, $joindef, $having);
+            return $count;
         }
 
         function executeViewOp() {
@@ -386,9 +417,31 @@ if (!class_exists('NBFrameObjectAction')) {
 
         function _getPageNav() {
             require_once XOOPS_ROOT_PATH.'/class/pagenav.php';
-            $extra = 'list_sort='.$this->mListSort.'&amp;list_order='.$this->mListOrder.'&amp;list_perpage='.$this->mListPerPage;
+            $delim = '';
+            $extra = '';
             if (!empty($this->mActionName)) {
-                $extra .= '&amp;action='.$this->mActionName;
+                $extra .= 'action='.$this->mActionName;
+                $delim = '&amp;';
+            }
+            if (!empty($this->mOp)) {
+                $extra .= $delim.'op='.$this->mOp;
+                $delim = '&amp;';
+            }
+            foreach ($this->mListNaviExtra as $key=>$value) {
+                $extra .= $delim. $key.'='.rawurlencode($value);
+                $delim = '&amp;';
+            }
+            if ($this->mListSort != $this->mListSortDefault) {
+                $extra .= $delim.'list_sort='.$this->mListSort;
+                $delim = '&amp;';
+            }
+            if ($this->mListOrder != $this->mListOrderDefault) {
+                $extra .= $delim.'list_order='.$this->mListOrder;
+                $delim = '&amp;';
+            }
+            if ($this->mListPerPage != $this->mListPerPageDefault) {
+                $extra .= $delim.'list_perpage='.$this->mListPerPage;
+                $delim = '&amp;';
             }
             $this->mPageNav =& new XoopsPageNav($this->mObjectAllCount, $this->mListPerPage, $this->mListStart, 'list_start', $extra);
         }
@@ -412,7 +465,9 @@ if (!class_exists('NBFrameObjectAction')) {
             if ($this->mRender->mTemplate) {
                 ob_start();
             }
-            xoops_confirm(array_merge(array('op'=>'deleteok'),$this->mObject->getKey('s', true)), $this->getUrl(), $this->__l("Delete this Record? [ID=%d]",$key));
+            $key = $this->mObject->getKey('s', true);
+            xoops_confirm(array_merge(array('op'=>'deleteok'),$this->mConfirmParam), $this->getUrl(), $this->__l("Delete this Record? [ID=%d]",implode(',',$key)));
+        
             if ($this->mRender->mTemplate) {
                 $this->mXoopsTpl->assign('formhtml',ob_get_contents());
                 ob_end_clean();
