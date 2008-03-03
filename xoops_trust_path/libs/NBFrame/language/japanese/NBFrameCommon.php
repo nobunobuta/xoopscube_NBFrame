@@ -16,6 +16,7 @@
    $GLOBALS['NBFrameLanguage']['Clone'] = '複製';
    $GLOBALS['NBFrameLanguage']['None'] = 'なし';
    $GLOBALS['NBFrameLanguage']['Delete this Record? [ID=%d]'] = 'このデータを削除しますか？[ID=%d]';
+   $GLOBALS['NBFrameLanguage']['Approve this Record? [ID=%d]'] = 'このデータを承認しますか？[ID=%d]';
    $GLOBALS['NBFrameLanguage']['Action Success'] = '更新が正常に完了しました';
    $GLOBALS['NBFrameLanguage']['Token Error'] = 'TOKENエラーです';
    $GLOBALS['NBFrameLanguage']['Permission Error'] = '権限がありません';
@@ -25,6 +26,7 @@
    $GLOBALS['NBFrameLanguage']['Record Delete Error'] = '削除出来ませんでした';
    $GLOBALS['NBFrameLanguage']['This record may have been updated by somebody'] = '既に別の人が同じレコードを更新したようです。確認して下さい。';
 
+   $GLOBALS['NBFrameLanguage']['Block/Perm Admin'] = 'ブロック/権限管理';
    $GLOBALS['NBFrameLanguage']['Block Admin'] = 'ブロック管理';
    $GLOBALS['NBFrameLanguage']['GroupPerm Admin'] = '権限管理';
    $GLOBALS['NBFrameLanguage']['Side'] = '表示サイド';
@@ -51,6 +53,15 @@
    $GLOBALS['NBFrameLanguage']['Group Perm module_read'] = 'モジュールアクセス権限';
    $GLOBALS['NBFrameLanguage']['Group Perm module_admin'] = 'モジュール管理権限';
    $GLOBALS['NBFrameLanguage']['block show permission'] = 'ブロックの表示権限';
-   $GLOBALS['NBFrameLanguage']['Module Dependent Permission'] = 'モジュール固有の権限';
+   $GLOBALS['NBFrameLanguage']['Module Dependent Permission'] = 'モジュール固有の権限設定';
    $GLOBALS['NBFrameLanguage']['Block Showing Permission'] = 'ブロック表示権限';
+
+   $GLOBALS['NBFrameLanguage']['Switching to HTML Editor'] = 'HTML編集モードに切替';
+   $GLOBALS['NBFrameLanguage']['Switching to XCode Editor'] = 'BBCode編集モードに切替';
+
+   $GLOBALS['NBFrameLanguage']['%s is required.'] = '%sは必須項目です';
+   $GLOBALS['NBFrameLanguage']['%s must be shorter than %d characters.'] = '%sは%d文字以下で指定して下さい';
+   $GLOBALS['NBFrameLanguage']['Invalid Email address format.'] = 'メールアドレスの形式が不正です';
+   $GLOBALS['NBFrameLanguage']['Invalid value[%s].'] = '不正な値です[%s]';
+
 ?>
