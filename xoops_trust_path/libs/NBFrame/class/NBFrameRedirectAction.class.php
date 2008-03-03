@@ -17,12 +17,10 @@ if (!class_exists('NBFrameRedirectAction')) {
             } else {
                 $action='';
             }
-            if (isset($_GET['NBFrameNextOp'])) {
-                $op=basename($_GET['NBFrameNextOp']);
-            } else {
-                $op='';
-            }
             $paramArray = array();
+            if (isset($_GET['NBFrameNextOp'])) {
+                $paramArray['op']=basename($_GET['NBFrameNextOp']);
+            }
             foreach($_GET as $key=>$param) {
                 if(($key!='action') && !preg_match('/^NBFrame/', $key)) {
                     $paramArray[$key]=$param;
