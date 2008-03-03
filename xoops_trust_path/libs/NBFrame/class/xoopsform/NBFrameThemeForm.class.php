@@ -2,15 +2,15 @@
 /**
  *
  * @package NBFrame
- * @version $Id$
+ * @version $Id: NBFrameXoopsForm.class.php 1267 2008-01-21 04:16:25Z nobunobu $
  * @copyright Copyright 2007 NobuNobuXOOPS Project <http://sourceforge.net/projects/nobunobuxoops/>
  * @author NobuNobu <nobunobu@nobunobu.com>
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
  *
  */
 if (!class_exists('NBFrame')) exit();
-if (!class_exists('NBFrameXoopsForm')) {
-    class NBFrameXoopsForm extends XoopsThemeForm
+if (!class_exists('NBFrameThemeForm')) {
+    class NBFrameThemeForm extends XoopsThemeForm
     {
         function assign(&$tpl){
             $i = 0;
