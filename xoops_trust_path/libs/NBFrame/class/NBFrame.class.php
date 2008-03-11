@@ -391,6 +391,23 @@ if (!class_exists('NBFrame')) {
             }
             return $url;
         }
+        
+        function _Smarty_NBBlockMsg($params, &$smarty) {
+            if (!empty($params['msg'])) {
+                $environment =& $smarty->_tpl_vars['block']['NBEnvrionment'];
+                return $environment->__l($params['msg']);
+            }
+        }
+        function _Smarty_NBBlockError($params, &$smarty) {
+            if (!empty($params['msg'])) {
+                $environment =& $smarty->_tpl_vars['block']['NBEnvrionment'];
+                return $environment->__e($params['msg']);
+            }
+        }
+        function _Smarty_NBBlockActionUrl($params, &$smarty) {
+            $environment =& $smarty->_tpl_vars['block']['NBEnvrionment'];
+            return $environment->_Smarty_NBFrameActionUrl($params, $smarty);
+        }
     }
 }
 ?>
