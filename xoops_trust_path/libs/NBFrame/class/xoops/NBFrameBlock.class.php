@@ -152,7 +152,7 @@ if(!class_exists('NBFrameBlock')) {
             $moduleHandler =& NBFrame::getHandler('NBFrame.xoops.Module', $this->mEnvironment);
             $criteria = new CriteriaCompo(new Criteria('hasmain', 1));
             $criteria->add(new Criteria('isactive', 1));
-            $module_list =& $moduleHandler->getSelectOptionArray($criteria);
+            $module_list = $moduleHandler->getSelectOptionArray($criteria);
             $module_list[-1] = $this->__l('Top Page');
             $module_list[0] = $this->__l('All Pages');
             ksort($module_list);

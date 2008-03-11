@@ -12,7 +12,7 @@
       <th align="right"><{"Action"|__l}></th>
     </tr>
 <{foreach item=block from=$blocks}>
-    <tr class="<{cycle values="odd,even"}>" valign="middle">
+    <tr class="<{cycle values='odd,even'}>" valign="middle">
         <td>
             <{$block.name}>
             <br />
@@ -50,12 +50,12 @@
             </select>
         </td>
         <td align="right">
-            <a href="<{'NBFrame.admin.BlocksAdmin'|NBFrameAction:'op':'edit':'bid':$block.bid}>"><{"Edit"|__l}></a>
+            <a href="<{NBFrameAction action=NBFrame.admin.BlocksAdmin' op='edit' bid=$block.bid}>"><{"Edit"|__l}></a>
 <{if $block.can_delete}>
-            <br /><a href="<{'NBFrame.admin.BlocksAdmin'|NBFrameAction:'op':'delete':'bid':$block.bid}>"><{"Delete"|__l}></a>
+            <br /><a href="<{NBFrameAction action=NBFrame.admin.BlocksAdmin' op='delete' bid=$block.bid}>"><{"Delete"|__l}></a>
 <{/if}>
 <{if $block.can_clone}>
-            <br /><a href="<{'NBFrame.admin.BlocksAdmin'|NBFrameAction:'op':'clone':'bid':$block.bid}>"><{"Clone"|__l}></a>
+            <br /><a href="<{NBFrameAction action=NBFrame.admin.BlocksAdmin' op='clone' bid=$block.bid}>"><{"Clone"|__l}></a>
 <{/if}>
             <br /><input type="hidden" name="bid[<{$block.bid}>]" value="<{$block.bid}>" />
         </td>
@@ -64,7 +64,7 @@
     <tr>
         <td class="foot" align="center" colspan="6">
             <input type="hidden" name="op" value="order" />
-            <input type="submit" name="submit" value="<{"Submit"|__l}>" />
+            <input type="submit" name="submit" value="<{'Submit'|__l}>" />
         </td>
     </tr>
   </table>
@@ -78,7 +78,7 @@
       <th align="center"><{"Group"|__l}></th>
     </tr>
 <{foreach item=output from=$gperm.sys}>
-    <tr class="<{cycle values="odd,even"}>" valign="middle">
+    <tr class="<{cycle values='odd,even'}>" valign="middle">
     	<td><{$output.caption}></td><td><{$output.html}></td>
     </tr>
 <{/foreach}>
@@ -89,7 +89,7 @@
     </td>
 	</tr>
 <{foreach item=output from=$gperm.module}>
-    <tr class="<{cycle values="odd,even"}>" valign="middle">
+    <tr class="<{cycle values='odd,even'}>" valign="middle">
     	<td><{$output.caption}></td><td><{$output.html}></td>
     </tr>
 <{/foreach}>
@@ -101,7 +101,7 @@
     </td>
 	</tr>
 <{foreach item=output from=$gperm.block}>
-    <tr class="<{cycle values="odd,even"}>" valign="middle">
+    <tr class="<{cycle values='odd,even'}>" valign="middle">
     	<td><{$output.caption}></td><td><{$output.html}></td>
     </tr>
 <{/foreach}>
@@ -109,7 +109,7 @@
     <tr>
         <td class="foot" align="center" colspan="2">
             <input type="hidden" name="op" value="gperm" />
-            <input type="submit" name="submit" value="<{"Submit"|__l}>" />
+            <input type="submit" name="submit" value="<{'Submit'|__l}>" />
         </td>
     </tr>
   </table>

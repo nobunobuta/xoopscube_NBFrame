@@ -9,6 +9,10 @@
  *
  */
 $environment =& NBFrame::getEnvironment(NBFRAME_TARGET_LOADER);
+
+// Parse Requested URL
+$environment->parseURL();
+
 $noCommonActions = $environment->getAttribute('NoCommonAction');
 if (!is_array($noCommonActions)) {
     $noCommonActions = array();

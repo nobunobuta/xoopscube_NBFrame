@@ -9,6 +9,22 @@
  *
  */
 if(!class_exists('NBFrameModuleHandler')) {
+    class NBFrameModule extends NBFrameOBject {
+        var $mInfo;
+        function getInfo($name=null) {
+            if (empty($this->mInfo)) {
+                if (file_exists($filename = XOOPS_ROOT_PATH.'/modules/'.$this->getVar('dirname').'/xoops_version.php')) {
+                    include $filename;
+                }
+                $this->mInfo = $modversion;
+            }
+            if ($name) {
+                return $this->mInfo[$name];
+            }
+            return $this->mInfo;
+        }
+    }
+
     class NBFrameModuleHandler extends NBFrameObjectHandler {
         var $mTableName = 'modules';
         var $mUseModuleTablePrefix = false;
@@ -32,6 +48,7 @@ if(!class_exists('NBFrameModuleHandler')) {
             }
             return $object;
         }
+
     }
 }
 ?>

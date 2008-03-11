@@ -47,6 +47,8 @@
    $GLOBALS['NBFrameLanguage']['Permission'] = '権限';
    $GLOBALS['NBFrameLanguage']['Group'] = 'グループ';
 
+   $GLOBALS['NBFrameLanguage']['Home'] = 'ホーム';
+
    $GLOBALS['NBFrameLanguage']['Template Admin'] = 'テンプレート管理';
    $GLOBALS['NBFrameLanguage']['Language Admin'] = '言語定数管理';
    $GLOBALS['NBFrameLanguage']['Preference'] = '一般設定';

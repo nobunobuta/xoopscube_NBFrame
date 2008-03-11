@@ -271,7 +271,7 @@ if(!class_exists('NBFrameObject')) {
                 //個別の変数Getがあれば実行;
                 $getMethod = 'getVar_'.$key;
                 if(method_exists($this, $getMethod)) {
-                    $ret =& $this->$getMethod($this->vars[$key]['value'],$format);
+                    $ret = $this->$getMethod($this->vars[$key]['value'],$format);
                 } else if (in_array($key, array_keys($this->mGroupPermAttrib))) {
                     $groupPermHandler =& NBFrame::getHandler('NBFrame.xoops.GroupPerm', NBFrame::null());
                     $ret = $groupPermHandler->getGroupIdsByObjectKey($this->mGroupPermAttrib[$key], $this);

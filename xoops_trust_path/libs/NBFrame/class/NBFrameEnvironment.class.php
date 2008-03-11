@@ -125,13 +125,17 @@ if (!class_exists('NBFrameEnvironment')) {
             if (!is_object($this->mModule)) {
                 $moduleHandler =& NBFrame::getHandler('NBFrame.xoops.Module', NBFrame::null());
                 $this->mModule =& $moduleHandler->getByEnvironment($this);
+                if (is_object($this->mModule)) $this->mModule->getInfo();
             }
             return $this->mModule;
         }
         
         function getMid() {
-            $moduleObject =& $this->getModule();
-            return intval($moduleObject->get('mid'));
+            if ($moduleObject =& $this->getModule()) {
+                return intval($moduleObject->get('mid'));
+            } else {
+                return -1;
+            }
         }
 
         function &getLanguageManager() {
@@ -189,9 +193,6 @@ if (!class_exists('NBFrameEnvironment')) {
                 if (empty($dialogAction)) $dialogAction = array();
             }
             
-            // Parse Requested URL
-            $this->parseURL();
-
             // Check Requested Action Name
             if (!empty($requestAction)) {
                 $className = $requestAction;
@@ -289,33 +290,36 @@ if (!class_exists('NBFrameEnvironment')) {
                 }
                 NBFrame::using($className, $this);
                 if (class_exists($className) && is_callable(array($className,'getParamString'),false)) {
-                    $str .= call_user_func_array(array($className,'getParamString'), array(&$this, $paramArray));
-                } else {
-                    if (!empty($actionName) && ($actionName != $this->getAttribute('ModueleMainAction'))) {
-                        if (preg_match('/^(NBFrame\.)?(admin\.)?([A-Za-z0-9\._]+)/', $actionName, $matches)) {
-                            if ($matches[1]) {
-                                $str .= 'NBFrame/';
-                            }
-                            if ($matches[2]) {
-                                $str .= 'admin/';
+                    $result = call_user_func_array(array($className,'getParamString'), array(&$this, $paramArray));
+                    if ($result !== false) {
+                        $str .= $result;
+                        return $str;
+                    }
+                }
+                if (!empty($actionName) && ($actionName != $this->getAttribute('ModueleMainAction'))) {
+                    if (preg_match('/^(NBFrame\.)?(admin\.)?([A-Za-z0-9\._]+)/', $actionName, $matches)) {
+                        if ($matches[1]) {
+                            $str .= 'NBFrame/';
+                        }
+                        if ($matches[2]) {
+                            $str .= 'admin/';
+                        }
+                    }
+                    $str .= $matches[3].'Action/';
+                }
+                if (!empty($paramArray)) {
+                    foreach ($paramArray as $key=>$value) {
+                        if ($key == 'action') continue;
+                        if (trim($value)!='') {
+                            if (substr($key,0,2) == '__') {
+                                $suffix = $delim.$key.'__'.rawurlencode(trim($value));
+                            } else {
+                                $str .= $delim.$key.'__'.rawurlencode(trim($value));
+                                $delim = '/';
                             }
                         }
-                        $str .= $matches[3].'Action/';
                     }
-                    if (!empty($paramArray)) {
-                        foreach ($paramArray as $key=>$value) {
-                            if ($key == 'action') continue;
-                            if (trim($value)!='') {
-                                if (substr($key,0,2) == '__') {
-                                    $suffix = $delim.$key.'__'.rawurlencode(trim($value));
-                                } else {
-                                    $str .= $delim.$key.'__'.rawurlencode(trim($value));
-                                    $delim = '/';
-                                }
-                            }
-                        }
-                        $str .= $suffix;
-                    }
+                    $str .= $suffix;
                 }
             } else {
                 $delim = '?';
@@ -339,6 +343,18 @@ if (!class_exists('NBFrameEnvironment')) {
             return $str;
         }
         
+        function _Smarty_NBFrameActionUrl($params, &$smarty) {
+            $actionName = empty($params['action']) ? '' : $params['action'];
+            $ext = empty($params['_NB_ext_']) ? 'html' : $params['_NB_ext_'];
+            $ommitBase = empty($params['_NB_omit_']) ? false : $params['_NB_omit_'];
+            $escape = empty($params['_NB_escape_']) ? true : $params['_NB_escape_'];
+            $paramArray = array();
+            foreach($params as $key=>$value) {
+                if (!in_array($key, array('action','_NB_ext_','_NB_omit_','_NB_escape_'))) $paramArray[$key] = $value;
+            }
+            return $this->getActionUrl($actionName, $paramArray, $ext, $ommitBase, $escape);
+        }
+
         function redirect($actionName='', $time, $msg, $paramArray=array(), $ext='html') {
             if (!empty($paramArray) && isset($paramArray['op'])) {
                 $paramArray['NBFrameNextOp'] = $paramArray['op'];
@@ -465,10 +481,12 @@ if (!class_exists('NBFrameEnvironment')) {
             $sFileNames[$offset][$name] = $fileName;
             return $fileName;
         }
-
-
+        function dummyReadInfo() {
+            include XOOPS_ROOT_PATH.'/modules/'.$this->mDirName.'/xoops_version.php';
+        }
         // Utilitiy Functions for Blocks
         function prepareBlockFunction() {
+            $this->dummyReadInfo();
             if (isset($GLOBALS['_NBBlockFuncInfo'][$this->mDirName])) {
                 $blockFuncInfoArr = $GLOBALS['_NBBlockFuncInfo'][$this->mDirName];
                 foreach ($blockFuncInfoArr as $funcName =>$blockFuncInfo) {
@@ -478,7 +496,12 @@ if (!class_exists('NBFrameEnvironment')) {
                         $str = 'if (!function_exists("'.$funcName.'")) {'."\n";
                         $str .= 'function '.$funcName.'($option) {'."\n";
                         $str .= '  $environment = unserialize(\''.$envStr.'\');'."\n";
-                        $str .= 'return '.$blockFuncInfo['class'].'::'.$blockFuncInfo['method'].'($environment, $option); }}';
+                        $str .= '  $object =& new '.$blockFuncInfo['class'].'();'."\n";
+                        $str .= '  if (is_a($object, \'NBFrameBlockProcess\')) {$object->prepare($environment);}'."\n";
+                        $str .= '  $block = $object->'.$blockFuncInfo['method'].'($environment, $option);'."\n";
+                        $str .= '  if (is_array($block)) $block[\'NBEnvrionment\']=& $environment;'."\n";
+                        $str .= '  return $block;'."\n";
+                        $str .= ' }}';
                         eval($str);
                     }
                 }
