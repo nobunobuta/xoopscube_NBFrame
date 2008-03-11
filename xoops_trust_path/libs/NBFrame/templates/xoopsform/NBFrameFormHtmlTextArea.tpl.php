@@ -1,15 +1,21 @@
 <?php $NBFrame_ini_short_open_tag = ini_set('short_open_tag', 'On');?>
-<? if (file_exists(XOOPS_ROOT_PATH.'/common/fckeditor/fckeditor.js')) { ?>
-<script type="text/javascript" src="<?=XOOPS_URL?>/common/fckeditor/fckeditor.js" ></script>
-<textarea id="<?=$field['id']?>" name="<?=$field['name']?>"><?=$field['value']?></textarea>
+<? if (file_exists(XOOPS_ROOT_PATH.'/common/fckeditor/xoops/FCKXoops.js')) { ?>
+<textarea id="<?=$field['id']?>" name="<?=$field['name']?>" rows="<?=$field['rows']?>" cols="<?=$field['cols']?>" ><?=$field['value']?></textarea>
 <script>
 //<![CDATA[
-var NBFrameFCKeditor_<?=$field['id']?> = new FCKeditor("<?=$field['id']?>", "<?=$field['width']?>", "<?=$field['height']?>" , 'Default');
-    NBFrameFCKeditor_<?=$field['id']?>.BasePath = '<?=XOOPS_URL?>/common/fckeditor/';
-    NBFrameFCKeditor_<?=$field['id']?>.ReplaceTextarea();
-//]]>
+if (FCKXcodeBaseUrl == undefined) { 
+  document.write('<'+'script type="text/javascript" src="<?=XOOPS_URL?>/common/fckeditor/fckeditor.js" ><'+'/script>');
+  document.write('<'+'script type="text/javascript" src="<?=XOOPS_URL?>/common/fckeditor/xoops/FCKXoops.js" ><'+'/script>');
+}
+  var FCKXcodeBaseUrl='<?=XOOPS_URL?>';
+  <? if (is_object($GLOBALS['xoopsUser'])) { ?>var FCKCanUpload=true;<? }else{ ?>var FCKCanUpload=false;<? } ?>
+  var FCKCanSwitchMode=true;
+  var FCKCanUseHTML=true;
 </script>
-<? } else { ?>
-<textarea id="<?=$field['id']?>" name="<?=$field['name']?>" cols="80" rows="25"><?=$field['value']?></textarea>
-<? } ?>
+<script>DHTMLWysiWyg('<?=$field['id']?>','html',<?=$field['rows']?>);</script>
+<? } else {
+	$element =& new XoopsFormDhtmlTextArea($field['name'], $field['name'], $field['value'], 25, 80);
+	$element->setId($field['id']);
+	echo $element->render();
+} ?>
 <? ini_set('short_open_tag', $NBFrame_ini_short_open_tag);?>

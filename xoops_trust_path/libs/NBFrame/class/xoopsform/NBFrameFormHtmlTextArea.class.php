@@ -20,11 +20,9 @@ class NBFrameFormHtmlTextArea extends XoopsFormTextArea
      * @param   str     $rows       width param
      * @param   str     $cols       height param
      */
-    function NBFrameFormHtmlTextArea($caption, $name, $value='', $rows=25, $cols=80, $height='500px', $width='100%')
+    function NBFrameFormHtmlTextArea($caption, $name, $value='', $rows=25, $cols=80)
     {
         $this->XoopsFormTextArea($caption, $name, $value, $rows, $cols);
-        $this->mWidth = $width;
-        $this->mHeight = $height;
         $this->mUseHtmlEditor = false;
         $this->mCanUseHtmlEditor=true;
         $this->mCaptionOrig = $caption;
@@ -91,8 +89,6 @@ class NBFrameFormHtmlTextArea extends XoopsFormTextArea
     {
         $field['id'] = $field['name'] = $this->getName();
         $field['value'] = $this->getValue();
-        $field['width'] = $this->mWidth;
-        $field['height'] = $this->mHeight;
         $field['cols'] = $this->getCols();
         $field['rows'] = $this->getRows();
         
