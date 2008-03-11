@@ -37,6 +37,11 @@ if (!class_exists('NBFrameBlocksAdminForm')) {
         }
         function preInsert() {
             $this->defParam('modules', 'array-int',  array());
+            if (!$this->mAction->mObject->getVar('is_custom')) {
+                if ($this->mAction->mObject->getVar('edit_form') != false) {
+                    $this->defParam('options', 'raw', '');
+                }
+            }
         }
     }
 }
