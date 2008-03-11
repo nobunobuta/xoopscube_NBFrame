@@ -416,34 +416,18 @@ if (!class_exists('NBFrameObjectAction')) {
         }
 
         function _getPageNav() {
-            require_once XOOPS_ROOT_PATH.'/class/pagenav.php';
-            $delim = '';
-            $extra = '';
-            if (!empty($this->mActionName)) {
-                $extra .= 'action='.$this->mActionName;
-                $delim = '&amp;';
-            }
-            if (!empty($this->mOp)) {
-                $extra .= $delim.'op='.$this->mOp;
-                $delim = '&amp;';
-            }
-            foreach ($this->mListNaviExtra as $key=>$value) {
-                $extra .= $delim. $key.'='.rawurlencode($value);
-                $delim = '&amp;';
-            }
+            $paramArray = array_merge(array('op'=>$this->mOp), $this->mListNaviExtra);
             if ($this->mListSort != $this->mListSortDefault) {
-                $extra .= $delim.'list_sort='.$this->mListSort;
-                $delim = '&amp;';
+                $paramArray['list_sort'] = $this->mListSort;
             }
             if ($this->mListOrder != $this->mListOrderDefault) {
-                $extra .= $delim.'list_order='.$this->mListOrder;
-                $delim = '&amp;';
+                $paramArray['list_order'] = $this->mListOrder;
             }
             if ($this->mListPerPage != $this->mListPerPageDefault) {
-                $extra .= $delim.'list_perpage='.$this->mListPerPage;
-                $delim = '&amp;';
+                $paramArray['list_perpage'] = $this->mListPerPage;
             }
-            $this->mPageNav =& new XoopsPageNav($this->mObjectAllCount, $this->mListPerPage, $this->mListStart, 'list_start', $extra);
+            NBFrame::using('PageNav');
+            $this->mPageNav =& new NBFramePageNav($this->mObjectAllCount, $this->mListPerPage, $this->mListStart, 'list_start', $this->getUrl($paramArray));
         }
 
         function preViewViewOp() {
