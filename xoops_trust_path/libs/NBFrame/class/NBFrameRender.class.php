@@ -30,32 +30,41 @@ if (!class_exists('NBFrameRender')) {
         function _addSmartyPugin() {
             $this->mXoopsTpl->register_modifier('__l', array(&$this,'__l'));
             $this->mXoopsTpl->register_modifier('__e', array(&$this,'__e'));
-            $this->mXoopsTpl->register_modifier('NBFrameAction', array(&$this,'_Smarty_NBFrameAction'));
             $this->mXoopsTpl->register_modifier('NBFrameImage', array(&$this,'_Smarty_NBFrameImage'));
             $this->mXoopsTpl->register_modifier('NBFramePage', array(&$this,'_Smarty_NBFramePage'));
+            $this->mXoopsTpl->register_function('NBFrameAction', array(&$this->mAction->mEnvironment,'_Smarty_NBFrameActionUrl'));
             $this->mXoopsTpl->register_compiler_function('__l', array(&$this,'__l_s'));
             $this->mXoopsTpl->register_compiler_function('__e', array(&$this,'__e_s'));
+            $this->mXoopsTpl->register_function('NBFrameCrumBreadBase', array(&$this,'_Smarty_NBFrameCrumBreadBase'));
             $this->mXoopsTpl->assign_by_ref('NBEnvrionment',$this->mAction->mEnvironment);
         }
-
-        function _Smarty_NBFrameAction() {
+        
+        function _Smarty_NBFrameCrumBreadBase($params) {
             $environment =& $this->mAction->mEnvironment;
-            $action = '';
-            $paramArray = array();
-            $args = func_get_args();
-            if (count($args)>0) {
-                $action = $args[0];
-                if (count($args)>1) {
-                    for ($i=1; $i < count($args); $i=$i+2) {
-                        $paramKey = trim($args[$i]);
-                        $paramValue = trim($args[$i+1]);
-                        if ($paramValue != '') {
-                            $paramArray[$paramKey] = $paramValue;
-                        }
-                    }
-                }
+            if (is_object($params['category'])) {
+                $category =& $params['category'];
+                $categoryParentPath = $category->getParentPath();
+            } else {
+                $categoryParentPath = null;
             }
-            return $environment->getActionUrl($action, $paramArray);
+            if (!empty($params['action'])) {
+                $actionName = $params['action'];
+            } else {
+                $actionName = $environment->getAttribute('ModueleMainAction');
+            }
+            if (!empty($params['key_name'])) {
+                $keyName = $params['key_name'];
+            } else {
+                $keyName = 'cat';
+            }
+            $thisAction = $this->mAction->mActionName;
+            $moduleTop = $environment->getUrlBase().'/';
+            $module =& $environment->getModule();
+            $moduleName = $module->getName();
+            ob_start();
+            include NBFRAME_BASE_DIR.'/templates/NBFrameCrumBread.tpl.php';
+            $str = ob_get_contents();ob_end_clean();
+            return $str;
         }
 
         function _Smarty_NBFrameImage($file) {
