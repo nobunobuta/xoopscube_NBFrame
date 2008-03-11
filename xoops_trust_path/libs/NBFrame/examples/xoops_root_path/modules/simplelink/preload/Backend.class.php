@@ -28,6 +28,7 @@ if (!class_exists('Simplelink_Base_Backend')) {
                     'title'       => $linkObject->getVar('link_name'),
                     'link'        => $this->mEnvironment->getUrlBase(),
                     'guid'        => $this->mEnvironment->getUrlBase(),
+                    'pubdate'     => 0,
                 );
                 $items[] = $item;
             }
