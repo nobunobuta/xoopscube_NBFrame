@@ -58,7 +58,7 @@ if (!class_exists('NBFrameLanguage')) {
         }
 
         function setInAdmin($inAdmin) {
-            $this->mInAdmin = $inAdmin;
+            if (!$this->mInAdmin) $this->mInAdmin = $inAdmin;
             if ($inAdmin) {
                 $this->loadModuleLanguageFile('modinfo.php');
                 $this->loadModuleLanguageFile('admin.php');
