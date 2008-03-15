@@ -568,13 +568,17 @@ if (!class_exists('NBFrameObjectHandler')) {
                         $sql .= ' HAVING '.$having;
                     }
                 }
-                if ((is_array($criteria->getSort()) && count($criteria->getSort()) > 0)) {
+                if (method_exists($criteria, 'getSorts')) {
+                    $sortVars = $criteria->getSorts();   //XCL2.1 manner
+                } else {
+                    $sortVars = $criteria->getSort();    //XOOPS2 manner
+                }
+                if ((is_array($sortVars) && count($sortVars) > 0)) {
                     $orderStr = 'ORDER BY ';
                     $orderDelim = "";
-                    $sortVars = $criteria->getSort();
                     foreach ($sortVars as $sortVar) {
                         if (!is_array($sortVar)) {
-                            $orderStr .= $orderDelim . $sortVar.' '.$criteria->getOrder();
+                            $orderStr .= $orderDelim . $sortVar.' '.$criteria->getOrder(); //XOOPS2 cannot set multiple Order param;
                         } else {
                             $orderStr .= $orderDelim . $sortVar['sort'].' '.$sortVar['order'];
                         }
@@ -812,6 +816,21 @@ if (!class_exists('NBFrameObjectHandler')) {
             return $joinCriteria;
         }
 
+        function cloneCriteriaAttrib($from, &$to) {
+            if (method_exists($from, 'getSorts')) {
+              $sorts = $from->getSorts();
+              for ($i=0;$i<count($sorts);$i++) {
+                $to->addSort($sorts[$i]['sort'], $sorts[$i]['order']);
+              }
+            } else {
+                $to->setSort($from->getSort());
+                $to->getOrder($from->getOrder());
+            }
+            $to->setLimit($from->getLimit());
+            $to->setStart($from->getStart());
+            $to->setGroupby(substr($from->getGroupby(), strlen(' GROUP BY ')));
+        }
+        
         function _makeCriteria4sql($criteria)
         {
             $dmmyObj =& $this->create();
@@ -858,6 +877,11 @@ if (!class_exists('NBFrameObjectHandler')) {
                     if ($name != null) {
                         if (isset($obj->vars[$name])) {
                             $type = $obj->vars[$name]['data_type'];
+                            if ($this->getAlias() != '') {
+                                if (!preg_match('/.+\..+/',$name)) {
+                                    $name = $this->getAlias().'.'.$name;
+                                }
+                            }
                         } else if (is_array($value) && array_key_exists('type',$value)) {
                             $type = $value['type'];
                             $value = $value['value'];
@@ -877,11 +901,6 @@ if (!class_exists('NBFrameObjectHandler')) {
                                 $value = '('.implode(',', $value).')';
                             } else {
                                 return null;
-                            }
-                        }
-                        if ($this->getAlias() != '') {
-                            if (!preg_match('/.+\..+/',$name)) {
-                                $name = $this->getAlias().'.'.$name;
                             }
                         }
                         return $name . " " . $operator . " " . $value;
