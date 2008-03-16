@@ -377,9 +377,7 @@ if (!class_exists('NBFrameInstallHelper')) {
                             $tplFileObject->set('tpl_lastmodified', filemtime($templateFile));
                             $tplFileObject->set('tpl_source', $fileContent);
                             $tplFileHandler->insert($tplFileObject, $force);
-
-                            $tpl->clear_cache('db:'.$templateName);
-                            $tpl->clear_compiled_tpl('db:'.$templateName);
+                            $this->clearTplCache($tpl, $templateName);
                         }
                     }
                 } else {
@@ -393,9 +391,7 @@ if (!class_exists('NBFrameInstallHelper')) {
                     $tplFileObject->set('tpl_type', 'module');
                     $tplFileObject->set('tpl_source', $fileContent);
                     $tplFileHandler->insert($tplFileObject, $force);
-
-                    $tpl->clear_cache('db:'.$templateName);
-                    $tpl->clear_compiled_tpl('db:'.$templateName);
+                    $this->clearTplCache($tpl, $templateName);
                 }
                 $this->addMsg('  Define Module Template('.$templateName.')');
             }
@@ -418,9 +414,7 @@ if (!class_exists('NBFrameInstallHelper')) {
                                         $tplFileObject->set('tpl_lastmodified', filemtime($templateFile));
                                         $tplFileObject->set('tpl_source', $fileContent);
                                         $tplFileHandler->insert($tplFileObject, $force);
-
-                                        $tpl->clear_cache('db:'.$templateName);
-                                        $tpl->clear_compiled_tpl('db:'.$templateName);
+                                        $this->clearTplCache($tpl, $templateName);
                                     }
                                 }
                             } else {
@@ -434,9 +428,8 @@ if (!class_exists('NBFrameInstallHelper')) {
                                 $tplFileObject->set('tpl_type', 'block');
                                 $tplFileObject->set('tpl_source', $fileContent);
                                 $tplFileHandler->insert($tplFileObject, $force);
-
-                                $tpl->clear_cache('db:'.$templateName);
-                                $tpl->clear_compiled_tpl('db:'.$templateName);
+                                
+                                $this->clearTplCache($tpl, $templateName);
                             }
                             $this->addMsg('  Define Block Template('.$templateName.')');
                         }
@@ -762,6 +755,18 @@ if (!class_exists('NBFrameInstallHelper')) {
                 $action = null;
             }
             return $action;
+        }
+        
+        function clearTplCache(&$tpl, $templateName) {
+            $tpl->clear_cache('db:'.$templateName);
+            $tpl->clear_compiled_tpl('db:'.$templateName);
+            // For nobunobu's Filebase Template hack
+            $dirArray = glob(XOOPS_ROOT_PATH.'/themes/*',GLOB_ONLYDIR);
+            foreach($dirArray as $dir) {
+                $dir = basename($dir);
+                $tpl->clear_cache('db:'.$dir.'!'.$this->mDirName.'!'.$templateName);
+                $tpl->clear_compiled_tpl('db:'.$dir.'!'.$this->mDirName.'!'.$templateName);
+            }
         }
     }
     class NBFrameDummyActionFrame
