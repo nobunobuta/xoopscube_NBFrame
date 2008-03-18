@@ -224,6 +224,9 @@
                 if(strpos($type,"text")!==false) {
                     return XOBJ_DTYPE_TXTAREA;
                 }
+                if(strpos($type,"blob")!==false) {
+                    return XOBJ_DTYPE_CUSTOM;
+                }
                 if(strpos($type,"char")!==false) {
                     return XOBJ_DTYPE_TXTBOX;
                 }

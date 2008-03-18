@@ -10,6 +10,16 @@
  */
 if (!isset($preloadEnvironment)) exit();
 if (class_exists('XCube_Root') && isset($this) && is_a($this, 'Legacy_Controller')) {
+    if (!class_exists('NBFramePreloadCommon')) {
+        class NBFramePreloadCommon extends XCube_ActionFilter
+        {
+            function preBlockFilter() {
+                $this->mController->mRoot->mDelegateManager->add("Legacy_Utils.CreateModule",'NBFrame::createModel');
+            }
+        }
+        $preloadInstance =& new NBFramePreloadCommon($this);
+        $this->addActionFilter($preloadInstance);
+    }
     $preloadDir = XOOPS_TRUST_PATH.'/modules/'.$preloadEnvironment->getOrigDirName().'/preload/';
     if(is_dir($preloadDir)) {
         $preloadFiles = glob($preloadDir.'*.class.php');

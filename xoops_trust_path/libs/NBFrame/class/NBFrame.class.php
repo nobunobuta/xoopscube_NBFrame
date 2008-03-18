@@ -408,6 +408,14 @@ if (!class_exists('NBFrame')) {
             $environment =& $smarty->_tpl_vars['block']['NBEnvrionment'];
             return $environment->_Smarty_NBFrameActionUrl($params, $smarty);
         }
+        
+        function createModel(&$instance, $module) {
+            $dirName = $module->get('dirname');
+            if (file_exists(XOOPS_ROOT_PATH.'/modules/'.$dirName.'/include/NBFrameLoader.inc.php')) {
+                NBFrame::using('ModuleAdapter');
+                $instance = new NBFrameModuleAdapter($module);
+            }
+        }
     }
 }
 ?>
