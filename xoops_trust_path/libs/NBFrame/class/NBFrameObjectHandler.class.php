@@ -576,14 +576,25 @@ if (!class_exists('NBFrameObjectHandler')) {
                 if ((is_array($sortVars) && count($sortVars) > 0)) {
                     $orderStr = 'ORDER BY ';
                     $orderDelim = "";
-                    foreach ($sortVars as $sortVar) {
-                        if (!is_array($sortVar)) {
-                            $orderStr .= $orderDelim . $sortVar.' '.$criteria->getOrder(); //XOOPS2 cannot set multiple Order param;
-                        } else {
-                            $orderStr .= $orderDelim . $sortVar['sort'].' '.$sortVar['order'];
-                        }
-                        $orderDelim = ",";
-                    }
+                    if (isset($sortVars[0]['sort']) && !is_array($sortVars[0]['sort'])) {
+	                    foreach ($sortVars as $sortVar) {
+	                        if (!is_array($sortVar)) {
+	                            $orderStr .= $orderDelim . $sortVar.' '.$criteria->getOrder(); //XOOPS2 cannot set multiple Order param;
+	                        } else {
+	                            $orderStr .= $orderDelim . $sortVar['sort'].' '.$sortVar['order'];
+	                        }
+	                        $orderDelim = ",";
+	                    }
+	                } else {
+	                    foreach ($sortVars[0]['sort'] as $sortVar) {
+	                        if (!is_array($sortVar)) {
+	                            $orderStr .= $orderDelim . $sortVar.' '.$criteria->getOrder(); //XOOPS2 cannot set multiple Order param;
+	                        } else {
+	                            $orderStr .= $orderDelim . $sortVar['sort'].' '.$sortVar['order'];
+	                        }
+	                        $orderDelim = ",";
+	                    }
+	                }
                     $sql .= ' '.$orderStr;
                 } elseif ($criteria->getSort() != '') {
                     $orderStr = 'ORDER BY '.$criteria->getSort().' '.$criteria->getOrder();

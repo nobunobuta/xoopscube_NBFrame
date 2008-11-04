@@ -36,9 +36,24 @@ if (!class_exists('NBFrameRender')) {
             $this->mXoopsTpl->register_compiler_function('__l', array(&$this,'__l_s'));
             $this->mXoopsTpl->register_compiler_function('__e', array(&$this,'__e_s'));
             $this->mXoopsTpl->register_function('NBFrameCrumBreadBase', array(&$this,'_Smarty_NBFrameCrumBreadBase'));
+            $this->mXoopsTpl->register_function('NBFrameD3ForumComment', array(&$this,'_Smarty_NBFrameD3ForumComment'));
             $this->mXoopsTpl->assign_by_ref('NBEnvrionment',$this->mAction->mEnvironment);
         }
-        
+
+        function _Smarty_NBFrameD3ForumComment($params) {
+            $dirname = $GLOBALS['xoopsModuleConfig']['NB_D3comment_dirname'] ;
+            $forum_id = $GLOBALS['xoopsModuleConfig']['NB_D3comment_forum_id'];
+            $params['view'] = $GLOBALS['xoopsModuleConfig']['NB_D3comment_view'];
+            $params['mytrustdirname'] = $this->mAction->mEnvironment->mOrigDirName;
+            $params['subject_escaped'] = 1;
+            if(empty($dirname) || ($dirname=='----') || !preg_match('/^[0-9a-zA-Z_-]+$/' , $dirname ) || $forum_id <= 0 ||
+                !file_exists(XOOPS_TRUST_PATH.'/modules/d3forum/include/comment_functions.php')) {
+                return '';
+            } else {
+                require_once(XOOPS_TRUST_PATH.'/modules/d3forum/include/comment_functions.php') ;
+                d3forum_display_comment( $dirname, $forum_id, $params);
+            }
+        }
         function _Smarty_NBFrameCrumBreadBase($params) {
             $environment =& $this->mAction->mEnvironment;
             if (is_object($params['category'])) {

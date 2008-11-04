@@ -8,6 +8,7 @@
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
  *
  */
+if(!defined( 'XOOPS_ROOT_PATH')) exit ;
 include dirname(__FILE__).'/NBFrameLoader.inc.php';
 $environment =& NBFrame::getEnvironment(NBFRAME_TARGET_LOADER);
 $adminmenu = $environment->getAdminMenu();

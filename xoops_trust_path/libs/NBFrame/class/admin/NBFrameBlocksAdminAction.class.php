@@ -57,7 +57,7 @@ if (!class_exists('NBFrameBlocksAdminAction')) {
                                  array('sort'=>'weight', 'order'=>'ASC'),
                               ));
             $this->mObjects =& $this->mObjectHandler->getObjects($criteria);
-            
+
             $groupPermHandler =& NBFrame::getHandler('NBFrame.xoops.GroupPerm', NBFrame::null());
 
             foreach($this->mGroupPermSysKeys as $groupPermKey) {

@@ -526,6 +526,28 @@ if (!class_exists('NBFrameEnvironment')) {
             }
         }
 
+        // Utilitiy Functions for Search
+        function preparePluginFunction($fileBaseName, $funcNameTpl) {
+            if ($fileName = $this->findFile($fileBaseName, 'include', false)) {
+                include_once $fileName;
+                $funcSpec = sprintf($funcNameTpl, $this->mDirName);
+                $funcName = preg_replace('/^([a-zA-Z0-9_]+)\(/', '$1', $funcSpec);
+                $funcBaseSpec = sprintf($funcNameTpl, $this->mOrigDirName.'_base');
+                $funcBaseSpec = preg_replace('/\=[^,)]+/', '', $funcBaseSpec);
+                $funcBaseSpec = preg_replace('/(/', '($environment,', $funcBaseSpec);
+                $funcBaseSpec = preg_replace('/,\s*\)/', ')', $funcBaseSpec);
+                $funcBaseName = preg_replace('/^([a-zA-Z0-9_]+)\(/', '$1', $funcBaseSpec);
+                if (function_exists($funcBaseName)) {
+                    $envStr = serialize($this);
+                    $str = 'if (!function_exists("'.$funcName.'")) {'."\n";
+                    $str .= 'function '.$funcSpec.'{'."\n";
+                    $str .= '  $environment = unserialize(\''.$envStr.'\');'."\n";
+                    $str .= 'return '.$funcBaseSpec.'; }}';
+                    eval($str);
+                }
+            }
+        }
+
         function getAdminMenu() {
             $languageManager =& $this->getLanguageManager();
             $languageManager->setInAdmin(true);
@@ -659,6 +681,52 @@ if (!class_exists('NBFrameEnvironment')) {
                     }
                 }
             }
+
+            if ($this->getAttribute('UseD3ForumComment')) {
+                if (file_exists(XOOPS_TRUST_PATH.'/modules/d3forum/xoops_version.php')) {
+                    $d3DirArray = glob(XOOPS_ROOT_PATH.'/modules/*/mytrustdirname.php');
+                    $d3ForumDirname['NBFRAME_D3COM_NOT_USE'] = '----';
+                    foreach ($d3DirArray as $D3dir) {
+                        include $D3dir;
+                        if ($mytrustdirname == 'd3forum') {
+                            $dirname =  basename(dirname($D3dir));
+                            $d3ForumDirname[$dirname] = $dirname;
+                        }
+                    }
+                    if (count($d3ForumDirname) > 1) {
+                        $modversion['config'][] = array(
+                        	'name'			=> 'NB_D3comment_dirname' ,
+                        	'title'			=> 'NBFRAME_D3COM_DIRNAME' ,
+                        	'description'	=> '' ,
+                        	'formtype'		=> 'select' ,
+                        	'valuetype'		=> 'text' ,
+                        	'default'		=> '' ,
+                        	'options'		=> $d3ForumDirname
+                        ) ;
+
+                        $modversion['config'][] = array(
+                        	'name'			=> 'NB_D3comment_forum_id' ,
+                        	'title'			=> 'NBFRAME_D3COM_FORUM_ID' ,
+                        	'description'	=> '' ,
+                        	'formtype'		=> 'textbox' ,
+                        	'valuetype'		=> 'int' ,
+                        	'default'		=> '0' ,
+                        	'options'		=> array()
+                        );
+
+                        $modversion['config'][] = array(
+                        	'name'			=> 'NB_D3comment_view' ,
+                        	'title'			=> 'NBFRAME_D3COM_VIEW' ,
+                        	'description'	=> '' ,
+                        	'formtype'		=> 'select' ,
+                        	'valuetype'		=> 'text' ,
+                        	'default'		=> 'listposts_flat' ,
+                        	'options'		=> array( '_FLAT' => 'listposts_flat' , '_THREADED' => 'listtopics' )
+                        ) ;
+                    }
+                }
+            }
+
             if (!empty($modversion['hasSearch'])){
                 if (isset($modversion['search']['class'])) {
                     if (isset($modversion['search']['func'])) {

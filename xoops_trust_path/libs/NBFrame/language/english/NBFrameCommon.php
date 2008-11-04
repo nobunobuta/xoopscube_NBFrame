@@ -52,4 +52,10 @@
    $GLOBALS['NBFrameLanguage']['block show permission'] = 'Blosk Showing Permission';
    $GLOBALS['NBFrameLanguage']['Module Dependent Permission'] = 'Module Dependent Permission';
    $GLOBALS['NBFrameLanguage']['Block Showing Permission'] = 'Block Showing Permission';
+
+   if (!defined('NBFRAME_D3COM_DIRNAME')) define('NBFRAME_D3COM_DIRNAME',  'Comment-integration: dirname of d3forum');
+   if (!defined('NBFRAME_D3COM_FORUM_ID')) define('NBFRAME_D3COM_FORUM_ID', 'Comment-integration: forum ID');
+   if (!defined('NBFRAME_D3COM_VIEW')) define('NBFRAME_D3COM_VIEW', 'View of Comment-integration');
+   if (!defined('NBFRAME_D3COM_NOT_USE')) define('NBFRAME_D3COM_NOT_USE', 'Do not use d3forum comment integration');
+
 ?>

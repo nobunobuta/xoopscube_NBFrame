@@ -66,4 +66,8 @@
    $GLOBALS['NBFrameLanguage']['Invalid Email address format.'] = 'メールアドレスの形式が不正です';
    $GLOBALS['NBFrameLanguage']['Invalid value[%s].'] = '不正な値です[%s]';
 
+   if (!defined('NBFRAME_D3COM_DIRNAME')) define('NBFRAME_D3COM_DIRNAME', 'コメント統合するd3forumのdirname');
+   if (!defined('NBFRAME_D3COM_FORUM_ID')) define('NBFRAME_D3COM_FORUM_ID', 'コメント統合するフォーラムの番号');
+   if (!defined('NBFRAME_D3COM_VIEW')) define('NBFRAME_D3COM_VIEW', 'コメント統合の表示方法');
+   if (!defined('NBFRAME_D3COM_NOT_USE')) define('NBFRAME_D3COM_NOT_USE', 'コメント統合を使用しない');
 ?>
