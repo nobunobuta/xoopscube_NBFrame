@@ -130,9 +130,9 @@ if (!class_exists('NBFrameRequest')) {
                             break;
                         case 'array-datetime':
                             if (is_array($paraValue)) {
-                                if(isset($paraValue['date']) && isset($paraValue['time'])) {
+                                if(isset($paraValue['date']) && isset($paraValue['hour']) && isset($paraValue['minute'])) {
                                     $tmp=explode('-',$paraValue['date']);
-                                    $paraValue = mktime(0,0,0,$tmp[1],$tmp[2],$tmp[0])+$paraValue['time'];
+                                    $paraValue = mktime(0,0,0,$tmp[1],intval($tmp[2]),intval($tmp[0]))+intval($paraValue['hour'])+intval($paraValue['minute']);
                                     $paraValue = NBFrame::convLocalToServerTime($paraValue);
                                 } else {
                                     $paraValue = 0;

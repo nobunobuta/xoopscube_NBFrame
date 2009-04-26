@@ -8,6 +8,7 @@
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
  *
  */
+   setlocale(LC_ALL, 'ja_JP');
    $GLOBALS['NBFrameLanguage']['Edit'] = '修正';
    $GLOBALS['NBFrameLanguage']['New'] = '新規作成';
    $GLOBALS['NBFrameLanguage']['List'] = '一覧';
