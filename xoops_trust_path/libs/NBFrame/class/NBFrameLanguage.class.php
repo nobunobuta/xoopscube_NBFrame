@@ -2,13 +2,15 @@
 /**
  *
  * @package NBFrame
- * @version $Id$
+ * @version $Id: NBFrameLanguage.class.php 1397 2008-03-13 15:12:32Z nobunobu $
  * @copyright Copyright 2007 NobuNobuXOOPS Project <http://sourceforge.net/projects/nobunobuxoops/>
  * @author NobuNobu <nobunobu@nobunobu.com>
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
  *
  */
 if (!class_exists('NBFrameLanguage')) {
+    class NBFrameLanguageAdapter {
+    }
     class NBFrameLanguage
     {
         var $mDirName;
@@ -18,6 +20,7 @@ if (!class_exists('NBFrameLanguage')) {
         var $mSalt ;
         var $mCachePath ;
         var $mMyLangPath;
+        var $mAltLanguage='';
 
         function NBFrameLanguage(&$environment) {
             if (!empty($environment)) {
@@ -35,6 +38,14 @@ if (!class_exists('NBFrameLanguage')) {
                     $this->mMyLangPath = XOOPS_ROOT_PATH.'/my_language' ;
                 }
                 $this->mOrigDirName = $this->mEnvironment->getOrigDirName();
+                                    
+                if (defined('NBFRAME_BASE_DIR') && file_exists(NBFRAME_BASE_DIR.'/language/'.$GLOBALS['xoopsConfig']['language'].'.conv.php')) {
+                    require_once NBFRAME_BASE_DIR.'/language/'.$GLOBALS['xoopsConfig']['language'].'.conv.php';
+                    $adapterClassName = 'NBFrame_'.$GLOBALS['xoopsConfig']['language'].'_LanguageAdapter';
+                    if (class_exists($adapterClassName)) {
+                        $this->mAltLanguage = call_user_func(array($adapterClassName,'altLang'));
+                    }
+                }
 
                 switch ($environment->getTarget()) {
                     case NBFRAME_TARGET_MAIN:
@@ -54,6 +65,8 @@ if (!class_exists('NBFrameLanguage')) {
             }
             if (defined('NBFRAME_BASE_DIR') && file_exists(NBFRAME_BASE_DIR.'/language/'.$GLOBALS['xoopsConfig']['language'].'/NBFrameCommon.php')) {
                 require NBFRAME_BASE_DIR.'/language/'.$GLOBALS['xoopsConfig']['language'].'/NBFrameCommon.php';
+            } else if (!empty($this->mAltLanguage) && file_exists(NBFRAME_BASE_DIR.'/language/'.$this->mAltLanguage.'/NBFrameCommon.php')) {
+                require NBFRAME_BASE_DIR.'/language/'.$this->mAltLanguage.'/NBFrameCommon.php';
             }
         }
 
@@ -76,6 +89,13 @@ if (!class_exists('NBFrameLanguage')) {
                 require_once $myLangFile ;
                 $originalErrorLevel = error_reporting() ;
                 error_reporting( $originalErrorLevel & ~ E_NOTICE ) ;
+            } else if (!empty($this->mAltLanguage)) {
+                $myLangFile = $this->mMyLangPath.'/modules/'.$this->mDirName.'/'.$this->mAltLanguage.'/'.$filename;
+                if (file_exists($myLangFile)) {
+                    require_once $myLangFile ;
+                    $originalErrorLevel = error_reporting() ;
+                    error_reporting( $originalErrorLevel & ~ E_NOTICE ) ;
+                }
             }
             
             if (file_exists($cacheFile)) {

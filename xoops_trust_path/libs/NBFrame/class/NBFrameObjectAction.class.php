@@ -2,7 +2,7 @@
 /**
  *
  * @package NBFrame
- * @version $Id$
+ * @version $Id: NBFrameObjectAction.class.php 1391 2008-03-11 07:17:10Z nobunobu $
  * @copyright Copyright 2007 NobuNobuXOOPS Project <http://sourceforge.net/projects/nobunobuxoops/>
  * @author NobuNobu <nobunobu@nobunobu.com>
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
@@ -99,6 +99,10 @@ if (!class_exists('NBFrameObjectAction')) {
         var $mListNaviExtra = array();
         
         var $mConfirmParam = array();
+        
+        function NBFrameObjectAction(&$environment) {
+            parent::NBFrameAction($environment);
+        }
         
         function prepare($classprefix, $name, $caption) {
             parent::prepare();

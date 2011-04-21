@@ -2,7 +2,7 @@
 /**
  *
  * @package NBFrame
- * @version $Id$
+ * @version $Id: NBFrameObjectHandler.class.php 1372 2008-03-03 14:24:00Z nobunobu $
  * @copyright Copyright 2007 NobuNobuXOOPS Project <http://sourceforge.net/projects/nobunobuxoops/>
  * @author NobuNobu <nobunobu@nobunobu.com>
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
@@ -887,7 +887,14 @@ if (!class_exists('NBFrameObjectHandler')) {
                     }
                     if ($name != null) {
                         if (isset($obj->vars[$name])) {
-                            $type = $obj->vars[$name]['data_type'];
+                            if (is_array($value) && array_key_exists('type',$value) && ($value['type']==XOBJ_DTYPE_FIELD)) {
+                                $type = $value['type'];
+                            } else {
+                                $type = $obj->vars[$name]['data_type'];
+                            }
+                            if (is_array($value) && array_key_exists('value',$value)) {
+                                $value = $value['value'];
+                            }
                             if ($this->getAlias() != '') {
                                 if (!preg_match('/.+\..+/',$name)) {
                                     $name = $this->getAlias().'.'.$name;
@@ -947,6 +954,9 @@ if (!class_exists('NBFrameObjectHandler')) {
                 case XOBJ_DTYPE_OTHER:
                 case XOBJ_DTYPE_CUSTOM:
                     $value = $this->db->quoteString($value);
+                    break;
+                case XOBJ_DTYPE_FIELD:
+                    $value = '`'.addslashes($value).'`';
                     break;
                 default:
             }
@@ -1091,6 +1101,11 @@ if (!function_exists('strNBCriteriaVal')) {
 if (!function_exists('floatNBCriteriaVal')) {
     function floatNBCriteriaVal($value) {
         return array('value'=>$value, 'type'=>XOBJ_DTYPE_FLOAT, 0);
+    }
+}
+if (!function_exists('fieldNBCriteriaVal')) {
+    function fieldNBCriteriaVal($value) {
+        return array('value'=>$value, 'type'=>XOBJ_DTYPE_FIELD, 0);
     }
 }
 ?>

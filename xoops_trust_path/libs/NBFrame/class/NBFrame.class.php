@@ -2,7 +2,7 @@
 /**
  *
  * @package NBFrame
- * @version $Id$
+ * @version $Id: NBFrame.class.php 1402 2008-03-18 13:37:22Z nobunobu $
  * @copyright Copyright 2007 NobuNobuXOOPS Project <http://sourceforge.net/projects/nobunobuxoops/>
  * @author NobuNobu <nobunobu@nobunobu.com>
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
@@ -349,12 +349,42 @@ if (!class_exists('NBFrame')) {
             return $localTZ;
         }
         
+        function setPHPLocalTimeZone() {
+            if (function_exists('date_default_timezone_set')) {
+                if (NBFrame::getLocalTimeZone()>0) {
+                  $TZStr = 'Etc/GMT-'.abs(NBFrame::getLocalTimeZone());
+                } else {
+                  $TZStr = 'Etc/GMT+'.abs(NBFrame::getLocalTimeZone());
+                }
+                date_default_timezone_set($TZStr);
+            }
+        }
+        
+        function setPHPServerTimeZone() {
+            if (function_exists('date_default_timezone_set')) {
+                if ($GLOBALS['xoopsConfig']['server_TZ']>0) {
+                  $TZStr = 'Etc/GMT-'.abs($GLOBALS['xoopsConfig']['server_TZ']);
+                } else {
+                  $TZStr = 'Etc/GMT+'.abs($GLOBALS['xoopsConfig']['server_TZ']);
+                }
+                date_default_timezone_set($TZStr);
+            }
+        }
+
         function convLocalToServerTime($timestamp) {
+            NBFrame::setPHPServerTimeZone();
             $timestamp -= (NBFrame::getLocalTimeZone() -  $GLOBALS['xoopsConfig']['server_TZ'])*3600;
             return $timestamp;
         }
 
+        function convGmtToServerTime($timestamp) {
+            NBFrame::setPHPServerTimeZone();
+            $timestamp += $GLOBALS['xoopsConfig']['server_TZ']*3600;
+            return $timestamp;
+        }
+
         function convServerToLocalTime($timestamp) {
+            NBFrame::setPHPServerTimeZone();
             $timestamp += (NBFrame::getLocalTimeZone() -  $GLOBALS['xoopsConfig']['server_TZ'])*3600;
             return $timestamp;
         }

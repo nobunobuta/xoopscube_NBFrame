@@ -2,7 +2,7 @@
 /**
  *
  * @package NBFrame
- * @version $Id$
+ * @version $Id: NBFrameRequest.class.php 1366 2008-03-03 14:16:16Z nobunobu $
  * @copyright Copyright 2007 NobuNobuXOOPS Project <http://sourceforge.net/projects/nobunobuxoops/>
  * @author NobuNobu <nobunobu@nobunobu.com>
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
@@ -132,6 +132,7 @@ if (!class_exists('NBFrameRequest')) {
                             if (is_array($paraValue)) {
                                 if(isset($paraValue['date']) && isset($paraValue['hour']) && isset($paraValue['minute'])) {
                                     $tmp=explode('-',$paraValue['date']);
+                                    NBFrame::setPHPServerTimeZone();
                                     $paraValue = mktime(0,0,0,$tmp[1],intval($tmp[2]),intval($tmp[0]))+intval($paraValue['hour'])+intval($paraValue['minute']);
                                     $paraValue = NBFrame::convLocalToServerTime($paraValue);
                                 } else {

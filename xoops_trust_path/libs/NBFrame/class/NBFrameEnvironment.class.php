@@ -2,7 +2,7 @@
 /**
  *
  * @package NBFrame
- * @version $Id$
+ * @version $Id: NBFrameEnvironment.class.php 1387 2008-03-11 07:15:27Z nobunobu $
  * @copyright Copyright 2007 NobuNobuXOOPS Project <http://sourceforge.net/projects/nobunobuxoops/>
  * @author NobuNobu <nobunobu@nobunobu.com>
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
@@ -281,7 +281,15 @@ if (!class_exists('NBFrameEnvironment')) {
                 $str = $this->getUrlBase(true).'/';
             }
             $suffix = '.'.$ext;
-            if ($this->getAttribute('StaticUrlMode')) {
+            $canUseStaticUrl = true;
+            if (class_exists('Wizin_User')) {
+                $user =& Wizin_User::getSingleton();
+                if ($user->bIsMobile) {
+                    $canUseStaticUrl = false;
+                }
+            }
+
+            if ($this->getAttribute('StaticUrlMode')&& $canUseStaticUrl) {
                 $delim = '';
                 if (!empty($actionName)) {
                     $className = $actionName.'Action';
@@ -464,13 +472,21 @@ if (!class_exists('NBFrameEnvironment')) {
             if (!empty($offset)) {
                 $offset = preg_replace('/^(\/)?(.*)(\/)?$/','\\2/',trim($offset));
             }
+            if ($offset=='/') $offset = '';
+            
             $fileName = '';
             if (!empty($customPrefix)) {
                 if ($customPrefix == '=') $customPrefix = '';
             } else {
                 $customPrefix = $this->prefix('');
             }
-            if ($customPrefix != '+' && $this->isD3() && file_exists($this->getDirBase().'/'.$offset.$customPrefix.$name)){
+            $hostName = preg_replace('!(^https?\://[^/]+).*$!','\\1',XOOPS_URL);
+
+            if ((($offset == 'contents/')||($offset == 'images/')) && file_exists(XOOPS_ROOT_PATH.'/wrap/'.$this->mDirName.'/'.$offset.$name)) {
+                $fileName = XOOPS_ROOT_PATH.'/wrap/'.$this->mDirName.'/'.$offset.$name;
+            } else if ($this->isD3() && (($offset == 'contents/')||($offset == 'images/')) && file_exists(XOOPS_TRUST_PATH.'/wrap/'.$this->mDirName.'/'.$offset.$name)) {
+                $fileName = XOOPS_TRUST_PATH.'/wrap/'.$this->mDirName.'/'.$offset.$name;
+            } else if ($customPrefix != '+' && $this->isD3() && file_exists($this->getDirBase().'/'.$offset.$customPrefix.$name)){
                 $fileName = $this->getDirBase().'/'.$offset.$customPrefix.$name;
             } else if (empty($fileName) && file_exists($this->getOrigDirBase().'/'.$offset.$name)){
                 $fileName = $this->getOrigDirBase().'/'.$offset.$name;

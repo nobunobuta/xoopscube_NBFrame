@@ -2,7 +2,7 @@
 /**
  *
  * @package NBFrame
- * @version $Id$
+ * @version $Id: NBFrameTableDefAction.class.php 1263 2008-01-21 01:38:55Z nobunobu $
  * @copyright Copyright 2007 NobuNobuXOOPS Project <http://sourceforge.net/projects/nobunobuxoops/>
  * @author NobuNobu <nobunobu@nobunobu.com>
  * @license http://www.gnu.org/licenses/gpl.txt GNU GENERAL PUBLIC LICENSE Version 2
@@ -119,7 +119,7 @@ if (!class_exists('NBFrameTableDefAction')) {
                 }
                 echo "\n".'        )';
             }
-            if ($userSysField) {
+            if ($useSysField) {
                 echo ','."\n".'        \'usesys\' => true';
             }
             echo "\n".'    );'."\n";

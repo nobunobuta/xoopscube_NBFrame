@@ -36,7 +36,8 @@ class NBFrameFormDatetime extends XoopsFormElementTray
 
     function setValue($value=0) {
         $value = ((intval($value)) > 0) ? intval($value) : time();
-        $datetime = getdate(NBFrame::convServerToLocalTime($value));
+        $value = NBFrame::convServerToLocalTime($value);
+        $datetime = getdate($value);
         $hourvalue = $datetime['hours'] * 3600;
         $minutevalue = 300 * (ceil($datetime['minutes'] / 5));
 
